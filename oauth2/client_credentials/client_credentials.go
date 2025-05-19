@@ -83,8 +83,13 @@ func WithKindeManagementAPI(kindeDomain string) func(*ClientCredentialsFlow) {
 
 		host = strings.TrimSuffix(host, ".kinde.com")
 
-		managementApiaudience := fmt.Sprintf("https://%v.kinde.com/api", host)
-		WithAuthParameter("audience", managementApiaudience)(s)
+		managementApiAudience := fmt.Sprintf("https://%v.kinde.com/api", host)
+		WithAuthParameter("audience", managementApiAudience)(s)
+		WithAudience(managementApiAudience)(s)
+		WithTokenValidation(
+			true,
+			jwt.WillValidateAlgorythm(),
+		)(s)
 	}
 }
 

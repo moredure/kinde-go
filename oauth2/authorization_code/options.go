@@ -65,26 +65,19 @@ func (flow *AuthorizationCodeFlow) AuthorizationCodeReceived(w http.ResponseWrit
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		parsedToken, err := jwt.ParseOAuth2Token(token, flow.tokenOptions...)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		if parsedToken.IsValid() {
 			stringToken, err := parsedToken.AsString()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			flow.sessionHooks.SetToken(stringToken)
+			flow.sessionHooks.SetToken(RawToken, stringToken)
 		}
 	}
 }
-
-// // Checks if the user is authenticated.
-// func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
-// 	accessToken := flow.sessionHooks.GetToken()
-// 	parsedToken, err := jwt.ParseFromString(accessToken, flow.tokenOptions...)
-// 	if err != nil {
-// 		return false
-
-// 	}
-// 	return parsedToken.IsValid()
-// }
 
 // Returns the URL to redirect the user to start authentication pipeline.
 func (flow *AuthorizationCodeFlow) GetAuthURL() string {

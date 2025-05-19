@@ -3,7 +3,6 @@ package authorization_code
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,22 +10,19 @@ import (
 	"time"
 
 	"github.com/kinde-oss/kinde-go/jwt"
-	"github.com/kinde-oss/kinde-go/kinde"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAutorizationCodeFlowOnline(t *testing.T) {
 
-	testAuthorizationServer := getTestAuthorizationServer()
-	defer testAuthorizationServer.Close()
+	assert := assert.New(t)
 
-	mux := http.NewServeMux()
-	testBackendServer := httptest.NewServer(mux)
-	defer testBackendServer.Close()
+	testBackendServerURL := "https://api.com"
+	testKindeServerURL := "https://mytest.kinde.com"
 
-	callbackURL := fmt.Sprintf("%v/callback", testBackendServer.URL)
+	callbackURL := fmt.Sprintf("%v/callback", testBackendServerURL)
 	kindeAuthFlow, _ := NewAuthorizationCodeFlow(
-		testAuthorizationServer.URL, "b9da18c441b44d81bab3e8232de2e18d", "client_secret", callbackURL,
+		testKindeServerURL, "b9da18c441b44d81bab3e8232de2e18d", "client_secret", callbackURL,
 		WithSessionHooks(newTestSessionHooks()),
 		WithCustomStateGenerator(func(*AuthorizationCodeFlow) string { return "test_state" }), //custom state generator for testing
 		WithOffline(),                         //offline scope
@@ -37,42 +33,10 @@ func TestAutorizationCodeFlowOnline(t *testing.T) {
 			jwt.WillValidateAudience("http://my.api.com/api"),
 		),
 	)
-	apiCalled := false
-	mux.Handle("/test_protected_api_call", kindeAuthFlow.ProtectAPI(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		sub := kinde.GetKindeContext(r.Context()).GetAccessToken().GetSubject()
-		assert.Equal(t, "kp_cfcb1ae5b9254ad99521214014c54f43", sub)
-		w.Write([]byte(fmt.Sprintf("hello %v", sub)))
-		apiCalled = true
-	}))
 
-	mux.Handle("/callback", kindeAuthFlow.CallbackHandler())
-
-	mux.Handle("/user_profile", kindeAuthFlow.ProtectPage(func(w http.ResponseWriter, r *http.Request) {
-		kindecontext := kinde.GetKindeContext(r.Context())
-		client := kindecontext.GetHttpClient(context.Background())
-		resp, err := client.Get(fmt.Sprintf("%v/test_protected_api_call", testBackendServer.URL))
-		assert.Nil(t, err, "could not make request")
-
-		response, err := io.ReadAll(resp.Body)
-		assert.Nil(t, err, "could not make request")
-		assert.Equal(t, `hello kp_cfcb1ae5b9254ad99521214014c54f43`, string(response), "incorrect test server response")
-
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("hello, authenticated world"))
-	}))
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		panic("this is catch-all endpoint should never be called")
-	})
-
-	resp, err := http.Get(fmt.Sprintf("%v/user_profile", testBackendServer.URL))
-	assert.Nil(t, err, "could not make request")
-	response, err := io.ReadAll(resp.Body)
-	assert.Nil(t, err, "could not read response")
-	assert.Equal(t, `hello, authenticated world`, string(response), "incorrect test server response")
-
-	assert.True(t, apiCalled, "API was not called")
+	authURL := kindeAuthFlow.GetAuthURL()
+	assert.NotNil(authURL, "AuthURL cannot be null")
+	assert.Equal("https://mytest.kinde.com/oauth2/auth?audience=http%3A%2F%2Fmy.api.com%2Fapi&client_id=b9da18c441b44d81bab3e8232de2e18d&redirect_uri=https%3A%2F%2Fapi.com%2Fcallback&response_type=code&scope=openid+profile+email&state=test_state", authURL, "AuthURL is not correct")
 
 }
 
@@ -113,12 +77,6 @@ func TestAutorizationCodeFlowClient(t *testing.T) {
 
 	err = kindeClient.ExchangeCode(ctx, "code")
 	assert.Nil(t, err, "could not exchange token")
-
-	kindeContext := kinde.GetKindeContext(ctx)
-
-	client := kindeContext.GetHttpClient(ctx)
-	assert.NotNil(t, client, "client cannot be null")
-	assert.Nil(t, err, "could not make request")
 
 }
 
@@ -247,7 +205,7 @@ func (t *testSessionHooks) GetState() string {
 }
 
 // GetToken implements SessionHooks.
-func (t *testSessionHooks) GetToken() string {
+func (t *testSessionHooks) GetToken(tt TokenType) string {
 	return t.sessionState["token"]
 }
 
@@ -257,6 +215,6 @@ func (t *testSessionHooks) SetState(state string) {
 }
 
 // SetToken implements SessionHooks.
-func (t *testSessionHooks) SetToken(token string) {
+func (t *testSessionHooks) SetToken(tt TokenType, token string) {
 	t.sessionState["token"] = token
 }

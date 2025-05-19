@@ -72,7 +72,7 @@ func WillValidateAudience(expectedAudience string) func(*Token) {
 				return false, err
 			}
 			if !slices.Contains(aud, expectedAudience) {
-				return false, fmt.Errorf("audience not valid")
+				return false, fmt.Errorf("audience not valid %v", expectedAudience)
 			}
 			return true, nil
 		}
