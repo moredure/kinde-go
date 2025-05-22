@@ -29,6 +29,13 @@ func WithAudience(audience string) func(*AuthorizationCodeFlow) {
 	}
 }
 
+// Adds an audience to the list of audiences to request.
+func WithPrompt(prompt string) func(*AuthorizationCodeFlow) {
+	return func(s *AuthorizationCodeFlow) {
+		WithAuthParameter("prompt", prompt)(s)
+	}
+}
+
 // Adds the offline scope to the list of scopes to request.
 func WithOffline() func(*AuthorizationCodeFlow) {
 	return func(s *AuthorizationCodeFlow) {

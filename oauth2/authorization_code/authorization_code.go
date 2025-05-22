@@ -43,6 +43,25 @@ type (
 	}
 )
 
+func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
+	tokenSource := flow.config.TokenSource(context.Background(), &oauth2.Token{
+		AccessToken:  flow.sessionHooks.GetToken(AccessToken),
+		RefreshToken: flow.sessionHooks.GetToken(RefreshToken),
+	})
+	token, err := tokenSource.Token()
+	if err != nil {
+		return false
+	}
+	if token != nil {
+		parsedToken, err := flow.validateAndStoreToken(token)
+		if err != nil {
+			return false
+		}
+		return parsedToken.IsValid()
+	}
+	return false
+}
+
 // Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
 func NewAuthorizationCodeFlow(baseURL string, clientID string, clientSecret string, callbackURL string,
 	options ...func(*AuthorizationCodeFlow)) (*AuthorizationCodeFlow, error) {
@@ -96,16 +115,49 @@ func newAuthorizationCodeflow(baseURL string, clientID string, clientSecret stri
 }
 
 // Exchanges the authorization code for a token and established KindeContext
-func (flow *AuthorizationCodeFlow) ExchangeCode(ctx context.Context, authorizationCode string) error {
+func (flow *AuthorizationCodeFlow) ExchangeCode(ctx context.Context, authorizationCode string, receivedState string) error {
+	storedState := flow.sessionHooks.GetState()
+	if storedState == "" {
+		return fmt.Errorf("state not found in session")
+	}
+
+	if storedState != receivedState {
+		return fmt.Errorf("state mismatch: expected %s, got %s", storedState, receivedState)
+	}
+
 	token, err := flow.config.Exchange(ctx, authorizationCode)
 
 	if err != nil {
 		return err
 	}
 
-	flow.sessionHooks.SetToken(AccessToken, token.AccessToken)
+	_, err = flow.validateAndStoreToken(token)
+	return err
+}
 
-	return nil
+func (flow *AuthorizationCodeFlow) validateAndStoreToken(token *oauth2.Token) (*jwt.Token, error) {
+	jwtToken, err := jwt.ParseOAuth2Token(token, flow.tokenOptions...)
+	if err != nil {
+		return jwtToken, err
+	}
+
+	rawToken, err := jwtToken.AsString()
+	if err != nil {
+		return nil, err
+	}
+
+	flow.sessionHooks.SetToken(RawToken, rawToken)
+
+	if idToken, ok := jwtToken.GetIdToken(); ok {
+		flow.sessionHooks.SetToken(IDToken, idToken)
+	}
+	if accessToken, ok := jwtToken.GetAccessToken(); ok {
+		flow.sessionHooks.SetToken(AccessToken, accessToken)
+	}
+	if refreshToken, ok := jwtToken.GetRefreshToken(); ok {
+		flow.sessionHooks.SetToken(RefreshToken, refreshToken)
+	}
+	return jwtToken, nil
 }
 
 // Returns the client to make requests to the backend, will refreesh token if offline is requested.

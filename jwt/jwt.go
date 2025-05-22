@@ -103,6 +103,21 @@ func (j *Token) GetRawToken() *oauth2.Token {
 	return j.rawToken
 }
 
+func (j *Token) GetIdToken() (string, bool) {
+	if token, ok := j.rawToken.Extra("id_token").(string); ok {
+		return token, true
+	}
+	return "", false
+}
+
+func (j *Token) GetAccessToken() (string, bool) {
+	return j.rawToken.AccessToken, j.rawToken.AccessToken != ""
+}
+
+func (j *Token) GetRefreshToken() (string, bool) {
+	return j.rawToken.RefreshToken, j.rawToken.RefreshToken != ""
+}
+
 // GetRawToken returns the raw token.
 func (j *Token) AsString() (string, error) {
 	marshalledToken, err := json.Marshal(j.rawToken)
@@ -119,5 +134,5 @@ func (j *Token) IsValid() bool {
 
 func (j *Token) GetSubject() string {
 	subject, _ := j.processing.parsed.Claims.GetSubject()
-  return subject
+	return subject
 }
