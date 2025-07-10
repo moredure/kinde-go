@@ -2,7 +2,7 @@ module example
 
 go 1.23.1
 
-replace github.com/kinde-oss/kinde-go => ../../.
+// replace github.com/kinde-oss/kinde-go => ../../.
 
 // replace github.com/kinde-oss/kinde-go/frameworks/gin_kinde => ../../frameworks/gin_kinde
 
