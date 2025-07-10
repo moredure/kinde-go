@@ -65,10 +65,10 @@ func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
 // Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
 func NewAuthorizationCodeFlow(baseURL string, clientID string, clientSecret string, callbackURL string,
 	options ...func(*AuthorizationCodeFlow)) (*AuthorizationCodeFlow, error) {
-	return newAuthorizationCodeflow(baseURL, clientID, clientSecret, callbackURL, options...)
+	return newAuthorizationCodeFlow(baseURL, clientID, clientSecret, callbackURL, options...)
 }
 
-func newAuthorizationCodeflow(baseURL string, clientID string, clientSecret string, callbackURL string,
+func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret string, callbackURL string,
 	options ...func(*AuthorizationCodeFlow)) (*AuthorizationCodeFlow, error) {
 	asURL, err := url.Parse(baseURL)
 	if err != nil {
