@@ -1,6 +1,6 @@
 module github.com/kinde-oss/kinde-go
 
-go 1.23.0
+go 1.24.4
 
 require (
 	github.com/MicahParks/keyfunc/v3 v3.3.2
@@ -63,12 +63,12 @@ require (
 )
 
 require (
-	github.com/MicahParks/jwkset v0.5.17 // indirect
+	github.com/MicahParks/jwkset v0.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-contrib/sessions v1.0.3
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
