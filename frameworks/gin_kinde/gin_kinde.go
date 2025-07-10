@@ -15,7 +15,7 @@ type SessionStorage struct {
 
 // GetPostAuthRedirect implements authorization_code.SessionHooks.
 func (storage *SessionStorage) GetPostAuthRedirect() string {
-	panic("unimplemented")
+	return storage.session.Get("post_auth_redirect").(string)
 }
 
 // GetState implements authorization_code.SessionHooks.
@@ -33,7 +33,8 @@ func (storage *SessionStorage) GetToken(t authorization_code.TokenType) string {
 
 // SetPostAuthRedirect implements authorization_code.SessionHooks.
 func (storage *SessionStorage) SetPostAuthRedirect(redirect string) {
-	panic("unimplemented")
+	storage.session.Set("post_auth_redirect", redirect)
+	storage.session.Save()
 }
 
 // SetState implements authorization_code.SessionHooks.
@@ -112,7 +113,8 @@ func UseKindeAuth(router *gin.RouterGroup, kindeDomain, clientID, clientSecret, 
 			if kindeClient, ok := client.(*authorization_code.AuthorizationCodeFlow); ok {
 
 				if !kindeClient.IsAuthenticated() {
-					ctx.Redirect(302, kindeClient.GetAuthURL())
+					authURL := kindeClient.GetAuthURL()
+					ctx.Redirect(302, authURL)
 				}
 				return
 			}
