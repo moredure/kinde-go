@@ -1,8 +1,8 @@
 module example
 
-go 1.23.1
+go 1.24.4
 
-// replace github.com/kinde-oss/kinde-go => ../../.
+replace github.com/kinde-oss/kinde-go => ../../.
 
 // replace github.com/kinde-oss/kinde-go/frameworks/gin_kinde => ../../frameworks/gin_kinde
 
@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/MicahParks/jwkset v0.5.17 // indirect
+	github.com/MicahParks/jwkset v0.6.0 // indirect
 	github.com/MicahParks/keyfunc/v3 v3.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -24,7 +24,7 @@ require (
 	github.com/gorilla/sessions v1.4.0 // indirect
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
-	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/time v0.9.0 // indirect
 )
 
 require (
