@@ -88,6 +88,7 @@ func UseKindeAuth(router *gin.RouterGroup, kindeDomain, clientID, clientSecret, 
 		if err != nil {
 			fmt.Printf("Error creating Kinde client: %v", err)
 			ctx.String(500, "Error creating Kinde client")
+			ctx.Abort()
 			return
 		}
 
@@ -100,8 +101,10 @@ func UseKindeAuth(router *gin.RouterGroup, kindeDomain, clientID, clientSecret, 
 				err := kindeClient.ExchangeCode(context.Background(), ctx.Query("code"), ctx.Query("state"))
 				if err != nil {
 					ctx.AbortWithError(500, err)
+					return
 				}
 				ctx.Redirect(302, "/")
+				return
 			}
 		}
 		ctx.AbortWithError(500, fmt.Errorf("kinde client not found"))
