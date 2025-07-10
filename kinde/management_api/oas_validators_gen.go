@@ -1220,6 +1220,27 @@ func (s GetPermissionsSort) Validate() error {
 	}
 }
 
+func (s GetPortalLinkSubnav) Validate() error {
+	switch s {
+	case "profile":
+		return nil
+	case "organization_details":
+		return nil
+	case "organization_payment_details":
+		return nil
+	case "organization_plan_selection":
+		return nil
+	case "payment_details":
+		return nil
+	case "plan_details":
+		return nil
+	case "plan_selection":
+		return nil
+	default:
+		return errors.Errorf("invalid value: %v", s)
+	}
+}
+
 func (s GetPropertiesContext) Validate() error {
 	switch s {
 	case "usr":

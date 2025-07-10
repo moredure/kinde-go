@@ -6467,6 +6467,155 @@ func decodeGetConnectionsParams(args [0]string, argsEscaped bool, r *http.Reques
 	return params, nil
 }
 
+// GetEntitlementParams is parameters of GetEntitlement operation.
+type GetEntitlementParams struct {
+	// The key of the feature.
+	Key string
+}
+
+func unpackGetEntitlementParams(packed middleware.Parameters) (params GetEntitlementParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "key",
+			In:   "path",
+		}
+		params.Key = packed[key].(string)
+	}
+	return params
+}
+
+func decodeGetEntitlementParams(args [0]string, argsEscaped bool, r *http.Request) (params GetEntitlementParams, _ error) {
+	// Decode path: key.
+	if err := func() error {
+		// Not used.
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "key",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetEntitlementsParams is parameters of GetEntitlements operation.
+type GetEntitlementsParams struct {
+	// Number of results per page. Defaults to 10 if parameter not sent.
+	PageSize OptNilInt
+	// The ID of the entitlement to start after.
+	StartingAfter OptNilString
+}
+
+func unpackGetEntitlementsParams(packed middleware.Parameters) (params GetEntitlementsParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "page_size",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.PageSize = v.(OptNilInt)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "starting_after",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.StartingAfter = v.(OptNilString)
+		}
+	}
+	return params
+}
+
+func decodeGetEntitlementsParams(args [0]string, argsEscaped bool, r *http.Request) (params GetEntitlementsParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: page_size.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "page_size",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotPageSizeVal int
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotPageSizeVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.PageSize.SetTo(paramsDotPageSizeVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "page_size",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: starting_after.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "starting_after",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotStartingAfterVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotStartingAfterVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.StartingAfter.SetTo(paramsDotStartingAfterVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "starting_after",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // GetEnvironmentVariableParams is parameters of getEnvironmentVariable operation.
 type GetEnvironmentVariableParams struct {
 	// The environment variable's ID.
@@ -6593,6 +6742,123 @@ func decodeGetEventParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 		return params, &ogenerrors.DecodeParamError{
 			Name: "event_id",
 			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetFeatureFlagsParams is parameters of GetFeatureFlags operation.
+type GetFeatureFlagsParams struct {
+	// Number of results per page. Defaults to 10 if parameter not sent.
+	PageSize OptNilInt
+	// The ID of the flag to start after.
+	StartingAfter OptNilString
+}
+
+func unpackGetFeatureFlagsParams(packed middleware.Parameters) (params GetFeatureFlagsParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "page_size",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.PageSize = v.(OptNilInt)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "starting_after",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.StartingAfter = v.(OptNilString)
+		}
+	}
+	return params
+}
+
+func decodeGetFeatureFlagsParams(args [0]string, argsEscaped bool, r *http.Request) (params GetFeatureFlagsParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: page_size.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "page_size",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotPageSizeVal int
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotPageSizeVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.PageSize.SetTo(paramsDotPageSizeVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "page_size",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: starting_after.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "starting_after",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotStartingAfterVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotStartingAfterVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.StartingAfter.SetTo(paramsDotStartingAfterVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "starting_after",
+			In:   "query",
 			Err:  err,
 		}
 	}
@@ -8117,6 +8383,138 @@ func decodeGetPermissionsParams(args [0]string, argsEscaped bool, r *http.Reques
 	return params, nil
 }
 
+// GetPortalLinkParams is parameters of GetPortalLink operation.
+type GetPortalLinkParams struct {
+	// The area of the portal you want the user to land on.
+	Subnav OptNilGetPortalLinkSubnav
+	// The URL to redirect the user to after they have completed their actions in the portal.
+	ReturnURL OptNilString
+}
+
+func unpackGetPortalLinkParams(packed middleware.Parameters) (params GetPortalLinkParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "subnav",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.Subnav = v.(OptNilGetPortalLinkSubnav)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "return_url",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.ReturnURL = v.(OptNilString)
+		}
+	}
+	return params
+}
+
+func decodeGetPortalLinkParams(args [0]string, argsEscaped bool, r *http.Request) (params GetPortalLinkParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: subnav.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "subnav",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotSubnavVal GetPortalLinkSubnav
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotSubnavVal = GetPortalLinkSubnav(c)
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.Subnav.SetTo(paramsDotSubnavVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+			if err := func() error {
+				if value, ok := params.Subnav.Get(); ok {
+					if err := func() error {
+						if err := value.Validate(); err != nil {
+							return err
+						}
+						return nil
+					}(); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "subnav",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: return_url.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "return_url",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotReturnURLVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotReturnURLVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.ReturnURL.SetTo(paramsDotReturnURLVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "return_url",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // GetPropertiesParams is parameters of GetProperties operation.
 type GetPropertiesParams struct {
 	// Number of results per page. Defaults to 10 if parameter not sent.
@@ -9438,6 +9836,240 @@ func decodeGetUserIdentitiesParams(args [1]string, argsEscaped bool, r *http.Req
 	return params, nil
 }
 
+// GetUserPermissionsParams is parameters of GetUserPermissions operation.
+type GetUserPermissionsParams struct {
+	// Number of results per page. Defaults to 10 if parameter not sent.
+	PageSize OptNilInt
+	// The ID of the permission to start after.
+	StartingAfter OptNilString
+}
+
+func unpackGetUserPermissionsParams(packed middleware.Parameters) (params GetUserPermissionsParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "page_size",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.PageSize = v.(OptNilInt)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "starting_after",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.StartingAfter = v.(OptNilString)
+		}
+	}
+	return params
+}
+
+func decodeGetUserPermissionsParams(args [0]string, argsEscaped bool, r *http.Request) (params GetUserPermissionsParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: page_size.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "page_size",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotPageSizeVal int
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotPageSizeVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.PageSize.SetTo(paramsDotPageSizeVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "page_size",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: starting_after.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "starting_after",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotStartingAfterVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotStartingAfterVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.StartingAfter.SetTo(paramsDotStartingAfterVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "starting_after",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetUserPropertiesParams is parameters of GetUserProperties operation.
+type GetUserPropertiesParams struct {
+	// Number of results per page. Defaults to 10 if parameter not sent.
+	PageSize OptNilInt
+	// The ID of the property to start after.
+	StartingAfter OptNilString
+}
+
+func unpackGetUserPropertiesParams(packed middleware.Parameters) (params GetUserPropertiesParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "page_size",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.PageSize = v.(OptNilInt)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "starting_after",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.StartingAfter = v.(OptNilString)
+		}
+	}
+	return params
+}
+
+func decodeGetUserPropertiesParams(args [0]string, argsEscaped bool, r *http.Request) (params GetUserPropertiesParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: page_size.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "page_size",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotPageSizeVal int
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotPageSizeVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.PageSize.SetTo(paramsDotPageSizeVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "page_size",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: starting_after.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "starting_after",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotStartingAfterVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotStartingAfterVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.StartingAfter.SetTo(paramsDotStartingAfterVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "starting_after",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // GetUserPropertyValuesParams is parameters of GetUserPropertyValues operation.
 type GetUserPropertyValuesParams struct {
 	// The user's ID.
@@ -9498,6 +10130,123 @@ func decodeGetUserPropertyValuesParams(args [1]string, argsEscaped bool, r *http
 		return params, &ogenerrors.DecodeParamError{
 			Name: "user_id",
 			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetUserRolesParams is parameters of GetUserRoles operation.
+type GetUserRolesParams struct {
+	// Number of results per page. Defaults to 10 if parameter not sent.
+	PageSize OptNilInt
+	// The ID of the role to start after.
+	StartingAfter OptNilString
+}
+
+func unpackGetUserRolesParams(packed middleware.Parameters) (params GetUserRolesParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "page_size",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.PageSize = v.(OptNilInt)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "starting_after",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.StartingAfter = v.(OptNilString)
+		}
+	}
+	return params
+}
+
+func decodeGetUserRolesParams(args [0]string, argsEscaped bool, r *http.Request) (params GetUserRolesParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: page_size.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "page_size",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotPageSizeVal int
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotPageSizeVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.PageSize.SetTo(paramsDotPageSizeVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "page_size",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: starting_after.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "starting_after",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotStartingAfterVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotStartingAfterVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.StartingAfter.SetTo(paramsDotStartingAfterVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "starting_after",
+			In:   "query",
 			Err:  err,
 		}
 	}
@@ -9582,6 +10331,8 @@ type GetUsersParams struct {
 	Email OptNilString
 	// Filter the results by username. The query string should be comma separated and url encoded.
 	Username OptNilString
+	// Filter the results by phone. The query string should be comma separated and url encoded.
+	Phone OptNilString
 	// Specify additional data to retrieve. Use "organizations" and/or "identities".
 	Expand OptNilString
 	// Filter the results by if the user has at least one organization assigned.
@@ -9632,6 +10383,15 @@ func unpackGetUsersParams(packed middleware.Parameters) (params GetUsersParams) 
 		}
 		if v, ok := packed[key]; ok {
 			params.Username = v.(OptNilString)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "phone",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.Phone = v.(OptNilString)
 		}
 	}
 	{
@@ -9858,6 +10618,47 @@ func decodeGetUsersParams(args [0]string, argsEscaped bool, r *http.Request) (pa
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
 			Name: "username",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: phone.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "phone",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotPhoneVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotPhoneVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.Phone.SetTo(paramsDotPhoneVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "phone",
 			In:   "query",
 			Err:  err,
 		}

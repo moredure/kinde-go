@@ -15,9 +15,7 @@ import (
 // SecurityHandler is handler for security parameters.
 type SecurityHandler interface {
 	// HandleKindeBearerAuth handles kindeBearerAuth security.
-	// Accessing the API requires obtaining an access token when login in through Kinde. However,
-	// management functions (for e.g. user management) requires an access token obtained using the
-	// client_credentials flow.
+	// Requires an access token obtained using the client_credentials flow.
 	HandleKindeBearerAuth(ctx context.Context, operationName OperationName, t KindeBearerAuth) (context.Context, error)
 }
 
@@ -55,9 +53,7 @@ func (s *Server) securityKindeBearerAuth(ctx context.Context, operationName Oper
 // SecuritySource is provider of security values (tokens, passwords, etc.).
 type SecuritySource interface {
 	// KindeBearerAuth provides kindeBearerAuth security value.
-	// Accessing the API requires obtaining an access token when login in through Kinde. However,
-	// management functions (for e.g. user management) requires an access token obtained using the
-	// client_credentials flow.
+	// Requires an access token obtained using the client_credentials flow.
 	KindeBearerAuth(ctx context.Context, operationName OperationName) (KindeBearerAuth, error)
 }
 

@@ -4029,6 +4029,70 @@ func encodeGetConnectionsResponse(response GetConnectionsRes, w http.ResponseWri
 	}
 }
 
+func encodeGetEntitlementResponse(response GetEntitlementRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *GetEntitlementResponse:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *GetEntitlementForbidden:
+		w.WriteHeader(403)
+		span.SetStatus(codes.Error, http.StatusText(403))
+
+		return nil
+
+	case *GetEntitlementTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
+}
+
+func encodeGetEntitlementsResponse(response GetEntitlementsRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *GetEntitlementsResponse:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *GetEntitlementsForbidden:
+		w.WriteHeader(403)
+		span.SetStatus(codes.Error, http.StatusText(403))
+
+		return nil
+
+	case *GetEntitlementsTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
+}
+
 func encodeGetEnvironementFeatureFlagsResponse(response GetEnvironementFeatureFlagsRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *GetEnvironmentFeatureFlagsResponse:
@@ -4345,6 +4409,38 @@ func encodeGetEventTypesResponse(response GetEventTypesRes, w http.ResponseWrite
 		return nil
 
 	case *GetEventTypesTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
+}
+
+func encodeGetFeatureFlagsResponse(response GetFeatureFlagsRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *GetFeatureFlagsResponse:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *GetFeatureFlagsForbidden:
+		w.WriteHeader(403)
+		span.SetStatus(codes.Error, http.StatusText(403))
+
+		return nil
+
+	case *GetFeatureFlagsTooManyRequests:
 		w.WriteHeader(429)
 		span.SetStatus(codes.Error, http.StatusText(429))
 
@@ -5026,6 +5122,38 @@ func encodeGetPermissionsResponse(response GetPermissionsRes, w http.ResponseWri
 	}
 }
 
+func encodeGetPortalLinkResponse(response GetPortalLinkRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *PortalLink:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *GetPortalLinkForbidden:
+		w.WriteHeader(403)
+		span.SetStatus(codes.Error, http.StatusText(403))
+
+		return nil
+
+	case *GetPortalLinkTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
+}
+
 func encodeGetPropertiesResponse(response GetPropertiesRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *GetPropertiesResponse:
@@ -5540,6 +5668,38 @@ func encodeGetUserIdentitiesResponse(response GetUserIdentitiesRes, w http.Respo
 	}
 }
 
+func encodeGetUserPermissionsResponse(response GetUserPermissionsRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *GetUserPermissionsResponse:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *GetUserPermissionsForbidden:
+		w.WriteHeader(403)
+		span.SetStatus(codes.Error, http.StatusText(403))
+
+		return nil
+
+	case *GetUserPermissionsTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
+}
+
 func encodeGetUserProfileV2Response(response GetUserProfileV2Res, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *UserProfileV2:
@@ -5562,6 +5722,38 @@ func encodeGetUserProfileV2Response(response GetUserProfileV2Res, w http.Respons
 		return nil
 
 	case *GetUserProfileV2TooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
+}
+
+func encodeGetUserPropertiesResponse(response GetUserPropertiesRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *GetUserPropertiesResponse:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *GetUserPropertiesForbidden:
+		w.WriteHeader(403)
+		span.SetStatus(codes.Error, http.StatusText(403))
+
+		return nil
+
+	case *GetUserPropertiesTooManyRequests:
 		w.WriteHeader(429)
 		span.SetStatus(codes.Error, http.StatusText(429))
 
@@ -5607,6 +5799,38 @@ func encodeGetUserPropertyValuesResponse(response GetUserPropertyValuesRes, w ht
 		return nil
 
 	case *GetUserPropertyValuesTooManyRequests:
+		w.WriteHeader(429)
+		span.SetStatus(codes.Error, http.StatusText(429))
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
+}
+
+func encodeGetUserRolesResponse(response GetUserRolesRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *GetUserRolesResponse:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *GetUserRolesForbidden:
+		w.WriteHeader(403)
+		span.SetStatus(codes.Error, http.StatusText(403))
+
+		return nil
+
+	case *GetUserRolesTooManyRequests:
 		w.WriteHeader(429)
 		span.SetStatus(codes.Error, http.StatusText(429))
 

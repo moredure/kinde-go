@@ -297,6 +297,14 @@ type GetConnectionsRes interface {
 	getConnectionsRes()
 }
 
+type GetEntitlementRes interface {
+	getEntitlementRes()
+}
+
+type GetEntitlementsRes interface {
+	getEntitlementsRes()
+}
+
 type GetEnvironementFeatureFlagsRes interface {
 	getEnvironementFeatureFlagsRes()
 }
@@ -319,6 +327,10 @@ type GetEventRes interface {
 
 type GetEventTypesRes interface {
 	getEventTypesRes()
+}
+
+type GetFeatureFlagsRes interface {
+	getFeatureFlagsRes()
 }
 
 type GetIdentityRes interface {
@@ -373,6 +385,10 @@ type GetPermissionsRes interface {
 	getPermissionsRes()
 }
 
+type GetPortalLinkRes interface {
+	getPortalLinkRes()
+}
+
 type GetPropertiesRes interface {
 	getPropertiesRes()
 }
@@ -413,12 +429,24 @@ type GetUserIdentitiesRes interface {
 	getUserIdentitiesRes()
 }
 
+type GetUserPermissionsRes interface {
+	getUserPermissionsRes()
+}
+
 type GetUserProfileV2Res interface {
 	getUserProfileV2Res()
 }
 
+type GetUserPropertiesRes interface {
+	getUserPropertiesRes()
+}
+
 type GetUserPropertyValuesRes interface {
 	getUserPropertyValuesRes()
+}
+
+type GetUserRolesRes interface {
+	getUserRolesRes()
 }
 
 type GetUserSessionsRes interface {
