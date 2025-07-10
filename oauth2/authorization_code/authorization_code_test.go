@@ -50,7 +50,11 @@ func TestAutorizationCodeFlowClient(t *testing.T) {
 	kindeClient, err := NewAuthorizationCodeFlow(
 		testBackendServerURL, "b9da18c441b44d81bab3e8232de2e18d", "client_secret", callbackURL,
 		WithSessionHooks(newTestSessionHooks()),
-		WithCustomStateGenerator(func(*AuthorizationCodeFlow) string { return "test_state" }), //custom state generator for testing
+		WithCustomStateGenerator(func(flow *AuthorizationCodeFlow) string {
+			state := "test_state"
+			flow.sessionHooks.SetState(state)
+			return state
+		}), //custom state generator for testing
 		WithOffline(),                         //offline scope
 		WithAudience("http://my.api.com/api"), //custom API audience
 		WithTokenValidation(
@@ -75,7 +79,7 @@ func TestAutorizationCodeFlowClient(t *testing.T) {
 
 	ctx := context.Background()
 
-	err = kindeClient.ExchangeCode(ctx, "code")
+	err = kindeClient.ExchangeCode(ctx, "code", "test_state")
 	assert.Nil(t, err, "could not exchange token")
 
 }
