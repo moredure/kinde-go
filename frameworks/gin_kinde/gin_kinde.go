@@ -118,6 +118,7 @@ func UseKindeAuth(router *gin.RouterGroup, kindeDomain, clientID, clientSecret, 
 				if !kindeClient.IsAuthenticated() {
 					authURL := kindeClient.GetAuthURL()
 					ctx.Redirect(302, authURL)
+					ctx.Abort()
 				}
 				return
 			}
