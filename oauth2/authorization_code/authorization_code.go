@@ -88,8 +88,10 @@ func newAuthorizationCodeflow(baseURL string, clientID string, clientSecret stri
 			RedirectURL:  callbackURL,
 			Scopes:       []string{"openid", "profile", "email"},
 			Endpoint: oauth2.Endpoint{
-				TokenURL: fmt.Sprintf("%v://%v/oauth2/token", asURL.Scheme, host),
-				AuthURL:  fmt.Sprintf("%v://%v/oauth2/auth", asURL.Scheme, host),
+				TokenURL:      fmt.Sprintf("%v://%v/oauth2/token", asURL.Scheme, host),
+				AuthURL:       fmt.Sprintf("%v://%v/oauth2/auth", asURL.Scheme, host),
+				DeviceAuthURL: fmt.Sprintf("%v://%v/oauth2/device/auth", asURL.Scheme, host),
+				AuthStyle:     oauth2.AuthStyleInParams,
 			},
 		},
 		authURLOptions: url.Values{},
@@ -108,7 +110,7 @@ func newAuthorizationCodeflow(baseURL string, clientID string, clientSecret stri
 	}
 
 	if client.sessionHooks == nil {
-		panic("please connect your sesion management with WithSessionHooks")
+		return nil, fmt.Errorf("session hooks are not set, please connect your session management with WithSessionHooks")
 	}
 
 	return client, nil

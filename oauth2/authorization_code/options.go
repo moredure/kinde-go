@@ -1,11 +1,13 @@
 package authorization_code
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"slices"
 
 	"github.com/kinde-oss/kinde-go/jwt"
+	"golang.org/x/oauth2"
 )
 
 // Adds an arbitrary parameter to the list of parameters to request.
@@ -84,6 +86,13 @@ func (flow *AuthorizationCodeFlow) AuthorizationCodeReceived(w http.ResponseWrit
 			flow.sessionHooks.SetToken(RawToken, stringToken)
 		}
 	}
+}
+
+// GetDeviceAuth retrieves the device authorization response.
+// It returns the device authorization response or an error if the request fails.
+// This is used for the device authorization flow.
+func (flow *AuthorizationCodeFlow) GetDeviceAuth(ctx context.Context) (*oauth2.DeviceAuthResponse, error) {
+	return flow.config.DeviceAuth(ctx)
 }
 
 // Returns the URL to redirect the user to start authentication pipeline.

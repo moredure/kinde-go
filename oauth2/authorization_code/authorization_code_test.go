@@ -35,7 +35,7 @@ func TestAutorizationCodeFlowOnline(t *testing.T) {
 	)
 
 	authURL := kindeAuthFlow.GetAuthURL()
-	assert.NotNil(authURL, "AuthURL cannot be null")
+	assert.NotEmpty(authURL, "AuthURL cannot be empty")
 	assert.Equal("https://mytest.kinde.com/oauth2/auth?audience=http%3A%2F%2Fmy.api.com%2Fapi&client_id=b9da18c441b44d81bab3e8232de2e18d&redirect_uri=https%3A%2F%2Fapi.com%2Fcallback&response_type=code&scope=openid+profile+email&state=test_state", authURL, "AuthURL is not correct")
 
 }
@@ -52,7 +52,7 @@ func TestAutorizationCodeFlowClient(t *testing.T) {
 		WithSessionHooks(newTestSessionHooks()),
 		WithCustomStateGenerator(func(flow *AuthorizationCodeFlow) string {
 			state := "test_state"
-			flow.sessionHooks.SetState(state)
+			flow.sessionHooks.SetState(state) //we need to save the state to sessino for later verification after callback
 			return state
 		}), //custom state generator for testing
 		WithOffline(),                         //offline scope

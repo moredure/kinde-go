@@ -63,6 +63,12 @@ func WillValidateAlgorythm(alg ...string) func(*Token) {
 	}
 }
 
+func WillValidateIssuer(issuer string) func(*Token) {
+	return func(s *Token) {
+		s.processing.parsingOptions = append(s.processing.parsingOptions, golangjwt.WithIssuer(issuer))
+	}
+}
+
 // WillValidateAudience will validate the audience is present in the token.
 func WillValidateAudience(expectedAudience string) func(*Token) {
 	return func(s *Token) {
