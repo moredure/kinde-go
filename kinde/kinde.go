@@ -16,10 +16,18 @@ type securitySource struct {
 // KindeBearerAuth implements management_api.SecuritySource.
 func (s *securitySource) KindeBearerAuth(ctx context.Context, operationName management_api.OperationName) (management_api.KindeBearerAuth, error) {
 	token, err := s.clientCredentials.GetToken(ctx)
+	if err != nil {
+		return management_api.KindeBearerAuth{}, err
+	}
+
+	rawToken := token.GetRawToken()
+	if rawToken == nil {
+		return management_api.KindeBearerAuth{}, fmt.Errorf("raw token is nil")
+	}
 
 	return management_api.KindeBearerAuth{
-		Token: token.GetRawToken().AccessToken,
-	}, err
+		Token: rawToken.AccessToken,
+	}, nil
 }
 
 func NewManagementAPI(ctx context.Context, kindeTenantURL string, clientID string, clientSecret string, options ...func(*client_credentials.ClientCredentialsFlow)) (*management_api.Client, error) {
