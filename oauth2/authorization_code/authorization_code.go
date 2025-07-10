@@ -108,7 +108,7 @@ func newAuthorizationCodeflow(baseURL string, clientID string, clientSecret stri
 	}
 
 	if client.sessionHooks == nil {
-		panic("please connect your sesion management with WithSessionHooks")
+		return nil, fmt.Errorf("session hooks are not set, please connect your session management with WithSessionHooks")
 	}
 
 	return client, nil
