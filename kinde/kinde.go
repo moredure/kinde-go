@@ -2,69 +2,48 @@ package kinde
 
 import (
 	"context"
-	"net/http"
+	"fmt"
+	"strings"
 
-	"github.com/kinde-oss/kinde-go/jwt"
-	"golang.org/x/oauth2"
+	"github.com/kinde-oss/kinde-go/kinde/management_api"
+	"github.com/kinde-oss/kinde-go/oauth2/client_credentials"
 )
 
-type contextKey string
-
-const kindeContextKey contextKey = "kinde_context"
-
-type KindeContext interface {
-	GetHttpClient(ctx context.Context) *http.Client
-	GetAccessToken() *jwt.Token
-	GetIDToken() *jwt.Token
+type securitySource struct {
+	clientCredentials *client_credentials.ClientCredentialsFlow
 }
 
-type kindeContext struct {
-	tokenSource  oauth2.TokenSource
-	tokenOptions []func(*jwt.Token)
-}
-
-func (kc *kindeContext) GetHttpClient(ctx context.Context) *http.Client {
-	return oauth2.NewClient(ctx, kc.tokenSource)
-}
-
-func (kc *kindeContext) GetAccessToken() *jwt.Token {
-	receivedToken, _ := kc.tokenSource.Token()
-	parsedToken, _ := jwt.ParseOAuth2Token(receivedToken, kc.tokenOptions...)
-	return parsedToken
-}
-func (kc *kindeContext) GetIDToken() *jwt.Token {
-	receivedToken, _ := kc.tokenSource.Token()
-	parsedToken, _ := jwt.ParseOAuth2Token(receivedToken.WithExtra("id_token"), kc.tokenOptions...)
-	return parsedToken
-}
-
-func newKindeContext(tokenSource oauth2.TokenSource, tokenOptions []func(*jwt.Token)) KindeContext {
-	if tokenOptions == nil {
-		tokenOptions = []func(*jwt.Token){}
+// KindeBearerAuth implements management_api.SecuritySource.
+func (s *securitySource) KindeBearerAuth(ctx context.Context, operationName management_api.OperationName) (management_api.KindeBearerAuth, error) {
+	token, err := s.clientCredentials.GetToken(ctx)
+	if err != nil {
+		return management_api.KindeBearerAuth{}, err
 	}
 
-	return &kindeContext{
-		tokenSource:  tokenSource,
-		tokenOptions: tokenOptions,
+	rawToken := token.GetRawToken()
+	if rawToken == nil {
+		return management_api.KindeBearerAuth{}, fmt.Errorf("raw token is nil")
 	}
+
+	return management_api.KindeBearerAuth{
+		Token: rawToken.AccessToken,
+	}, nil
 }
 
-func getContextValueAs[T any](key any, ctx context.Context) (val *T, hasValue bool) {
-	anyValue := ctx.Value(key)
-	if anyValue != nil {
-		castValue := anyValue.(T)
-		return &castValue, true
-	}
-	return nil, false
-}
+func NewManagementAPI(ctx context.Context, kindeTenantURL string, clientID string, clientSecret string, options ...func(*client_credentials.ClientCredentialsFlow)) (*management_api.Client, error) {
 
-func SetKindeContext(ctx context.Context, tokenSource oauth2.TokenSource, tokenOptions []func(*jwt.Token)) context.Context {
-	return context.WithValue(ctx, kindeContextKey, newKindeContext(tokenSource, tokenOptions))
-}
-
-func GetKindeContext(ctx context.Context) KindeContext {
-	if kindeContext, ok := getContextValueAs[KindeContext](kindeContextKey, ctx); ok {
-		return *kindeContext
+	kindeTenantURL = strings.ToLower(kindeTenantURL)
+	if kindeTenantURL == "" {
+		return nil, fmt.Errorf("kindeTenantDomain cannot be empty")
 	}
-	return newKindeContext(nil, nil)
+
+	options = append(options, client_credentials.WithKindeManagementAPI(kindeTenantURL))
+
+	client, err := client_credentials.NewClientCredentialsFlow(kindeTenantURL, clientID, clientSecret, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	managementApiClient, err := management_api.NewClient(kindeTenantURL, &securitySource{clientCredentials: client}, management_api.WithClient(client.GetClient(ctx)))
+	return managementApiClient, err
 }
