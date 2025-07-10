@@ -4,10 +4,6 @@ go 1.24.4
 
 replace github.com/kinde-oss/kinde-go => ../../.
 
-// replace github.com/kinde-oss/kinde-go/frameworks/gin_kinde => ../../frameworks/gin_kinde
-
-// replace github.com/kinde-oss/kinde-go/oauth2/authorization_code => ../../oauth2/authorization_code
-
 require (
 	github.com/dustin/go-broadcast v0.0.0-20211018055107-71439988bd91
 	github.com/gin-gonic/gin v1.10.0
