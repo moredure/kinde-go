@@ -23,12 +23,12 @@ type (
 	TokenType string
 
 	SessionHooks interface {
-		GetState() string
-		SetState(state string)
-		SetToken(t TokenType, token string)
-		GetToken(t TokenType) string
-		SetPostAuthRedirect(redirect string)
-		GetPostAuthRedirect() string
+		GetState() (string, error)
+		SetState(state string) error
+		SetToken(t TokenType, token string) error
+		GetToken(t TokenType) (string, error)
+		SetPostAuthRedirect(redirect string) error
+		GetPostAuthRedirect() (string, error)
 	}
 
 	// AuthorizationCodeFlow represents the authorization code flow.
@@ -44,9 +44,16 @@ type (
 )
 
 func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
+	accessToken, err := flow.sessionHooks.GetToken(AccessToken)
+	if err != nil {
+		return false
+	}
+
+	refreshToken, _ := flow.sessionHooks.GetToken(RefreshToken)
+
 	tokenSource := flow.config.TokenSource(context.Background(), &oauth2.Token{
-		AccessToken:  flow.sessionHooks.GetToken(AccessToken),
-		RefreshToken: flow.sessionHooks.GetToken(RefreshToken),
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	})
 	token, err := tokenSource.Token()
 	if err != nil {
@@ -65,7 +72,13 @@ func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
 // Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
 func NewAuthorizationCodeFlow(baseURL string, clientID string, clientSecret string, callbackURL string,
 	options ...func(*AuthorizationCodeFlow)) (*AuthorizationCodeFlow, error) {
+	options = append([]func(*AuthorizationCodeFlow){WithScopes("openid", "email", "profile")}, options...) // prepending default openid scopes when nothing requested
 	return newAuthorizationCodeFlow(baseURL, clientID, clientSecret, callbackURL, options...)
+}
+
+// Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
+func NewDeviceAuthorizationFlow(baseURL string, options ...func(*AuthorizationCodeFlow)) (*AuthorizationCodeFlow, error) {
+	return newAuthorizationCodeFlow(baseURL, "", "", "", options...)
 }
 
 func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret string, callbackURL string,
@@ -86,7 +99,7 @@ func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret stri
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
 			RedirectURL:  callbackURL,
-			Scopes:       []string{"openid", "profile", "email"},
+			Scopes:       []string{},
 			Endpoint: oauth2.Endpoint{
 				TokenURL:      fmt.Sprintf("%v://%v/oauth2/token", asURL.Scheme, host),
 				AuthURL:       fmt.Sprintf("%v://%v/oauth2/auth", asURL.Scheme, host),
@@ -101,7 +114,11 @@ func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret stri
 			return state
 		},
 		stateVerifier: func(flow *AuthorizationCodeFlow, receivedState string) bool {
-			return flow.sessionHooks.GetState() == receivedState
+			state, err := flow.sessionHooks.GetState()
+			if err != nil {
+				return false
+			}
+			return state == receivedState
 		},
 	}
 
@@ -118,7 +135,11 @@ func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret stri
 
 // Exchanges the authorization code for a token and established KindeContext
 func (flow *AuthorizationCodeFlow) ExchangeCode(ctx context.Context, authorizationCode string, receivedState string) error {
-	storedState := flow.sessionHooks.GetState()
+	storedState, err := flow.sessionHooks.GetState()
+	if err != nil {
+		return fmt.Errorf("failed to get state from session: %w", err)
+	}
+
 	if storedState == "" {
 		return fmt.Errorf("state not found in session")
 	}

@@ -19,9 +19,14 @@ type tokenProcessing struct {
 
 // Token represents a JWT token.
 type Token struct {
-	rawToken   *oauth2.Token
-	processing tokenProcessing
-	isValid    bool
+	rawToken         *oauth2.Token
+	processing       tokenProcessing
+	isValid          bool
+	validationErrors []error
+}
+
+func (j *Token) GetValidationErrors() error {
+	return newError("token validation errors", nil, j.validationErrors...)
 }
 
 // ParseFromAuthorizationHeader will parse the token from the Authorization header and validate it with the given options.
@@ -90,6 +95,7 @@ func ParseOAuth2Token(rawToken *oauth2.Token, options ...func(*Token)) (*Token, 
 		token.isValid = isTokenValid
 	}
 	token.processing.parsed = parsedToken
+	token.validationErrors = errors
 
 	if len(errors) == 0 {
 		return &token, nil

@@ -101,7 +101,7 @@ func getTestAuthorizationServer() *httptest.Server {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(fmt.Sprintf(`{"access_token": "%v","token_type":"bearer"}`, testJwtToken())))
+		fmt.Fprintf(w, `{"access_token": "%v","token_type":"bearer"}`, testJwtToken())
 	}))
 }
 

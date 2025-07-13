@@ -41,7 +41,7 @@ func WithPrompt(prompt string) func(*AuthorizationCodeFlow) {
 // Adds the offline scope to the list of scopes to request.
 func WithOffline() func(*AuthorizationCodeFlow) {
 	return func(s *AuthorizationCodeFlow) {
-		WithScope("offline")
+		WithAdditionalScope("offline")
 	}
 }
 
@@ -59,10 +59,43 @@ func WithSessionHooks(sessionHooks SessionHooks) func(*AuthorizationCodeFlow) {
 	}
 }
 
-// Adds a scope to the list of scopes to request.
-func WithScope(scope string) func(*AuthorizationCodeFlow) {
+// Integrates with the session management
+func WithClientID(clientID string) func(*AuthorizationCodeFlow) {
+	return func(s *AuthorizationCodeFlow) {
+		s.config.ClientID = clientID
+	}
+}
+
+// Integrates with the session management
+func WithClientSecret(clientSecret string) func(*AuthorizationCodeFlow) {
+	return func(s *AuthorizationCodeFlow) {
+		s.config.ClientSecret = clientSecret
+	}
+}
+
+// Adds a scopes to the list of scopes to request, replaces value with the provided.
+func WithScopes(scopes ...string) func(*AuthorizationCodeFlow) {
+	return func(s *AuthorizationCodeFlow) {
+		s.config.Scopes = scopes
+	}
+}
+
+// Adds a scopes to the list of scopes to request, adds scope to existing list.
+func WithAdditionalScope(scope string) func(*AuthorizationCodeFlow) {
 	return func(s *AuthorizationCodeFlow) {
 		s.config.Scopes = append(s.config.Scopes, scope)
+	}
+}
+
+// Adds options to validate the token.
+func WithTokenValidation(isValidateJWKS bool, tokenOptions ...func(*jwt.Token)) func(*AuthorizationCodeFlow) {
+	return func(s *AuthorizationCodeFlow) {
+
+		if isValidateJWKS {
+			s.tokenOptions = append(s.tokenOptions, jwt.WillValidateWithJWKSUrl(s.JWKS_URL))
+		}
+
+		s.tokenOptions = append(s.tokenOptions, tokenOptions...)
 	}
 }
 
@@ -95,6 +128,20 @@ func (flow *AuthorizationCodeFlow) GetDeviceAuth(ctx context.Context) (*oauth2.D
 	return flow.config.DeviceAuth(ctx)
 }
 
+// GetDeviceAccessToken retrieves the access token for the device authorization flow.
+func (flow *AuthorizationCodeFlow) GetDeviceAccessToken(ctx context.Context, da *oauth2.DeviceAuthResponse, opts ...oauth2.AuthCodeOption) error {
+
+	token, err := flow.config.DeviceAccessToken(ctx, da, opts...)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = flow.validateAndStoreToken(token)
+
+	return err
+}
+
 // Returns the URL to redirect the user to start authentication pipeline.
 func (flow *AuthorizationCodeFlow) GetAuthURL() string {
 
@@ -108,16 +155,4 @@ func (flow *AuthorizationCodeFlow) GetAuthURL() string {
 	}
 	url.RawQuery = query.Encode()
 	return url.String()
-}
-
-// Adds options to validate the token.
-func WithTokenValidation(isValidateJWKS bool, tokenOptions ...func(*jwt.Token)) func(*AuthorizationCodeFlow) {
-	return func(s *AuthorizationCodeFlow) {
-
-		if isValidateJWKS {
-			s.tokenOptions = append(s.tokenOptions, jwt.WillValidateWithJWKSUrl(s.JWKS_URL))
-		}
-
-		s.tokenOptions = append(s.tokenOptions, tokenOptions...)
-	}
 }
