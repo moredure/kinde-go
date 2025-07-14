@@ -187,38 +187,41 @@ type testSessionHooks struct {
 	sessionState map[string]string
 }
 
-// GetPostAuthRedirect implements SessionHooks.
-func (t *testSessionHooks) GetPostAuthRedirect() string {
-	return t.sessionState["post_auth_redirect"]
-}
-
-// SetPostAuthRedirect implements SessionHooks.
-func (t *testSessionHooks) SetPostAuthRedirect(redirect string) {
-	t.sessionState["post_auth_redirect"] = redirect
-}
-
 func newTestSessionHooks() *testSessionHooks {
 	return &testSessionHooks{
 		sessionState: make(map[string]string),
 	}
 }
 
+// GetPostAuthRedirect implements SessionHooks.
+func (t *testSessionHooks) GetPostAuthRedirect() (string, error) {
+	return t.sessionState["post_auth_redirect"], nil
+}
+
+// SetPostAuthRedirect implements SessionHooks.
+func (t *testSessionHooks) SetPostAuthRedirect(redirect string) error {
+	t.sessionState["post_auth_redirect"] = redirect
+	return nil
+}
+
 // GetState implements SessionHooks.
-func (t *testSessionHooks) GetState() string {
-	return t.sessionState["state"]
+func (t *testSessionHooks) GetState() (string, error) {
+	return t.sessionState["state"], nil
 }
 
 // GetToken implements SessionHooks.
-func (t *testSessionHooks) GetToken(tt TokenType) string {
-	return t.sessionState["token"]
+func (t *testSessionHooks) GetToken(tt TokenType) (string, error) {
+	return t.sessionState["token"], nil
 }
 
 // SetState implements SessionHooks.
-func (t *testSessionHooks) SetState(state string) {
+func (t *testSessionHooks) SetState(state string) error {
 	t.sessionState["state"] = state
+	return nil
 }
 
 // SetToken implements SessionHooks.
-func (t *testSessionHooks) SetToken(tt TokenType, token string) {
+func (t *testSessionHooks) SetToken(tt TokenType, token string) error {
 	t.sessionState["token"] = token
+	return nil
 }

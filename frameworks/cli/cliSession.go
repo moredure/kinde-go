@@ -16,10 +16,6 @@ const (
 )
 
 type (
-	CliSession interface {
-		authorization_code.SessionHooks
-	}
-
 	cliSession struct {
 		configFileName string
 		keyring        keyring.Keyring
@@ -65,7 +61,7 @@ func (c *cliSession) SetToken(t authorization_code.TokenType, token string) erro
 	return err
 }
 
-func NewCliSession(serviceName string) (CliSession, error) {
+func NewCliSession(serviceName string) (authorization_code.SessionHooks, error) {
 	configType := "json"
 	configFileName, err := detectConfigFileName(serviceName, configType)
 	if err != nil {

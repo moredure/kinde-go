@@ -43,6 +43,10 @@ type (
 	}
 )
 
+func (flow *AuthorizationCodeFlow) GetToken() (*jwt.Token, error) {
+	return flow.parseFromSesisonStorage()
+}
+
 func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
 	accessToken, err := flow.sessionHooks.GetToken(AccessToken)
 	if err != nil {
@@ -72,7 +76,7 @@ func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
 // Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
 func NewAuthorizationCodeFlow(baseURL string, clientID string, clientSecret string, callbackURL string,
 	options ...func(*AuthorizationCodeFlow)) (*AuthorizationCodeFlow, error) {
-	options = append([]func(*AuthorizationCodeFlow){WithScopes("openid", "email", "profile")}, options...) // prepending default openid scopes when nothing requested
+	options = append([]func(*AuthorizationCodeFlow){WithScopes("openid", "profile", "email")}, options...) // prepending default openid scopes when nothing requested
 	return newAuthorizationCodeFlow(baseURL, clientID, clientSecret, callbackURL, options...)
 }
 
@@ -156,6 +160,32 @@ func (flow *AuthorizationCodeFlow) ExchangeCode(ctx context.Context, authorizati
 
 	_, err = flow.validateAndStoreToken(token)
 	return err
+}
+
+// ExchangeDeviceAccessToken retrieves the access token for the device authorization flow.
+func (flow *AuthorizationCodeFlow) ExchangeDeviceAccessToken(ctx context.Context, da *oauth2.DeviceAuthResponse, opts ...oauth2.AuthCodeOption) error {
+
+	token, err := flow.config.DeviceAccessToken(ctx, da, opts...)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = flow.validateAndStoreToken(token)
+
+	return err
+}
+
+func (flow *AuthorizationCodeFlow) parseFromSesisonStorage() (*jwt.Token, error) {
+	rawToken, err := flow.sessionHooks.GetToken(RawToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get raw token from session: %w", err)
+	}
+	parsedToken, err := jwt.ParseFromSessionStorage(rawToken, flow.tokenOptions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse raw token: %w", err)
+	}
+	return parsedToken, nil
 }
 
 func (flow *AuthorizationCodeFlow) validateAndStoreToken(token *oauth2.Token) (*jwt.Token, error) {

@@ -121,25 +121,11 @@ func (flow *AuthorizationCodeFlow) AuthorizationCodeReceived(w http.ResponseWrit
 	}
 }
 
-// GetDeviceAuth retrieves the device authorization response.
+// StartDeviceAuth retrieves the device authorization response.
 // It returns the device authorization response or an error if the request fails.
 // This is used for the device authorization flow.
-func (flow *AuthorizationCodeFlow) GetDeviceAuth(ctx context.Context) (*oauth2.DeviceAuthResponse, error) {
+func (flow *AuthorizationCodeFlow) StartDeviceAuth(ctx context.Context) (*oauth2.DeviceAuthResponse, error) {
 	return flow.config.DeviceAuth(ctx)
-}
-
-// GetDeviceAccessToken retrieves the access token for the device authorization flow.
-func (flow *AuthorizationCodeFlow) GetDeviceAccessToken(ctx context.Context, da *oauth2.DeviceAuthResponse, opts ...oauth2.AuthCodeOption) error {
-
-	token, err := flow.config.DeviceAccessToken(ctx, da, opts...)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = flow.validateAndStoreToken(token)
-
-	return err
 }
 
 // Returns the URL to redirect the user to start authentication pipeline.
