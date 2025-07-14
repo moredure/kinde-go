@@ -35,6 +35,14 @@
       "mode": "auto",
       "program": "${workspaceFolder}/examples/cli/cmd/example-cli",
       "args": ["whoami", "--kinde-domain", "https://${input:commandline}"]
+    },
+    {
+      "name": "Launch example CLI - logout",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/examples/cli/cmd/example-cli",
+      "args": ["logout"]
     }
   ]
 }
