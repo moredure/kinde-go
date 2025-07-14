@@ -1,11 +1,13 @@
 package authorization_code
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"slices"
 
 	"github.com/kinde-oss/kinde-go/jwt"
+	"golang.org/x/oauth2"
 )
 
 // Adds an arbitrary parameter to the list of parameters to request.
@@ -39,7 +41,7 @@ func WithPrompt(prompt string) func(*AuthorizationCodeFlow) {
 // Adds the offline scope to the list of scopes to request.
 func WithOffline() func(*AuthorizationCodeFlow) {
 	return func(s *AuthorizationCodeFlow) {
-		WithScope("offline")
+		WithAdditionalScope("offline")
 	}
 }
 
@@ -57,10 +59,43 @@ func WithSessionHooks(sessionHooks SessionHooks) func(*AuthorizationCodeFlow) {
 	}
 }
 
-// Adds a scope to the list of scopes to request.
-func WithScope(scope string) func(*AuthorizationCodeFlow) {
+// Integrates with the session management
+func WithClientID(clientID string) func(*AuthorizationCodeFlow) {
+	return func(s *AuthorizationCodeFlow) {
+		s.config.ClientID = clientID
+	}
+}
+
+// Integrates with the session management
+func WithClientSecret(clientSecret string) func(*AuthorizationCodeFlow) {
+	return func(s *AuthorizationCodeFlow) {
+		s.config.ClientSecret = clientSecret
+	}
+}
+
+// Adds a scopes to the list of scopes to request, replaces value with the provided.
+func WithScopes(scopes ...string) func(*AuthorizationCodeFlow) {
+	return func(s *AuthorizationCodeFlow) {
+		s.config.Scopes = scopes
+	}
+}
+
+// Adds a scopes to the list of scopes to request, adds scope to existing list.
+func WithAdditionalScope(scope string) func(*AuthorizationCodeFlow) {
 	return func(s *AuthorizationCodeFlow) {
 		s.config.Scopes = append(s.config.Scopes, scope)
+	}
+}
+
+// Adds options to validate the token.
+func WithTokenValidation(isValidateJWKS bool, tokenOptions ...func(*jwt.Token)) func(*AuthorizationCodeFlow) {
+	return func(s *AuthorizationCodeFlow) {
+
+		if isValidateJWKS {
+			s.tokenOptions = append(s.tokenOptions, jwt.WillValidateWithJWKSUrl(s.JWKS_URL))
+		}
+
+		s.tokenOptions = append(s.tokenOptions, tokenOptions...)
 	}
 }
 
@@ -86,6 +121,13 @@ func (flow *AuthorizationCodeFlow) AuthorizationCodeReceived(w http.ResponseWrit
 	}
 }
 
+// StartDeviceAuth retrieves the device authorization response.
+// It returns the device authorization response or an error if the request fails.
+// This is used for the device authorization flow.
+func (flow *AuthorizationCodeFlow) StartDeviceAuth(ctx context.Context) (*oauth2.DeviceAuthResponse, error) {
+	return flow.config.DeviceAuth(ctx)
+}
+
 // Returns the URL to redirect the user to start authentication pipeline.
 func (flow *AuthorizationCodeFlow) GetAuthURL() string {
 
@@ -99,16 +141,4 @@ func (flow *AuthorizationCodeFlow) GetAuthURL() string {
 	}
 	url.RawQuery = query.Encode()
 	return url.String()
-}
-
-// Adds options to validate the token.
-func WithTokenValidation(isValidateJWKS bool, tokenOptions ...func(*jwt.Token)) func(*AuthorizationCodeFlow) {
-	return func(s *AuthorizationCodeFlow) {
-
-		if isValidateJWKS {
-			s.tokenOptions = append(s.tokenOptions, jwt.WillValidateWithJWKSUrl(s.JWKS_URL))
-		}
-
-		s.tokenOptions = append(s.tokenOptions, tokenOptions...)
-	}
 }

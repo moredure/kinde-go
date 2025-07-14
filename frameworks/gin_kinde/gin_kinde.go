@@ -14,39 +14,42 @@ type SessionStorage struct {
 }
 
 // GetPostAuthRedirect implements authorization_code.SessionHooks.
-func (storage *SessionStorage) GetPostAuthRedirect() string {
-	return storage.session.Get("post_auth_redirect").(string)
+func (storage *SessionStorage) GetPostAuthRedirect() (string, error) {
+	return storage.session.Get("post_auth_redirect").(string), nil
 }
 
 // GetState implements authorization_code.SessionHooks.
-func (storage *SessionStorage) GetState() string {
-	return storage.session.Get("auth_state").(string)
+func (storage *SessionStorage) GetState() (string, error) {
+	return storage.session.Get("auth_state").(string), nil
 }
 
 // GetToken implements authorization_code.SessionHooks.
-func (storage *SessionStorage) GetToken(t authorization_code.TokenType) string {
+func (storage *SessionStorage) GetToken(t authorization_code.TokenType) (string, error) {
 	if token, ok := storage.session.Get(fmt.Sprintf("kinde_%v", t)).(string); ok {
-		return token
+		return token, nil
 	}
-	return ""
+	return "", fmt.Errorf("token %s not found in session", t)
 }
 
 // SetPostAuthRedirect implements authorization_code.SessionHooks.
-func (storage *SessionStorage) SetPostAuthRedirect(redirect string) {
+func (storage *SessionStorage) SetPostAuthRedirect(redirect string) error {
 	storage.session.Set("post_auth_redirect", redirect)
 	storage.session.Save()
+	return nil
 }
 
 // SetState implements authorization_code.SessionHooks.
-func (storage *SessionStorage) SetState(state string) {
+func (storage *SessionStorage) SetState(state string) error {
 	storage.session.Set("auth_state", state)
 	storage.session.Save()
+	return nil
 }
 
 // SetToken implements authorization_code.SessionHooks.
-func (storage *SessionStorage) SetToken(t authorization_code.TokenType, token string) {
+func (storage *SessionStorage) SetToken(t authorization_code.TokenType, token string) error {
 	storage.session.Set(fmt.Sprintf("kinde_%v", t), token)
 	storage.session.Save()
+	return nil
 }
 
 func (storage *SessionStorage) GetItem(key string) string {

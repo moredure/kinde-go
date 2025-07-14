@@ -35,7 +35,7 @@ func TestAutorizationCodeFlowOnline(t *testing.T) {
 	)
 
 	authURL := kindeAuthFlow.GetAuthURL()
-	assert.NotNil(authURL, "AuthURL cannot be null")
+	assert.NotEmpty(authURL, "AuthURL cannot be empty")
 	assert.Equal("https://mytest.kinde.com/oauth2/auth?audience=http%3A%2F%2Fmy.api.com%2Fapi&client_id=b9da18c441b44d81bab3e8232de2e18d&redirect_uri=https%3A%2F%2Fapi.com%2Fcallback&response_type=code&scope=openid+profile+email&state=test_state", authURL, "AuthURL is not correct")
 
 }
@@ -52,7 +52,7 @@ func TestAutorizationCodeFlowClient(t *testing.T) {
 		WithSessionHooks(newTestSessionHooks()),
 		WithCustomStateGenerator(func(flow *AuthorizationCodeFlow) string {
 			state := "test_state"
-			flow.sessionHooks.SetState(state)
+			flow.sessionHooks.SetState(state) //we need to save the state to sessino for later verification after callback
 			return state
 		}), //custom state generator for testing
 		WithOffline(),                         //offline scope
@@ -101,7 +101,7 @@ func getTestAuthorizationServer() *httptest.Server {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(fmt.Sprintf(`{"access_token": "%v","token_type":"bearer"}`, testJwtToken())))
+		fmt.Fprintf(w, `{"access_token": "%v","token_type":"bearer"}`, testJwtToken())
 	}))
 }
 
@@ -187,38 +187,41 @@ type testSessionHooks struct {
 	sessionState map[string]string
 }
 
-// GetPostAuthRedirect implements SessionHooks.
-func (t *testSessionHooks) GetPostAuthRedirect() string {
-	return t.sessionState["post_auth_redirect"]
-}
-
-// SetPostAuthRedirect implements SessionHooks.
-func (t *testSessionHooks) SetPostAuthRedirect(redirect string) {
-	t.sessionState["post_auth_redirect"] = redirect
-}
-
 func newTestSessionHooks() *testSessionHooks {
 	return &testSessionHooks{
 		sessionState: make(map[string]string),
 	}
 }
 
+// GetPostAuthRedirect implements SessionHooks.
+func (t *testSessionHooks) GetPostAuthRedirect() (string, error) {
+	return t.sessionState["post_auth_redirect"], nil
+}
+
+// SetPostAuthRedirect implements SessionHooks.
+func (t *testSessionHooks) SetPostAuthRedirect(redirect string) error {
+	t.sessionState["post_auth_redirect"] = redirect
+	return nil
+}
+
 // GetState implements SessionHooks.
-func (t *testSessionHooks) GetState() string {
-	return t.sessionState["state"]
+func (t *testSessionHooks) GetState() (string, error) {
+	return t.sessionState["state"], nil
 }
 
 // GetToken implements SessionHooks.
-func (t *testSessionHooks) GetToken(tt TokenType) string {
-	return t.sessionState["token"]
+func (t *testSessionHooks) GetToken(tt TokenType) (string, error) {
+	return t.sessionState["token"], nil
 }
 
 // SetState implements SessionHooks.
-func (t *testSessionHooks) SetState(state string) {
+func (t *testSessionHooks) SetState(state string) error {
 	t.sessionState["state"] = state
+	return nil
 }
 
 // SetToken implements SessionHooks.
-func (t *testSessionHooks) SetToken(tt TokenType, token string) {
+func (t *testSessionHooks) SetToken(tt TokenType, token string) error {
 	t.sessionState["token"] = token
+	return nil
 }
