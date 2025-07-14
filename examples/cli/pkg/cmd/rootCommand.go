@@ -16,6 +16,7 @@ func init() {
 	rootCmd.AddCommand(newVersionCmd().cmd)
 	rootCmd.AddCommand(newloginCmd().cmd)
 	rootCmd.AddCommand(newWhoAmI().cmd)
+	rootCmd.AddCommand(newLogoutCmd().cmd)
 }
 
 var rootCmd = &cobra.Command{
