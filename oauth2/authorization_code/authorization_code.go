@@ -44,7 +44,7 @@ type (
 )
 
 func (flow *AuthorizationCodeFlow) GetToken() (*jwt.Token, error) {
-	return flow.parseFromSesisonStorage()
+	return flow.parseFromSessionStorage()
 }
 
 func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
@@ -176,7 +176,7 @@ func (flow *AuthorizationCodeFlow) ExchangeDeviceAccessToken(ctx context.Context
 	return err
 }
 
-func (flow *AuthorizationCodeFlow) parseFromSesisonStorage() (*jwt.Token, error) {
+func (flow *AuthorizationCodeFlow) parseFromSessionStorage() (*jwt.Token, error) {
 	rawToken, err := flow.sessionHooks.GetToken(RawToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get raw token from session: %w", err)
