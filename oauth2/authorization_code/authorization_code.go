@@ -43,6 +43,22 @@ type (
 	}
 )
 
+func (flow *AuthorizationCodeFlow) Logout() error {
+	if err := flow.sessionHooks.SetToken(RawToken, ""); err != nil {
+		return fmt.Errorf("failed to clear raw token: %w", err)
+	}
+	if err := flow.sessionHooks.SetToken(IDToken, ""); err != nil {
+		return fmt.Errorf("failed to clear ID token: %w", err)
+	}
+	if err := flow.sessionHooks.SetToken(AccessToken, ""); err != nil {
+		return fmt.Errorf("failed to clear access token: %w", err)
+	}
+	if err := flow.sessionHooks.SetToken(RefreshToken, ""); err != nil {
+		return fmt.Errorf("failed to clear refresh token: %w", err)
+	}
+	return nil
+}
+
 func (flow *AuthorizationCodeFlow) GetToken() (*jwt.Token, error) {
 	return flow.parseFromSessionStorage()
 }
