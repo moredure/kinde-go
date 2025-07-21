@@ -41,7 +41,7 @@ func WithPrompt(prompt string) func(*AuthorizationCodeFlow) {
 // Adds the offline scope to the list of scopes to request.
 func WithOffline() func(*AuthorizationCodeFlow) {
 	return func(s *AuthorizationCodeFlow) {
-		WithAdditionalScope("offline")
+		WithAdditionalScope("offline")(s)
 	}
 }
 
