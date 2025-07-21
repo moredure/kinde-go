@@ -2,13 +2,9 @@ package cli
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/99designs/keyring"
 	"github.com/kinde-oss/kinde-go/oauth2/authorization_code"
-	"github.com/mitchellh/go-homedir"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -19,7 +15,6 @@ type (
 	cliSession struct {
 		configFileName string
 		keyring        keyring.Keyring
-		viper          *viper.Viper
 	}
 )
 
@@ -62,12 +57,6 @@ func (c *cliSession) SetToken(t authorization_code.TokenType, token string) erro
 }
 
 func NewCliSession(serviceName string) (authorization_code.SessionHooks, error) {
-	configType := "json"
-	configFileName, err := detectConfigFileName(serviceName, configType)
-	if err != nil {
-		return nil, err
-	}
-
 	ring, err := keyring.Open(keyring.Config{
 		KeychainTrustApplication: true,
 		ServiceName:              serviceName,
@@ -77,45 +66,7 @@ func NewCliSession(serviceName string) (authorization_code.SessionHooks, error) 
 		return nil, err
 	}
 
-	viper := viper.New()
-
-	viper.SetConfigType(configType)
-	viper.SetConfigFile(configFileName)
-	viper.SetConfigPermissions(os.FileMode(0600))
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-	}
-
-	err = viper.WriteConfig()
-	if err != nil {
-		return nil, err
-	}
-
 	return &cliSession{
-		configFileName: configFileName,
-		keyring:        ring,
-		viper:          viper,
+		keyring: ring,
 	}, nil
-}
-
-func detectConfigFileName(serviceName, configType string) (string, error) {
-	configLocation := os.Getenv("XDG_CONFIG_HOME")
-	if configLocation == "" {
-		home, err := homedir.Dir()
-		if err != nil {
-			return "", err
-		}
-		configLocation = filepath.Join(home, ".config")
-	}
-	configLocation = filepath.Join(configLocation, serviceName)
-
-	err := os.MkdirAll(configLocation, os.ModePerm)
-	if err != nil {
-		return "", err
-	}
-
-	configLocation = filepath.Join(configLocation, fmt.Sprintf("config.%s", configType))
-
-	return configLocation, nil
 }
