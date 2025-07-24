@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/kinde-oss/kinde-go/jwt"
 	"golang.org/x/oauth2"
@@ -17,8 +16,6 @@ type (
 		GetClient(ctx context.Context) *http.Client
 		GetToken(ctx context.Context) (*jwt.Token, error)
 	}
-
-	Option func(*ClientCredentialsFlow)
 
 	// ClientCredentialsFlow represents the client credentials flow.
 	ClientCredentialsFlow struct {
@@ -56,62 +53,6 @@ func NewClientCredentialsFlow(baseURL string, clientID string, clientSecret stri
 	client.tokenSource = client.config.TokenSource(context.Background())
 
 	return client, nil
-}
-
-// Adds an arbitrary parameter to the list of parameters to request.
-func WithAuthParameter(key, value string) func(*ClientCredentialsFlow) {
-	return func(s *ClientCredentialsFlow) {
-		if params, ok := s.config.EndpointParams[key]; ok {
-			s.config.EndpointParams[key] = append(params, value)
-		} else {
-			s.config.EndpointParams[key] = []string{value}
-		}
-	}
-}
-
-// Adds an arbitrary parameter to the list of parameters to request.
-func WithAudience(audience string) func(*ClientCredentialsFlow) {
-	return func(s *ClientCredentialsFlow) {
-		WithAuthParameter("audience", audience)(s)
-	}
-}
-
-// Adds Kinde management API audience to the list of audiences to request.
-func WithKindeManagementAPI(kindeDomain string) func(*ClientCredentialsFlow) {
-	return func(s *ClientCredentialsFlow) {
-
-		asURL, err := url.Parse(kindeDomain)
-		if err != nil {
-			return
-		}
-
-		host := asURL.Hostname()
-		if host == "" {
-			host = kindeDomain
-		}
-
-		host = strings.TrimSuffix(host, ".kinde.com")
-
-		managementApiAudience := fmt.Sprintf("https://%v.kinde.com/api", host)
-		WithAuthParameter("audience", managementApiAudience)(s)
-		WithAudience(managementApiAudience)(s)
-		WithTokenValidation(
-			true,
-			jwt.WillValidateAlgorythm(),
-		)(s)
-	}
-}
-
-// Adds options to validate the token.
-func WithTokenValidation(isValidateJWKS bool, tokenOptions ...func(*jwt.Token)) func(*ClientCredentialsFlow) {
-	return func(s *ClientCredentialsFlow) {
-
-		if isValidateJWKS {
-			s.tokenOptions = append(s.tokenOptions, jwt.WillValidateWithJWKSUrl(s.JWKS_URL))
-		}
-
-		s.tokenOptions = append(s.tokenOptions, tokenOptions...)
-	}
 }
 
 // Returns the http client to be used to make requests.

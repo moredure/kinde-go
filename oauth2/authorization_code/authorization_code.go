@@ -22,8 +22,6 @@ const (
 type (
 	TokenType string
 
-	Option func(*AuthorizationCodeFlow)
-
 	ISessionHooks interface {
 		GetState() (string, error)
 		SetState(state string) error
@@ -33,12 +31,23 @@ type (
 		GetPostAuthRedirect() (string, error)
 	}
 
-	IDeviceAuthorizationFlow interface {
-	}
-
 	IAuthorizationCodeFlow interface {
 		GetAuthURL() string
 		ExchangeCode(ctx context.Context, authorizationCode string, receivedState string) error
+		GetHttpClient(ctx context.Context, tokenSource oauth2.TokenSource) *http.Client
+		GetToken() (*jwt.Token, error)
+		IsAuthenticated() bool
+		Logout() error
+		AuthorizationCodeReceivedHandler(w http.ResponseWriter, r *http.Request)
+	}
+
+	IDeviceAuthorizationFlow interface {
+		StartDeviceAuth(ctx context.Context) (*oauth2.DeviceAuthResponse, error)
+		ExchangeDeviceAccessToken(ctx context.Context, da *oauth2.DeviceAuthResponse, opts ...oauth2.AuthCodeOption) error
+		GetHttpClient(ctx context.Context, tokenSource oauth2.TokenSource) *http.Client
+		GetToken() (*jwt.Token, error)
+		IsAuthenticated() bool
+		Logout() error
 	}
 
 	// AuthorizationCodeFlow represents the authorization code flow.
@@ -109,6 +118,51 @@ func NewAuthorizationCodeFlow(baseURL string, clientID string, clientSecret stri
 // Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
 func NewDeviceAuthorizationFlow(baseURL string, options ...Option) (IDeviceAuthorizationFlow, error) {
 	return newAuthorizationCodeFlow(baseURL, "", "", "", options...)
+}
+
+// StartDeviceAuth retrieves the device authorization response.
+// It returns the device authorization response or an error if the request fails.
+// This is used for the device authorization flow.
+func (flow *AuthorizationCodeFlow) StartDeviceAuth(ctx context.Context) (*oauth2.DeviceAuthResponse, error) {
+	return flow.config.DeviceAuth(ctx)
+}
+
+// Returns the URL to redirect the user to start authentication pipeline.
+func (flow *AuthorizationCodeFlow) GetAuthURL() string {
+
+	state := flow.stateGenerator(flow)
+	url, _ := url.Parse(flow.config.AuthCodeURL(state))
+	query := url.Query()
+	for k, v := range flow.authURLOptions {
+		if query.Get(k) == "" {
+			query[k] = v
+		}
+	}
+	url.RawQuery = query.Encode()
+	return url.String()
+}
+
+// AuthorizationCodeReceivedHandler handles the callback from the authorization server.
+func (flow *AuthorizationCodeFlow) AuthorizationCodeReceivedHandler(w http.ResponseWriter, r *http.Request) {
+	receivedState := r.URL.Query().Get("state")
+	if flow.stateVerifier(flow, receivedState) {
+		token, err := flow.config.Exchange(r.Context(), r.URL.Query().Get("code"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		parsedToken, err := jwt.ParseOAuth2Token(token, flow.tokenOptions...)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if parsedToken.IsValid() {
+			stringToken, err := parsedToken.AsString()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			flow.sessionHooks.SetToken(RawToken, stringToken)
+		}
+	}
 }
 
 func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret string, callbackURL string,
@@ -202,6 +256,11 @@ func (flow *AuthorizationCodeFlow) ExchangeDeviceAccessToken(ctx context.Context
 	return err
 }
 
+// Returns the client to make requests to the backend, will refresh token if offline is requested.
+func (flow *AuthorizationCodeFlow) GetHttpClient(ctx context.Context, tokenSource oauth2.TokenSource) *http.Client {
+	return oauth2.NewClient(ctx, tokenSource)
+}
+
 func (flow *AuthorizationCodeFlow) parseFromSessionStorage() (*jwt.Token, error) {
 	rawToken, err := flow.sessionHooks.GetToken(RawToken)
 	if err != nil {
@@ -237,9 +296,4 @@ func (flow *AuthorizationCodeFlow) validateAndStoreToken(token *oauth2.Token) (*
 		flow.sessionHooks.SetToken(RefreshToken, refreshToken)
 	}
 	return jwtToken, nil
-}
-
-// Returns the client to make requests to the backend, will refreesh token if offline is requested.
-func (flow *AuthorizationCodeFlow) GetClient(ctx context.Context, tokenSource oauth2.TokenSource) *http.Client {
-	return oauth2.NewClient(ctx, tokenSource)
 }

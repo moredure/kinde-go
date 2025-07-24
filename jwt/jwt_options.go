@@ -52,8 +52,8 @@ func WillValidateWithClockSkew(leeway time.Duration) func(*Token) {
 	}
 }
 
-// WillValidateAlgorythm will validate the token with the given algorithm, defaults to RS256.
-func WillValidateAlgorythm(alg ...string) func(*Token) {
+// WillValidateAlgorithm will validate the token with the given algorithm, defaults to RS256.
+func WillValidateAlgorithm(alg ...string) func(*Token) {
 	return func(s *Token) {
 		if len(alg) > 0 {
 			s.processing.parsingOptions = append(s.processing.parsingOptions, golangjwt.WithValidMethods(alg))

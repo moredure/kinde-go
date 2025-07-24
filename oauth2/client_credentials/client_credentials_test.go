@@ -46,7 +46,7 @@ func TestClientCredentials(t *testing.T) {
 		WithKindeManagementAPI("https://my_kinde_tenant.kinde.com"),
 		WithTokenValidation(
 			true,
-			jwt.WillValidateAlgorythm(),
+			jwt.WillValidateAlgorithm(),
 			jwt.WillValidateAudience("http://my.api.com/api"),
 			jwt.WillValidateAudience("https://my_kinde_tenant.kinde.com/api"),
 		),
