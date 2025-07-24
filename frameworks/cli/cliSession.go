@@ -56,7 +56,7 @@ func (c *cliSession) SetToken(t authorization_code.TokenType, token string) erro
 	return err
 }
 
-func NewCliSession(serviceName string) (authorization_code.SessionHooks, error) {
+func NewCliSession(serviceName string) (authorization_code.ISessionHooks, error) {
 	ring, err := keyring.Open(keyring.Config{
 		KeychainTrustApplication: true,
 		ServiceName:              serviceName,

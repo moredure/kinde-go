@@ -65,7 +65,7 @@ func (storage *SessionStorage) SetItem(key, value string) {
 	storage.session.Save()
 }
 
-func UseKindeAuth(router *gin.RouterGroup, kindeDomain, clientID, clientSecret, baseRedirectURL string, options ...func(*authorization_code.AuthorizationCodeFlow)) error {
+func UseKindeAuth(router *gin.RouterGroup, kindeDomain, clientID, clientSecret, baseRedirectURL string, options ...authorization_code.Option) error {
 
 	router.Use(func(ctx *gin.Context) {
 		session := sessions.Default(ctx)
@@ -75,18 +75,19 @@ func UseKindeAuth(router *gin.RouterGroup, kindeDomain, clientID, clientSecret, 
 		if basePath == "/" {
 			basePath = ""
 		}
+
+		options = append(options,
+			authorization_code.WithSessionHooks(sessionStorage),
+			authorization_code.WithTokenValidation(true),
+		)
+
 		redirectURI := fmt.Sprintf("%s%s%s", baseRedirectURL, basePath, "/kinde/callback")
 		kindeClient, err := authorization_code.NewAuthorizationCodeFlow(kindeDomain,
 			clientID,
 			clientSecret,
 			redirectURI,
-			authorization_code.WithSessionHooks(sessionStorage),
-			authorization_code.WithTokenValidation(true),
+			options...,
 		)
-
-		for _, option := range options {
-			option(kindeClient)
-		}
 
 		if err != nil {
 			fmt.Printf("Error creating Kinde client: %v", err)

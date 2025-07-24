@@ -10,7 +10,7 @@ import (
 )
 
 type securitySource struct {
-	clientCredentials *client_credentials.ClientCredentialsFlow
+	clientCredentials client_credentials.IClientCredentialsFlow
 }
 
 // KindeBearerAuth implements management_api.SecuritySource.
@@ -30,7 +30,8 @@ func (s *securitySource) KindeBearerAuth(ctx context.Context, operationName mana
 	}, nil
 }
 
-func NewManagementAPI(ctx context.Context, kindeTenantURL string, clientID string, clientSecret string, options ...func(*client_credentials.ClientCredentialsFlow)) (*management_api.Client, error) {
+// NewManagementAPI creates a new management API client using the provided Kinde tenant URL, client ID, and client secret.
+func NewManagementAPI(ctx context.Context, kindeTenantURL string, clientID string, clientSecret string, options ...client_credentials.Option) (*management_api.Client, error) {
 
 	kindeTenantURL = strings.ToLower(kindeTenantURL)
 	if kindeTenantURL == "" {
