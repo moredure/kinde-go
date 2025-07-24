@@ -67,11 +67,13 @@ func TestAutorizationCodeFlowClient(t *testing.T) {
 		),
 	)
 
+	flow := kindeClient.(*AuthorizationCodeFlow)
+
 	assert.Nil(t, err, "could not create kinde client")
-	assert.Equal(t, kindeClient.config.ClientID, "b9da18c441b44d81bab3e8232de2e18d")
-	assert.Equal(t, kindeClient.config.ClientSecret, "client_secret")
-	assert.Equal(t, kindeClient.config.RedirectURL, callbackURL)
-	assert.Contains(t, kindeClient.authURLOptions["audience"], "http://my.api.com/api")
+	assert.Equal(t, flow.config.ClientID, "b9da18c441b44d81bab3e8232de2e18d")
+	assert.Equal(t, flow.config.ClientSecret, "client_secret")
+	assert.Equal(t, flow.config.RedirectURL, callbackURL)
+	assert.Contains(t, flow.authURLOptions["audience"], "http://my.api.com/api")
 
 	authURL := kindeClient.GetAuthURL()
 	assert.NotNil(t, authURL, "AuthURL cannot be null")

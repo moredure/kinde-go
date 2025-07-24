@@ -12,16 +12,25 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
-// ClientCredentialsFlow represents the client credentials flow.
-type ClientCredentialsFlow struct {
-	config       clientcredentials.Config
-	tokenOptions []func(*jwt.Token)
-	JWKS_URL     string
-	tokenSource  oauth2.TokenSource
-}
+type (
+	IClientCredentialsFlow interface {
+		GetClient(ctx context.Context) *http.Client
+		GetToken(ctx context.Context) (*jwt.Token, error)
+	}
+
+	Option func(*ClientCredentialsFlow)
+
+	// ClientCredentialsFlow represents the client credentials flow.
+	ClientCredentialsFlow struct {
+		config       clientcredentials.Config
+		tokenOptions []func(*jwt.Token)
+		JWKS_URL     string
+		tokenSource  oauth2.TokenSource
+	}
+)
 
 // Creates a new ClientCredentialsFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
-func NewClientCredentialsFlow(baseURL string, clientID string, clientSecret string, options ...func(*ClientCredentialsFlow)) (*ClientCredentialsFlow, error) {
+func NewClientCredentialsFlow(baseURL string, clientID string, clientSecret string, options ...Option) (IClientCredentialsFlow, error) {
 	asURL, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err

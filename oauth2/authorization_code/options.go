@@ -53,7 +53,7 @@ func WithCustomStateGenerator(stateFunc func(*AuthorizationCodeFlow) string) fun
 }
 
 // Integrates with the session management
-func WithSessionHooks(sessionHooks SessionHooks) func(*AuthorizationCodeFlow) {
+func WithSessionHooks(sessionHooks ISessionHooks) func(*AuthorizationCodeFlow) {
 	return func(s *AuthorizationCodeFlow) {
 		s.sessionHooks = sessionHooks
 	}

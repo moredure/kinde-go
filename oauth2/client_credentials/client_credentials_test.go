@@ -52,12 +52,13 @@ func TestClientCredentials(t *testing.T) {
 		),
 	)
 
+	clientFlow := kindeClient.(*ClientCredentialsFlow)
 	assert.Nil(t, err, "error creating client credentials flow")
-	assert.Equal(t, "b9da18c441b44d81bab3e8232de2e18d", kindeClient.config.ClientID)
-	assert.Equal(t, "client_secret", kindeClient.config.ClientSecret)
-	assert.Contains(t, kindeClient.config.EndpointParams["audience"], "http://my.api.com/api")
-	assert.Contains(t, kindeClient.config.EndpointParams["audience"], "https://my_kinde_tenant.kinde.com/api")
-	assert.Equal(t, fmt.Sprintf("%v/oauth2/token", authorizationServer.URL), kindeClient.config.TokenURL)
+	assert.Equal(t, "b9da18c441b44d81bab3e8232de2e18d", clientFlow.config.ClientID)
+	assert.Equal(t, "client_secret", clientFlow.config.ClientSecret)
+	assert.Contains(t, clientFlow.config.EndpointParams["audience"], "http://my.api.com/api")
+	assert.Contains(t, clientFlow.config.EndpointParams["audience"], "https://my_kinde_tenant.kinde.com/api")
+	assert.Equal(t, fmt.Sprintf("%v/oauth2/token", authorizationServer.URL), clientFlow.config.TokenURL)
 
 	client := kindeClient.GetClient(context.Background())
 	assert.NotNil(t, client, "client cannot be null")

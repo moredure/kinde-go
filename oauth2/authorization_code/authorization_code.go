@@ -22,7 +22,9 @@ const (
 type (
 	TokenType string
 
-	SessionHooks interface {
+	Option func(*AuthorizationCodeFlow)
+
+	ISessionHooks interface {
 		GetState() (string, error)
 		SetState(state string) error
 		SetToken(t TokenType, token string) error
@@ -31,13 +33,21 @@ type (
 		GetPostAuthRedirect() (string, error)
 	}
 
+	IDeviceAuthorizationFlow interface {
+	}
+
+	IAuthorizationCodeFlow interface {
+		GetAuthURL() string
+		ExchangeCode(ctx context.Context, authorizationCode string, receivedState string) error
+	}
+
 	// AuthorizationCodeFlow represents the authorization code flow.
 	AuthorizationCodeFlow struct {
 		config         oauth2.Config
 		authURLOptions url.Values
 		JWKS_URL       string
 		tokenOptions   []func(*jwt.Token)
-		sessionHooks   SessionHooks
+		sessionHooks   ISessionHooks
 		stateGenerator func(from *AuthorizationCodeFlow) string
 		stateVerifier  func(flow *AuthorizationCodeFlow, receivedState string) bool
 	}
@@ -91,18 +101,18 @@ func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
 
 // Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
 func NewAuthorizationCodeFlow(baseURL string, clientID string, clientSecret string, callbackURL string,
-	options ...func(*AuthorizationCodeFlow)) (*AuthorizationCodeFlow, error) {
-	options = append([]func(*AuthorizationCodeFlow){WithScopes("openid", "profile", "email")}, options...) // prepending default openid scopes when nothing requested
+	options ...Option) (IAuthorizationCodeFlow, error) {
+	options = append([]Option{WithScopes("openid", "profile", "email")}, options...) // prepending default openid scopes when nothing requested
 	return newAuthorizationCodeFlow(baseURL, clientID, clientSecret, callbackURL, options...)
 }
 
 // Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
-func NewDeviceAuthorizationFlow(baseURL string, options ...func(*AuthorizationCodeFlow)) (*AuthorizationCodeFlow, error) {
+func NewDeviceAuthorizationFlow(baseURL string, options ...Option) (IDeviceAuthorizationFlow, error) {
 	return newAuthorizationCodeFlow(baseURL, "", "", "", options...)
 }
 
 func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret string, callbackURL string,
-	options ...func(*AuthorizationCodeFlow)) (*AuthorizationCodeFlow, error) {
+	options ...Option) (*AuthorizationCodeFlow, error) {
 	asURL, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
