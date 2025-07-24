@@ -29,7 +29,7 @@ func TestAutorizationCodeFlowOnline(t *testing.T) {
 		WithAudience("http://my.api.com/api"), //custom API audience
 		WithTokenValidation(
 			true,
-			jwt.WillValidateAlgorythm(),
+			jwt.WillValidateAlgorithm(),
 			jwt.WillValidateAudience("http://my.api.com/api"),
 		),
 	)
@@ -59,7 +59,7 @@ func TestAutorizationCodeFlowClient(t *testing.T) {
 		WithAudience("http://my.api.com/api"), //custom API audience
 		WithTokenValidation(
 			true,
-			jwt.WillValidateAlgorythm(),
+			jwt.WillValidateAlgorithm(),
 			jwt.WillValidateAudience("http://my.api.com/api"),
 			jwt.WillValidateWithTimeFunc(func() time.Time {
 				return time.Unix(1168335720000-1, 0)

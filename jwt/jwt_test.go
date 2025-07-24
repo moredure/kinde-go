@@ -19,7 +19,7 @@ func TestTokenNeedsKeyFuncToWork(t *testing.T) {
 	t.Run("TestTokenParsedAndValidated", func(t *testing.T) {
 		parsedToken, err := ParseFromString(testJwtToken(),
 			WillValidateWithPublicKey(func(rawToken string) (*rsa.PublicKey, error) { return testPublicPEM(), nil }),
-			WillValidateAlgorythm(),
+			WillValidateAlgorithm(),
 			WillValidateAudience("http://my.api.com/api"),
 		)
 		assert.Nil(t, err, "unexpected error")
@@ -29,7 +29,7 @@ func TestTokenNeedsKeyFuncToWork(t *testing.T) {
 	t.Run("TestTokenWithInvalidAudience", func(t *testing.T) {
 		parsedToken, err := ParseFromString(testJwtToken(),
 			WillValidateWithPublicKey(func(rawToken string) (*rsa.PublicKey, error) { return testPublicPEM(), nil }),
-			WillValidateAlgorythm(),
+			WillValidateAlgorithm(),
 			WillValidateAudience("incorrect audience"),
 		)
 		assert.NotNil(t, err, "expecting error validating a token")

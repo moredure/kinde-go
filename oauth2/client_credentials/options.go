@@ -51,7 +51,7 @@ func WithKindeManagementAPI(kindeDomain string) Option {
 		WithAudience(managementApiAudience)(s)
 		WithTokenValidation(
 			true,
-			jwt.WillValidateAlgorythm(),
+			jwt.WillValidateAlgorithm(),
 		)(s)
 	}
 }
