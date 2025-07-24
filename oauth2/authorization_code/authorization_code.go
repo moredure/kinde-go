@@ -146,7 +146,7 @@ func (flow *AuthorizationCodeFlow) GetAuthURL() string {
 func (flow *AuthorizationCodeFlow) AuthorizationCodeReceivedHandler(w http.ResponseWriter, r *http.Request) {
 	receivedState := r.URL.Query().Get("state")
 	if flow.stateVerifier(flow, receivedState) {
-		token, err := flow.config.Exchange(r.Context(), receivedState)
+		token, err := flow.config.Exchange(r.Context(), r.URL.Query().Get("code"))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -256,7 +256,7 @@ func (flow *AuthorizationCodeFlow) ExchangeDeviceAccessToken(ctx context.Context
 	return err
 }
 
-// Returns the client to make requests to the backend, will refreesh token if offline is requested.
+// Returns the client to make requests to the backend, will refresh token if offline is requested.
 func (flow *AuthorizationCodeFlow) GetHttpClient(ctx context.Context, tokenSource oauth2.TokenSource) *http.Client {
 	return oauth2.NewClient(ctx, tokenSource)
 }
