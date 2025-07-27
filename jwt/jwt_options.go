@@ -10,8 +10,10 @@ import (
 	golangjwt "github.com/golang-jwt/jwt/v5"
 )
 
+type Option func(*Token)
+
 // WillValidateWithPublicKey receives a token and needs to return a public RSA key to validate the token signature.
-func WillValidateWithPublicKey(keyFunc func(rawToken string) (*rsa.PublicKey, error)) func(*Token) {
+func WillValidateWithPublicKey(keyFunc func(rawToken string) (*rsa.PublicKey, error)) Option {
 	return func(s *Token) {
 		wrapped := func(token *golangjwt.Token) (interface{}, error) {
 			return keyFunc(token.Raw)
@@ -21,7 +23,7 @@ func WillValidateWithPublicKey(keyFunc func(rawToken string) (*rsa.PublicKey, er
 }
 
 // WillValidateWithJWKSUrl will validate the token with the given JWKS URL.
-func WillValidateWithJWKSUrl(url string) func(*Token) {
+func WillValidateWithJWKSUrl(url string) Option {
 	return func(s *Token) {
 		jwks, err := keyfunc.NewDefault([]string{url})
 		if err != nil {
@@ -32,21 +34,21 @@ func WillValidateWithJWKSUrl(url string) func(*Token) {
 }
 
 // WillValidateWithKeyFunc will validate the token with the given keyFunc.
-func WillValidateWithKeyFunc(keyFunc func(*golangjwt.Token) (interface{}, error)) func(*Token) {
+func WillValidateWithKeyFunc(keyFunc func(*golangjwt.Token) (interface{}, error)) Option {
 	return func(s *Token) {
 		s.processing.keyFunc = keyFunc
 	}
 }
 
-// WillValidateWithTimeFunc will validate the token with the given time, used fopr testing.
-func WillValidateWithTimeFunc(timeFunc func() time.Time) func(*Token) {
+// WillValidateWithTimeFunc will validate the token with the given time, used for testing.
+func WillValidateWithTimeFunc(timeFunc func() time.Time) Option {
 	return func(s *Token) {
 		s.processing.parsingOptions = append(s.processing.parsingOptions, golangjwt.WithTimeFunc(timeFunc))
 	}
 }
 
 // WillValidateWithClockSkew will validate the token with the allowed clock skew.
-func WillValidateWithClockSkew(leeway time.Duration) func(*Token) {
+func WillValidateWithClockSkew(leeway time.Duration) Option {
 	return func(s *Token) {
 		s.processing.parsingOptions = append(s.processing.parsingOptions, golangjwt.WithLeeway(leeway))
 	}
@@ -63,14 +65,14 @@ func WillValidateAlgorithm(alg ...string) func(*Token) {
 	}
 }
 
-func WillValidateIssuer(issuer string) func(*Token) {
+func WillValidateIssuer(issuer string) Option {
 	return func(s *Token) {
 		s.processing.parsingOptions = append(s.processing.parsingOptions, golangjwt.WithIssuer(issuer))
 	}
 }
 
 // WillValidateAudience will validate the audience is present in the token.
-func WillValidateAudience(expectedAudience string) func(*Token) {
+func WillValidateAudience(expectedAudience string) Option {
 	return func(s *Token) {
 		f := func(receivedClaims golangjwt.MapClaims) (bool, error) {
 			aud, err := receivedClaims.GetAudience()

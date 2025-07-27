@@ -11,6 +11,7 @@ import (
 
 	"github.com/kinde-oss/kinde-go/jwt"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/oauth2"
 )
 
 func TestClientCredentials(t *testing.T) {
@@ -29,7 +30,7 @@ func TestClientCredentials(t *testing.T) {
 		assert.LessOrEqual(t, callCount, 2, "token should only be called once")
 
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(fmt.Sprintf(`{"access_token": "%v","token_type":"bearer"}`, testclientCredentialsToken())))
+		fmt.Fprintf(w, `{"access_token": "%v","token_type":"bearer"}`, testclientCredentialsToken())
 	}))
 	defer authorizationServer.Close()
 
@@ -44,6 +45,7 @@ func TestClientCredentials(t *testing.T) {
 		WithAudience("http://my.api.com/api"),
 		WithKindeManagementAPI("my_kinde_tenant"),
 		WithKindeManagementAPI("https://my_kinde_tenant.kinde.com"),
+		WithSessionHooks(newTestSessionHooks()),
 		WithTokenValidation(
 			true,
 			jwt.WillValidateAlgorithm(),
@@ -60,7 +62,8 @@ func TestClientCredentials(t *testing.T) {
 	assert.Contains(t, clientFlow.config.EndpointParams["audience"], "https://my_kinde_tenant.kinde.com/api")
 	assert.Equal(t, fmt.Sprintf("%v/oauth2/token", authorizationServer.URL), clientFlow.config.TokenURL)
 
-	client := kindeClient.GetClient(context.Background())
+	client, err := kindeClient.GetClient(context.Background())
+	assert.Nil(t, err, "error getting client")
 	assert.NotNil(t, client, "client cannot be null")
 	response, err := client.Get(fmt.Sprintf("%v/test_call", testServer.URL))
 	assert.Nil(t, err, "error calling test server")
@@ -130,4 +133,53 @@ func testJWKSPrivateKey() string {
     "use": "sig",
     "kid": "3b9615cadda3ca137ba884a1a013fe98"
   }`
+}
+
+type testSessionHooks struct {
+	sessionState map[string]any
+}
+
+func newTestSessionHooks() *testSessionHooks {
+	return &testSessionHooks{
+		sessionState: make(map[string]any),
+	}
+}
+
+// GetPostAuthRedirect implements SessionHooks.
+func (t *testSessionHooks) GetPostAuthRedirect() (string, error) {
+	redirect, _ := t.sessionState["post_auth_redirect"].(string)
+	return redirect, nil
+}
+
+// SetPostAuthRedirect implements SessionHooks.
+func (t *testSessionHooks) SetPostAuthRedirect(redirect string) error {
+	t.sessionState["post_auth_redirect"] = redirect
+	return nil
+}
+
+// GetState implements SessionHooks.
+func (t *testSessionHooks) GetState() (string, error) {
+	state, _ := t.sessionState["state"].(string)
+	return state, nil
+}
+
+// GetToken implements SessionHooks.
+func (t *testSessionHooks) GetRawToken() (*oauth2.Token, error) {
+	token, ok := t.sessionState["kinde_token"].(*oauth2.Token)
+	if !ok {
+		return nil, fmt.Errorf("kinde_token is not of type *oauth2.Token")
+	}
+	return token, nil
+}
+
+// SetState implements SessionHooks.
+func (t *testSessionHooks) SetState(state string) error {
+	t.sessionState["state"] = state
+	return nil
+}
+
+// SetToken implements SessionHooks.
+func (t *testSessionHooks) SetRawToken(token *oauth2.Token) error {
+	t.sessionState["kinde_token"] = token
+	return nil
 }

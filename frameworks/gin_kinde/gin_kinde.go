@@ -7,10 +7,34 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/kinde-oss/kinde-go/oauth2/authorization_code"
+	"golang.org/x/oauth2"
 )
 
 type SessionStorage struct {
 	session sessions.Session
+}
+
+// GetRawToken implements authorization_code.ISessionHooks.
+func (storage *SessionStorage) GetRawToken() (*oauth2.Token, error) {
+	token := storage.session.Get("kinde_token")
+	if token == nil {
+		return nil, fmt.Errorf("token not found in session")
+	}
+	if t, ok := token.(*oauth2.Token); ok {
+		return t, nil
+	}
+	return nil, fmt.Errorf("invalid token type in session")
+}
+
+// SetRawToken implements authorization_code.ISessionHooks.
+func (storage *SessionStorage) SetRawToken(token *oauth2.Token) error {
+	if token == nil {
+		storage.session.Set("kinde_token", nil)
+	} else {
+		storage.session.Set("kinde_token", token)
+	}
+	storage.session.Save()
+	return nil
 }
 
 // GetPostAuthRedirect implements authorization_code.SessionHooks.
@@ -23,14 +47,6 @@ func (storage *SessionStorage) GetState() (string, error) {
 	return storage.session.Get("auth_state").(string), nil
 }
 
-// GetToken implements authorization_code.SessionHooks.
-func (storage *SessionStorage) GetToken(t authorization_code.TokenType) (string, error) {
-	if token, ok := storage.session.Get(fmt.Sprintf("kinde_%v", t)).(string); ok {
-		return token, nil
-	}
-	return "", fmt.Errorf("token %s not found in session", t)
-}
-
 // SetPostAuthRedirect implements authorization_code.SessionHooks.
 func (storage *SessionStorage) SetPostAuthRedirect(redirect string) error {
 	storage.session.Set("post_auth_redirect", redirect)
@@ -41,13 +57,6 @@ func (storage *SessionStorage) SetPostAuthRedirect(redirect string) error {
 // SetState implements authorization_code.SessionHooks.
 func (storage *SessionStorage) SetState(state string) error {
 	storage.session.Set("auth_state", state)
-	storage.session.Save()
-	return nil
-}
-
-// SetToken implements authorization_code.SessionHooks.
-func (storage *SessionStorage) SetToken(t authorization_code.TokenType, token string) error {
-	storage.session.Set(fmt.Sprintf("kinde_%v", t), token)
 	storage.session.Save()
 	return nil
 }
@@ -119,7 +128,7 @@ func UseKindeAuth(router *gin.RouterGroup, kindeDomain, clientID, clientSecret, 
 		if client, ok := ctx.Get("kinde_client"); ok {
 			if kindeClient, ok := client.(*authorization_code.AuthorizationCodeFlow); ok {
 
-				if !kindeClient.IsAuthenticated() {
+				if !kindeClient.IsAuthenticated(context.Background()) {
 					authURL := kindeClient.GetAuthURL()
 					ctx.Redirect(302, authURL)
 					ctx.Abort()
