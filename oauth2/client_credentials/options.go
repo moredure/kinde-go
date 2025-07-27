@@ -30,6 +30,13 @@ func WithAudience(audience string) Option {
 	}
 }
 
+// Integrates with the session management
+func WithSessionHooks(sessionHooks ISessionHooks) Option {
+	return func(s *ClientCredentialsFlow) {
+		s.sessionHooks = sessionHooks
+	}
+}
+
 // Adds Kinde management API audience to the list of audiences to request.
 func WithKindeManagementAPI(kindeDomain string) Option {
 	return func(s *ClientCredentialsFlow) {

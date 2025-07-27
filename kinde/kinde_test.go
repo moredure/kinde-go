@@ -13,7 +13,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/kinde-oss/kinde-go/kinde/management_api"
+	"github.com/kinde-oss/kinde-go/oauth2/client_credentials"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/oauth2"
 )
 
 type (
@@ -95,7 +97,7 @@ func TestManagementAPI(t *testing.T) {
 	kindeAPIUrl = fmt.Sprintf("%s/api", authorizationServer.URL)
 
 	ctx := context.Background()
-	kindeManagementAPI, err := NewManagementAPI(ctx, issuerURL, "b9da18c441b44d81bab3e8232de2e18d", "client_secret")
+	kindeManagementAPI, err := NewManagementAPI(ctx, issuerURL, "b9da18c441b44d81bab3e8232de2e18d", "client_secret", client_credentials.WithSessionHooks(newTestSessionHooks()))
 	assert.NotNil(kindeManagementAPI, "management API client should not be nil")
 	assert.Nil(err, "error creating management API client")
 
@@ -121,4 +123,53 @@ var testSigningKeys = &testKeys{
             "use": "sig"
             }]
         }`,
+}
+
+type testSessionHooks struct {
+	sessionState map[string]any
+}
+
+func newTestSessionHooks() *testSessionHooks {
+	return &testSessionHooks{
+		sessionState: make(map[string]any),
+	}
+}
+
+// GetPostAuthRedirect implements SessionHooks.
+func (t *testSessionHooks) GetPostAuthRedirect() (string, error) {
+	redirect, _ := t.sessionState["post_auth_redirect"].(string)
+	return redirect, nil
+}
+
+// SetPostAuthRedirect implements SessionHooks.
+func (t *testSessionHooks) SetPostAuthRedirect(redirect string) error {
+	t.sessionState["post_auth_redirect"] = redirect
+	return nil
+}
+
+// GetState implements SessionHooks.
+func (t *testSessionHooks) GetState() (string, error) {
+	state, _ := t.sessionState["state"].(string)
+	return state, nil
+}
+
+// GetToken implements SessionHooks.
+func (t *testSessionHooks) GetRawToken() (*oauth2.Token, error) {
+	token, ok := t.sessionState["kinde_token"].(*oauth2.Token)
+	if !ok {
+		return nil, fmt.Errorf("kinde_token is not of type *oauth2.Token")
+	}
+	return token, nil
+}
+
+// SetState implements SessionHooks.
+func (t *testSessionHooks) SetState(state string) error {
+	t.sessionState["state"] = state
+	return nil
+}
+
+// SetToken implements SessionHooks.
+func (t *testSessionHooks) SetRawToken(token *oauth2.Token) error {
+	t.sessionState["kinde_token"] = token
+	return nil
 }

@@ -13,7 +13,7 @@ var CLI_NAME = ""
 type Config struct {
 }
 
-func NewDeviceAuthorizationFlow(issuerDomain string) (*authorization_code.AuthorizationCodeFlow, error) {
+func NewDeviceAuthorizationFlow(issuerDomain string) (authorization_code.IDeviceAuthorizationFlow, error) {
 	cliSession, err := cli.NewCliSession(CLI_NAME)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %w", err)
@@ -24,7 +24,7 @@ func NewDeviceAuthorizationFlow(issuerDomain string) (*authorization_code.Author
 		authorization_code.WithOffline(),
 		authorization_code.WithTokenValidation(
 			true,
-			jwt.WillValidateAlgorythm(),
+			jwt.WillValidateAlgorithm(),
 			jwt.WillValidateIssuer(issuerDomain),
 		),
 	)

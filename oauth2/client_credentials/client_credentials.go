@@ -12,8 +12,15 @@ import (
 )
 
 type (
+	TokenType string
+
+	ISessionHooks interface {
+		SetRawToken(token *oauth2.Token) error
+		GetRawToken() (*oauth2.Token, error)
+	}
+
 	IClientCredentialsFlow interface {
-		GetClient(ctx context.Context) *http.Client
+		GetClient(ctx context.Context) (*http.Client, error)
 		GetToken(ctx context.Context) (*jwt.Token, error)
 	}
 
@@ -22,9 +29,11 @@ type (
 		config       clientcredentials.Config
 		tokenOptions []func(*jwt.Token)
 		JWKS_URL     string
-		tokenSource  oauth2.TokenSource
+		sessionHooks ISessionHooks
 	}
 )
+
+// Token implements oauth2.TokenSource.
 
 // Creates a new ClientCredentialsFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
 func NewClientCredentialsFlow(baseURL string, clientID string, clientSecret string, options ...Option) (IClientCredentialsFlow, error) {
@@ -36,7 +45,7 @@ func NewClientCredentialsFlow(baseURL string, clientID string, clientSecret stri
 	if asURL.Port() != "" {
 		host = fmt.Sprintf("%v:%v", host, asURL.Port())
 	}
-	client := &ClientCredentialsFlow{
+	flow := &ClientCredentialsFlow{
 		config: clientcredentials.Config{
 			ClientID:       clientID,
 			ClientSecret:   clientSecret,
@@ -47,25 +56,35 @@ func NewClientCredentialsFlow(baseURL string, clientID string, clientSecret stri
 	}
 
 	for _, o := range options {
-		o(client)
+		o(flow)
 	}
 
-	client.tokenSource = client.config.TokenSource(context.Background())
+	if flow.sessionHooks == nil {
+		return nil, fmt.Errorf("session hooks cannot be nil")
+	}
 
-	return client, nil
+	return flow, nil
 }
 
 // Returns the http client to be used to make requests.
-func (flow *ClientCredentialsFlow) GetClient(ctx context.Context) *http.Client {
-	return flow.config.Client(ctx)
+func (flow *ClientCredentialsFlow) GetClient(ctx context.Context) (*http.Client, error) {
+	tokenSource, err := flow.getTokenSource(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return oauth2.NewClient(ctx, tokenSource), nil
 }
 
 // Returns the token to be used to make requests.
 func (flow *ClientCredentialsFlow) GetToken(ctx context.Context) (*jwt.Token, error) {
 
-	token, err := flow.tokenSource.Token()
+	ts, err := flow.getTokenSource(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return jwt.ParseOAuth2Token(token, flow.tokenOptions...)
+	return ts.getValidatedToken(ctx)
+}
+
+func (flow *ClientCredentialsFlow) getTokenSource(_ context.Context) (sessionTokenSource, error) {
+	return sessionTokenSource{flow: flow}, nil
 }

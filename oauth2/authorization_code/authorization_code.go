@@ -12,42 +12,53 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const (
-	RawToken     TokenType = "raw_token"
-	IDToken      TokenType = "id_token"
-	AccessToken  TokenType = "access_token"
-	RefreshToken TokenType = "refresh_token"
-)
-
 type (
-	TokenType string
-
+	// ISessionHooks defines the interface for session management in the authorization code flow.
 	ISessionHooks interface {
+		// GetState retrieves the state from the session.
 		GetState() (string, error)
+		// SetState sets the state in the session.
 		SetState(state string) error
-		SetToken(t TokenType, token string) error
-		GetToken(t TokenType) (string, error)
+		// SetRawToken stores the raw token in the session.
+		SetRawToken(token *oauth2.Token) error
+		// GetRawToken retrieves the raw token from the session.
+		GetRawToken() (*oauth2.Token, error)
+		// SetPostAuthRedirect sets the post-authentication redirect URL in the session.
 		SetPostAuthRedirect(redirect string) error
+		// GetPostAuthRedirect retrieves the post-authentication redirect URL from the session.
 		GetPostAuthRedirect() (string, error)
 	}
 
+	// IAuthorizationCodeFlow represents the interface for the authorization code flow.
 	IAuthorizationCodeFlow interface {
+		// Logout clears the session and token.
 		GetAuthURL() string
+		// Exchanges the authorization code for a token and establishes KindeContext.
 		ExchangeCode(ctx context.Context, authorizationCode string, receivedState string) error
-		GetHttpClient(ctx context.Context, tokenSource oauth2.TokenSource) *http.Client
-		GetToken() (*jwt.Token, error)
-		IsAuthenticated() bool
+		// Returns http client to call external services, will refresh token behind the scenes if offline is requested.
+		GetClient(ctx context.Context) (*http.Client, error)
+		// Check if user is authenticated.
+		IsAuthenticated(context.Context) bool
+		// Clears local tokens and logs user out.
 		Logout() error
+		// A helper handler middleware for the code exchanger
 		AuthorizationCodeReceivedHandler(w http.ResponseWriter, r *http.Request)
 	}
 
+	// IDeviceAuthorizationFlow represents the interface for the device authorization flow.
 	IDeviceAuthorizationFlow interface {
+		// StartDeviceAuth starts the device authorization flow.
 		StartDeviceAuth(ctx context.Context) (*oauth2.DeviceAuthResponse, error)
+		// Exchanges the device code to access token.
 		ExchangeDeviceAccessToken(ctx context.Context, da *oauth2.DeviceAuthResponse, opts ...oauth2.AuthCodeOption) error
-		GetHttpClient(ctx context.Context, tokenSource oauth2.TokenSource) *http.Client
-		GetToken() (*jwt.Token, error)
-		IsAuthenticated() bool
+		// Returns http client to call external services, will refresh token behind the scenes if offline is requested.
+		GetClient(ctx context.Context) (*http.Client, error)
+		// Checks if the user is authenticated.
+		IsAuthenticated(context.Context) bool
+		// Clears local tokens and logs user out.
 		Logout() error
+		// Returns the token for the current session.
+		GetToken(context.Context) (*jwt.Token, error)
 	}
 
 	// AuthorizationCodeFlow represents the authorization code flow.
@@ -63,49 +74,27 @@ type (
 )
 
 func (flow *AuthorizationCodeFlow) Logout() error {
-	if err := flow.sessionHooks.SetToken(RawToken, ""); err != nil {
+	if err := flow.sessionHooks.SetRawToken(nil); err != nil {
 		return fmt.Errorf("failed to clear raw token: %w", err)
-	}
-	if err := flow.sessionHooks.SetToken(IDToken, ""); err != nil {
-		return fmt.Errorf("failed to clear ID token: %w", err)
-	}
-	if err := flow.sessionHooks.SetToken(AccessToken, ""); err != nil {
-		return fmt.Errorf("failed to clear access token: %w", err)
-	}
-	if err := flow.sessionHooks.SetToken(RefreshToken, ""); err != nil {
-		return fmt.Errorf("failed to clear refresh token: %w", err)
 	}
 	return nil
 }
 
-func (flow *AuthorizationCodeFlow) GetToken() (*jwt.Token, error) {
-	return flow.parseFromSessionStorage()
+func (flow *AuthorizationCodeFlow) GetToken(ctx context.Context) (*jwt.Token, error) {
+
+	tokenSource, err := flow.getTokenSource(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get token source: %w", err)
+	}
+	return tokenSource.getValidatedToken(ctx)
 }
 
-func (flow *AuthorizationCodeFlow) IsAuthenticated() bool {
-	accessToken, err := flow.sessionHooks.GetToken(AccessToken)
+func (flow *AuthorizationCodeFlow) IsAuthenticated(ctx context.Context) bool {
+	_, err := flow.GetToken(ctx)
 	if err != nil {
 		return false
 	}
-
-	refreshToken, _ := flow.sessionHooks.GetToken(RefreshToken)
-
-	tokenSource := flow.config.TokenSource(context.Background(), &oauth2.Token{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	})
-	token, err := tokenSource.Token()
-	if err != nil {
-		return false
-	}
-	if token != nil {
-		parsedToken, err := flow.validateAndStoreToken(token)
-		if err != nil {
-			return false
-		}
-		return parsedToken.IsValid()
-	}
-	return false
+	return true
 }
 
 // Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
@@ -150,18 +139,7 @@ func (flow *AuthorizationCodeFlow) AuthorizationCodeReceivedHandler(w http.Respo
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		parsedToken, err := jwt.ParseOAuth2Token(token, flow.tokenOptions...)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if parsedToken.IsValid() {
-			stringToken, err := parsedToken.AsString()
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			}
-			flow.sessionHooks.SetToken(RawToken, stringToken)
-		}
+		flow.sessionHooks.SetRawToken(token)
 	}
 }
 
@@ -177,7 +155,7 @@ func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret stri
 		host = fmt.Sprintf("%v:%v", host, asURL.Port())
 	}
 
-	client := &AuthorizationCodeFlow{
+	flow := &AuthorizationCodeFlow{
 		JWKS_URL: fmt.Sprintf("%v://%v/.well-known/jwks", asURL.Scheme, host),
 		config: oauth2.Config{
 			ClientID:     clientID,
@@ -207,14 +185,14 @@ func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret stri
 	}
 
 	for _, o := range options {
-		o(client)
+		o(flow)
 	}
 
-	if client.sessionHooks == nil {
+	if flow.sessionHooks == nil {
 		return nil, fmt.Errorf("session hooks are not set, please connect your session management with WithSessionHooks")
 	}
 
-	return client, nil
+	return flow, nil
 }
 
 // Exchanges the authorization code for a token and established KindeContext
@@ -238,7 +216,8 @@ func (flow *AuthorizationCodeFlow) ExchangeCode(ctx context.Context, authorizati
 		return err
 	}
 
-	_, err = flow.validateAndStoreToken(token)
+	flow.sessionHooks.SetRawToken(token)
+
 	return err
 }
 
@@ -251,49 +230,20 @@ func (flow *AuthorizationCodeFlow) ExchangeDeviceAccessToken(ctx context.Context
 		return err
 	}
 
-	_, err = flow.validateAndStoreToken(token)
+	err = flow.sessionHooks.SetRawToken(token)
 
 	return err
 }
 
 // Returns the client to make requests to the backend, will refresh token if offline is requested.
-func (flow *AuthorizationCodeFlow) GetHttpClient(ctx context.Context, tokenSource oauth2.TokenSource) *http.Client {
-	return oauth2.NewClient(ctx, tokenSource)
+func (flow *AuthorizationCodeFlow) GetClient(ctx context.Context) (*http.Client, error) {
+	tokenSource, err := flow.getTokenSource(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get token source: %w", err)
+	}
+	return oauth2.NewClient(ctx, tokenSource), nil
 }
 
-func (flow *AuthorizationCodeFlow) parseFromSessionStorage() (*jwt.Token, error) {
-	rawToken, err := flow.sessionHooks.GetToken(RawToken)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get raw token from session: %w", err)
-	}
-	parsedToken, err := jwt.ParseFromSessionStorage(rawToken, flow.tokenOptions...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse raw token: %w", err)
-	}
-	return parsedToken, nil
-}
-
-func (flow *AuthorizationCodeFlow) validateAndStoreToken(token *oauth2.Token) (*jwt.Token, error) {
-	jwtToken, err := jwt.ParseOAuth2Token(token, flow.tokenOptions...)
-	if err != nil {
-		return jwtToken, err
-	}
-
-	rawToken, err := jwtToken.AsString()
-	if err != nil {
-		return nil, err
-	}
-
-	flow.sessionHooks.SetToken(RawToken, rawToken)
-
-	if idToken, ok := jwtToken.GetIdToken(); ok {
-		flow.sessionHooks.SetToken(IDToken, idToken)
-	}
-	if accessToken, ok := jwtToken.GetAccessToken(); ok {
-		flow.sessionHooks.SetToken(AccessToken, accessToken)
-	}
-	if refreshToken, ok := jwtToken.GetRefreshToken(); ok {
-		flow.sessionHooks.SetToken(RefreshToken, refreshToken)
-	}
-	return jwtToken, nil
+func (flow *AuthorizationCodeFlow) getTokenSource(_ context.Context) (sessionTokenSource, error) {
+	return sessionTokenSource{flow: flow}, nil
 }

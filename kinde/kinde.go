@@ -40,11 +40,12 @@ func NewManagementAPI(ctx context.Context, kindeTenantURL string, clientID strin
 
 	options = append(options, client_credentials.WithKindeManagementAPI(kindeTenantURL))
 
-	client, err := client_credentials.NewClientCredentialsFlow(kindeTenantURL, clientID, clientSecret, options...)
+	flow, err := client_credentials.NewClientCredentialsFlow(kindeTenantURL, clientID, clientSecret, options...)
 	if err != nil {
 		return nil, err
 	}
 
-	managementApiClient, err := management_api.NewClient(kindeTenantURL, &securitySource{clientCredentials: client}, management_api.WithClient(client.GetClient(ctx)))
+	client, err := flow.GetClient(ctx)
+	managementApiClient, err := management_api.NewClient(kindeTenantURL, &securitySource{clientCredentials: flow}, management_api.WithClient(client))
 	return managementApiClient, err
 }

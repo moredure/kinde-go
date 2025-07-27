@@ -2,6 +2,7 @@ package authorization_code
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/kinde-oss/kinde-go/jwt"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/oauth2"
 )
 
 func TestAutorizationCodeFlowOnline(t *testing.T) {
@@ -189,6 +191,29 @@ type testSessionHooks struct {
 	sessionState map[string]string
 }
 
+// GetRawToken implements ISessionHooks.
+func (t *testSessionHooks) GetRawToken() (*oauth2.Token, error) {
+	tokenData, ok := t.sessionState["token"]
+	if !ok {
+		return nil, fmt.Errorf("no token found in session state")
+	}
+	var token oauth2.Token
+	if err := json.Unmarshal([]byte(tokenData), &token); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal token: %w", err)
+	}
+	return &token, nil
+}
+
+// SetRawToken implements ISessionHooks.
+func (t *testSessionHooks) SetRawToken(token *oauth2.Token) error {
+	tData, err := json.Marshal(token)
+	if err != nil {
+		return fmt.Errorf("failed to marshal token: %w", err)
+	}
+	t.sessionState["token"] = string(tData)
+	return nil
+}
+
 func newTestSessionHooks() *testSessionHooks {
 	return &testSessionHooks{
 		sessionState: make(map[string]string),
@@ -211,19 +236,8 @@ func (t *testSessionHooks) GetState() (string, error) {
 	return t.sessionState["state"], nil
 }
 
-// GetToken implements SessionHooks.
-func (t *testSessionHooks) GetToken(tt TokenType) (string, error) {
-	return t.sessionState["token"], nil
-}
-
 // SetState implements SessionHooks.
 func (t *testSessionHooks) SetState(state string) error {
 	t.sessionState["state"] = state
-	return nil
-}
-
-// SetToken implements SessionHooks.
-func (t *testSessionHooks) SetToken(tt TokenType, token string) error {
-	t.sessionState["token"] = token
 	return nil
 }
