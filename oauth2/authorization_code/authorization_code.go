@@ -19,7 +19,7 @@ type (
 		GetState() (string, error)
 		// SetState sets the state in the session.
 		SetState(state string) error
-		// GetRawToken retrieves the raw token from the session.
+		// SetRawToken stores the raw token in the session.
 		SetRawToken(token *oauth2.Token) error
 		// GetRawToken retrieves the raw token from the session.
 		GetRawToken() (*oauth2.Token, error)

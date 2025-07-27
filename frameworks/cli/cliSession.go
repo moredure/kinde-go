@@ -35,15 +35,19 @@ func (c *cliSession) GetRawToken() (*oauth2.Token, error) {
 
 // SetRawToken implements authorization_code.ISessionHooks.
 func (c *cliSession) SetRawToken(token *oauth2.Token) error {
+
+	if token == nil {
+		return c.keyring.Remove(fmt.Sprintf("%s_token", keyPrefix))
+	}
+
 	t, err := json.Marshal(token)
 	if err != nil {
 		return fmt.Errorf("failed to marshal token: %w", err)
 	}
-	c.keyring.Set(keyring.Item{
+	return c.keyring.Set(keyring.Item{
 		Key:  fmt.Sprintf("%s_token", keyPrefix),
 		Data: t,
 	})
-	return nil
 }
 
 // GetPostAuthRedirect implements authorization_code.SessionHooks.
