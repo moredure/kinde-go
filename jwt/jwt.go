@@ -142,3 +142,13 @@ func (j *Token) GetSubject() string {
 	subject, _ := j.processing.parsed.Claims.GetSubject()
 	return subject
 }
+
+func (j *Token) GetClaims() map[string]any {
+	if j.processing.parsed == nil {
+		return make(map[string]any)
+	}
+	if claims, ok := j.processing.parsed.Claims.(golangjwt.MapClaims); ok {
+		return claims
+	}
+	return make(map[string]any)
+}
