@@ -6,6 +6,7 @@ import (
 	"encoding/pem"
 	"testing"
 
+	golangjwt "github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,6 +35,37 @@ func TestTokenNeedsKeyFuncToWork(t *testing.T) {
 		)
 		assert.NotNil(t, err, "expecting error validating a token")
 		assert.False(t, parsedToken.IsValid(), "token should be not valid")
+	})
+
+}
+
+func TestToken_GetClaims(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns empty map when parsed is nil", func(t *testing.T) {
+		token := &Token{}
+		claims := token.GetClaims()
+		assert.NotNil(t, claims)
+		assert.Equal(t, 0, len(claims))
+	})
+
+	t.Run("returns claims when parsed is set and claims are MapClaims", func(t *testing.T) {
+		expectedClaims := map[string]any{
+			"sub": "test_subject",
+			"aud": "test_audience",
+		}
+		token := &Token{
+			processing: tokenProcessing{
+				parsed: &golangjwt.Token{
+					Claims: golangjwt.MapClaims{
+						"sub": "test_subject",
+						"aud": "test_audience",
+					},
+				},
+			},
+		}
+		claims := token.GetClaims()
+		assert.Equal(t, expectedClaims, claims)
 	})
 
 }
