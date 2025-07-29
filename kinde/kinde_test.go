@@ -97,7 +97,15 @@ func TestManagementAPI(t *testing.T) {
 	kindeAPIUrl = fmt.Sprintf("%s/api", authorizationServer.URL)
 
 	ctx := context.Background()
-	kindeManagementAPI, err := NewManagementAPI(ctx, issuerURL, "b9da18c441b44d81bab3e8232de2e18d", "client_secret", client_credentials.WithSessionHooks(newTestSessionHooks()))
+	clientCredentialsFlow, err := client_credentials.NewClientCredentialsFlow(
+		issuerURL,
+		"b9da18c441b44d81bab3e8232de2e18d",
+		"client_secret",
+		client_credentials.WithSessionHooks(newTestSessionHooks()),
+		client_credentials.WithKindeManagementAPI(kindeAPIUrl),
+		client_credentials.WithTokenValidation(true),
+	)
+	kindeManagementAPI, err := NewManagementAPI(ctx, issuerURL, clientCredentialsFlow)
 	assert.NotNil(kindeManagementAPI, "management API client should not be nil")
 	assert.Nil(err, "error creating management API client")
 
