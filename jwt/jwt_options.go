@@ -33,7 +33,9 @@ func WillValidateWithJWKSUrl(url string) Option {
 		RefreshUnknownKID: rate.NewLimiter(rate.Every(5*time.Minute), 1),
 	})
 	if err != nil {
-		return nil
+		return func(s *Token) {
+			s.validationErrors = append(s.validationErrors, fmt.Errorf("failed to create JWK client: %w", err))
+		}
 	}
 
 	options := keyfunc.Options{
