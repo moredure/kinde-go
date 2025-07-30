@@ -13,16 +13,17 @@ import (
 )
 
 type (
+
 	// ISessionHooks defines the interface for session management in the authorization code flow.
 	ISessionHooks interface {
-		// GetState retrieves the state from the session.
-		GetState() (string, error)
-		// SetState sets the state in the session.
-		SetState(state string) error
 		// SetRawToken stores the raw token in the session.
 		SetRawToken(token *oauth2.Token) error
 		// GetRawToken retrieves the raw token from the session.
 		GetRawToken() (*oauth2.Token, error)
+		// GetState retrieves the state from the session.
+		GetState() (string, error)
+		// SetState sets the state in the session.
+		SetState(state string) error
 		// SetPostAuthRedirect sets the post-authentication redirect URL in the session.
 		SetPostAuthRedirect(redirect string) error
 		// GetPostAuthRedirect retrieves the post-authentication redirect URL from the session.

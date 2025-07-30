@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,6 +20,7 @@ func TestClientCredentials(t *testing.T) {
 	authorizationServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		if strings.Contains(r.URL.Path, "/.well-known/jwks") {
+			log.Default().Println("JWKS request received")
 			w.WriteHeader(http.StatusOK)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(testJWKSPublicKeys())
@@ -75,6 +77,7 @@ func TestClientCredentials(t *testing.T) {
 	token, err := kindeClient.GetToken(context.Background())
 	assert.Nil(t, err, "error getting token")
 	assert.Equal(t, testclientCredentialsToken(), token.GetRawToken().AccessToken, "incorrect token")
+
 }
 
 func testclientCredentialsToken() string {

@@ -3,6 +3,7 @@ package client_credentials
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/kinde-oss/kinde-go/jwt"
 	"golang.org/x/oauth2"
@@ -34,11 +35,9 @@ func (t sessionTokenSource) getValidatedToken(_ context.Context) (*jwt.Token, er
 
 // Token implements oauth2.TokenSource.
 func (t sessionTokenSource) Token() (*oauth2.Token, error) {
-	//token, err := t.flow.sessionHooks.GetRawToken()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to get raw token: %w", err)
-	// }
-	ts := t.flow.config.TokenSource(context.Background())
+	cachedToken, _ := t.flow.sessionHooks.GetRawToken()
+
+	ts := oauth2.ReuseTokenSourceWithExpiry(cachedToken, t.flow.config.TokenSource(context.Background()), time.Second*30)
 
 	possiblyNewToken, err := ts.Token()
 	if err != nil {

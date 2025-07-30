@@ -3,6 +3,7 @@ package kinde
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -38,6 +39,7 @@ func TestManagementAPI(t *testing.T) {
 
 		switch r.URL.Path {
 		case "/.well-known/jwks":
+      log.Default().Println("JWKS request received")
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(testSigningKeys.JwkKeySet))
 			return

@@ -6,8 +6,10 @@ import (
 	"slices"
 	"time"
 
+	"github.com/MicahParks/jwkset"
 	"github.com/MicahParks/keyfunc/v3"
 	golangjwt "github.com/golang-jwt/jwt/v5"
+	"golang.org/x/time/rate"
 )
 
 type Option func(*Token)
@@ -24,11 +26,26 @@ func WillValidateWithPublicKey(keyFunc func(rawToken string) (*rsa.PublicKey, er
 
 // WillValidateWithJWKSUrl will validate the token with the given JWKS URL.
 func WillValidateWithJWKSUrl(url string) Option {
+	client, err := jwkset.NewHTTPClient(jwkset.HTTPClientOptions{
+		PrioritizeHTTP:    false,
+		HTTPURLs:          map[string]jwkset.Storage{url: nil},
+		RateLimitWaitMax:  time.Minute,
+		RefreshUnknownKID: rate.NewLimiter(rate.Every(5*time.Minute), 1),
+	})
+	if err != nil {
+		return nil
+	}
+
+	options := keyfunc.Options{
+		Storage: client,
+	}
+
+	jwks, err := keyfunc.New(options)
+	if err != nil {
+		return nil
+	}
+
 	return func(s *Token) {
-		jwks, err := keyfunc.NewDefault([]string{url})
-		if err != nil {
-			return
-		}
 		s.processing.keyFunc = jwks.Keyfunc
 	}
 }
