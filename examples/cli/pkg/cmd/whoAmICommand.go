@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/kinde-oss/kinde-go/example-cli/pkg/config"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +34,8 @@ func (c *whoAmICmd) runWhoAmI(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !deviceFlow.IsAuthenticated(cmd.Context()) {
+	if isAuthenticated, err := deviceFlow.IsAuthenticated(cmd.Context()); !isAuthenticated {
+		log.Error().Err(err).Msg("You are not authenticated")
 		return fmt.Errorf("you are not logged in. Please run 'login' command first")
 	}
 

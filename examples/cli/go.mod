@@ -7,9 +7,14 @@ replace github.com/kinde-oss/kinde-go => ../../.
 require (
 	github.com/kinde-oss/kinde-cli v0.0.0-20250727142833-4c521043c8f7
 	github.com/kinde-oss/kinde-go v0.0.8
+	github.com/rs/zerolog v1.34.0
 )
 
-require github.com/kr/text v0.2.0 // indirect
+require (
+	github.com/kr/text v0.2.0 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+)
 
 require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect

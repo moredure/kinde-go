@@ -39,7 +39,7 @@ type (
 		// Returns http client to call external services, will refresh token behind the scenes if offline is requested.
 		GetClient(ctx context.Context) (*http.Client, error)
 		// Check if user is authenticated.
-		IsAuthenticated(context.Context) bool
+		IsAuthenticated(context.Context) (bool, error)
 		// Clears local tokens and logs user out.
 		Logout() error
 		// A helper handler middleware for the code exchanger
@@ -55,7 +55,7 @@ type (
 		// Returns http client to call external services, will refresh token behind the scenes if offline is requested.
 		GetClient(ctx context.Context) (*http.Client, error)
 		// Checks if the user is authenticated.
-		IsAuthenticated(context.Context) bool
+		IsAuthenticated(context.Context) (bool, error)
 		// Clears local tokens and logs user out.
 		Logout() error
 		// Returns the token for the current session.
@@ -90,12 +90,12 @@ func (flow *AuthorizationCodeFlow) GetToken(ctx context.Context) (*jwt.Token, er
 	return tokenSource.getValidatedToken(ctx)
 }
 
-func (flow *AuthorizationCodeFlow) IsAuthenticated(ctx context.Context) bool {
+func (flow *AuthorizationCodeFlow) IsAuthenticated(ctx context.Context) (bool, error) {
 	_, err := flow.GetToken(ctx)
 	if err != nil {
-		return false
+		return false, err
 	}
-	return true
+	return true, nil
 }
 
 // Creates a new AuthorizationCodeFlow with the given baseURL, clientID, clientSecret and options to authenticate backend applications.
