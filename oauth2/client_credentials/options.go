@@ -56,10 +56,6 @@ func WithKindeManagementAPI(kindeDomain string) Option {
 		managementApiAudience := fmt.Sprintf("https://%v.kinde.com/api", host)
 		WithAuthParameter("audience", managementApiAudience)(s)
 		WithAudience(managementApiAudience)(s)
-		WithTokenValidation(
-			true,
-			jwt.WillValidateAlgorithm(),
-		)(s)
 	}
 }
 

@@ -10,20 +10,22 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type tokenProcessing struct {
-	keyFunc        func(*golangjwt.Token) (interface{}, error)
-	parsingOptions []golangjwt.ParserOption
-	validations    []func(claims golangjwt.MapClaims) (isValid bool, err error)
-	parsed         *golangjwt.Token
-}
+type (
+	tokenProcessing struct {
+		keyFunc        func(*golangjwt.Token) (interface{}, error)
+		parsingOptions []golangjwt.ParserOption
+		validations    []func(claims golangjwt.MapClaims) (isValid bool, err error)
+		parsed         *golangjwt.Token
+	}
 
-// Token represents a JWT token.
-type Token struct {
-	rawToken         *oauth2.Token
-	processing       tokenProcessing
-	isValid          bool
-	validationErrors []error
-}
+	// Token represents a JWT token.
+	Token struct {
+		rawToken         *oauth2.Token
+		processing       tokenProcessing
+		isValid          bool
+		validationErrors []error
+	}
+)
 
 func (j *Token) GetValidationErrors() error {
 	return newError("token validation errors", nil, j.validationErrors...)
