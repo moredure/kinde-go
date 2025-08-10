@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/99designs/keyring"
@@ -89,17 +90,26 @@ func (c *cliSession) SetRawToken(token *oauth2.Token) error {
 	chunks := (len(t) + chunkSize - 1) / chunkSize
 
 	// Remove any existing chunks
-	for i := 0; ; i++ {
+	// Remove any existing chunks (bounded to avoid infinite loops)
+	const maxCleanupChunks = 4096
+	for i := 0; i < maxCleanupChunks; i++ {
 		chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
 		if err := c.keyring.Remove(chunkKey); err != nil {
-			break
+			if errors.Is(err, keyring.ErrKeyNotFound) {
+				break
+			}
+			// Continue attempting cleanup on other errors
+			continue
 		}
 	}
 
 	// Save chunks
 	for i := range chunks {
 		start := i * chunkSize
-		end := min(start+chunkSize, len(t))
+		end := start + chunkSize
+		if end > len(t) {
+			end = len(t)
+		}
 		chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
 		if err := c.keyring.Set(keyring.Item{
 			Key:  chunkKey,
