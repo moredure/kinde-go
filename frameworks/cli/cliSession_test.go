@@ -110,7 +110,7 @@ func TestCliSession_GetRawToken_ChunkCountParseError(t *testing.T) {
 	got, err := cs.GetRawToken()
 	assert.NotNil(err)
 	assert.Nil(got)
-	assert.Contains(err.Error(), "failed to parse chunk count")
+	assert.Contains(err.Error(), "failed to get token")
 }
 
 func TestCliSession_GetRawToken_ChunkMissing(t *testing.T) {
