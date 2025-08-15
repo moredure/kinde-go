@@ -38,7 +38,7 @@ kindeAuthFlow, err := authorization_code.NewAuthorizationCodeFlow(
 
 ```
 
-`kindeAuthFlow` will now expose the following methods:
+`kindeAuthFlow` provides the following methods:
 
 | Method | Description | Parameters | Returns |
 | --- | --- | --- | --- |
@@ -104,7 +104,12 @@ kindeClient, err := client_credentials.NewClientCredentialsFlow(
 )
 ```
 
-`kindeAuthFlow` will now expose the following methods: | Method | Description | |-------------|-------------------------------------------------------------------------------------------------------| | `GetClient` | Gets HTTP client, which uses the received token and manages refresh/access token lifetime automatically. | | `GetToken` | Gets the `*jwt.Token`, reads from session storage if already received, refreshes when token expires. |
+`kindeClient` exposes the following methods:
+
+| Method | Description | Parameters | Returns |
+| --- | --- | --- | --- |
+| `GetClient` | Returns an HTTP client that uses the received token and manages refresh/access token lifetime. | ctx `context.Context` | `(*http.Client, error)` |
+| `GetToken` | Returns the `*jwt.Token`; reads from session storage if present and refreshes when token expires. | ctx `context.Context` | `(*jwt.Token, error)` |
 
 #### Using client to request an authorized endpoint
 
