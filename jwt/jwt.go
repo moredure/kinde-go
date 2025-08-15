@@ -27,10 +27,6 @@ type (
 	}
 )
 
-func (j *Token) GetValidationErrors() error {
-	return newError("token validation errors", nil, j.validationErrors...)
-}
-
 // ParseFromAuthorizationHeader will parse the token from the Authorization header and validate it with the given options.
 func ParseFromAuthorizationHeader(r *http.Request, options ...func(*Token)) (*Token, error) {
 	requestedToken := r.Header.Get("Authorization")
@@ -104,53 +100,4 @@ func ParseOAuth2Token(rawToken *oauth2.Token, options ...func(*Token)) (*Token, 
 	}
 
 	return &token, newError("error parsing or validating token", err, errors...)
-}
-
-// GetRawToken returns the raw token.
-func (j *Token) GetRawToken() *oauth2.Token {
-	return j.rawToken
-}
-
-func (j *Token) GetIdToken() (string, bool) {
-	if token, ok := j.rawToken.Extra("id_token").(string); ok {
-		return token, true
-	}
-	return "", false
-}
-
-func (j *Token) GetAccessToken() (string, bool) {
-	return j.rawToken.AccessToken, j.rawToken.AccessToken != ""
-}
-
-func (j *Token) GetRefreshToken() (string, bool) {
-	return j.rawToken.RefreshToken, j.rawToken.RefreshToken != ""
-}
-
-// GetRawToken returns the raw token.
-func (j *Token) AsString() (string, error) {
-	marshalledToken, err := json.Marshal(j.rawToken)
-	if err != nil {
-		return "", err
-	}
-	return string(marshalledToken), nil
-}
-
-// IsValid returns if the token is valid.
-func (j *Token) IsValid() bool {
-	return j.isValid
-}
-
-func (j *Token) GetSubject() string {
-	subject, _ := j.processing.parsed.Claims.GetSubject()
-	return subject
-}
-
-func (j *Token) GetClaims() map[string]any {
-	if j.processing.parsed == nil {
-		return make(map[string]any)
-	}
-	if claims, ok := j.processing.parsed.Claims.(golangjwt.MapClaims); ok {
-		return claims
-	}
-	return make(map[string]any)
 }
