@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/go-faster/errors"
+	"github.com/go-faster/jx"
+	"github.com/google/uuid"
 
 	ht "github.com/ogen-go/ogen/http"
 )
@@ -744,6 +746,74 @@ func (s *ConnectionConnection) SetStrategy(val OptString) {
 	s.Strategy = val
 }
 
+// Ref: #/components/schemas/create_api_key_response
+type CreateAPIKeyResponse struct {
+	// A Kinde generated message.
+	Message OptString `json:"message"`
+	// A Kinde generated status code.
+	Code   OptString                     `json:"code"`
+	APIKey OptCreateAPIKeyResponseAPIKey `json:"api_key"`
+}
+
+// GetMessage returns the value of Message.
+func (s *CreateAPIKeyResponse) GetMessage() OptString {
+	return s.Message
+}
+
+// GetCode returns the value of Code.
+func (s *CreateAPIKeyResponse) GetCode() OptString {
+	return s.Code
+}
+
+// GetAPIKey returns the value of APIKey.
+func (s *CreateAPIKeyResponse) GetAPIKey() OptCreateAPIKeyResponseAPIKey {
+	return s.APIKey
+}
+
+// SetMessage sets the value of Message.
+func (s *CreateAPIKeyResponse) SetMessage(val OptString) {
+	s.Message = val
+}
+
+// SetCode sets the value of Code.
+func (s *CreateAPIKeyResponse) SetCode(val OptString) {
+	s.Code = val
+}
+
+// SetAPIKey sets the value of APIKey.
+func (s *CreateAPIKeyResponse) SetAPIKey(val OptCreateAPIKeyResponseAPIKey) {
+	s.APIKey = val
+}
+
+func (*CreateAPIKeyResponse) createApiKeyRes() {}
+
+type CreateAPIKeyResponseAPIKey struct {
+	// The unique ID for the API key.
+	ID OptString `json:"id"`
+	// The API key value (only shown once on creation).
+	Key OptString `json:"key"`
+}
+
+// GetID returns the value of ID.
+func (s *CreateAPIKeyResponseAPIKey) GetID() OptString {
+	return s.ID
+}
+
+// GetKey returns the value of Key.
+func (s *CreateAPIKeyResponseAPIKey) GetKey() OptString {
+	return s.Key
+}
+
+// SetID sets the value of ID.
+func (s *CreateAPIKeyResponseAPIKey) SetID(val OptString) {
+	s.ID = val
+}
+
+// SetKey sets the value of Key.
+func (s *CreateAPIKeyResponseAPIKey) SetKey(val OptString) {
+	s.Key = val
+}
+
 // Ref: #/components/schemas/create_api_scopes_response
 type CreateAPIScopesResponse struct {
 	// A Kinde generated message.
@@ -799,6 +869,81 @@ func (s *CreateAPIScopesResponseScope) GetID() OptString {
 func (s *CreateAPIScopesResponseScope) SetID(val OptString) {
 	s.ID = val
 }
+
+type CreateApiKeyBadRequest ErrorResponse
+
+func (*CreateApiKeyBadRequest) createApiKeyRes() {}
+
+type CreateApiKeyForbidden ErrorResponse
+
+func (*CreateApiKeyForbidden) createApiKeyRes() {}
+
+type CreateApiKeyReq struct {
+	// The name of the API key.
+	Name string `json:"name"`
+	// The ID of the API this key is associated with.
+	APIID string `json:"api_id"`
+	// Array of scope IDs to associate with this API key.
+	ScopeIds OptNilStringArray `json:"scope_ids"`
+	// The ID of the user to associate with this API key (for user-level keys).
+	UserID OptNilString `json:"user_id"`
+	// The organization code to associate with this API key (for organization-level keys).
+	OrgCode OptNilString `json:"org_code"`
+}
+
+// GetName returns the value of Name.
+func (s *CreateApiKeyReq) GetName() string {
+	return s.Name
+}
+
+// GetAPIID returns the value of APIID.
+func (s *CreateApiKeyReq) GetAPIID() string {
+	return s.APIID
+}
+
+// GetScopeIds returns the value of ScopeIds.
+func (s *CreateApiKeyReq) GetScopeIds() OptNilStringArray {
+	return s.ScopeIds
+}
+
+// GetUserID returns the value of UserID.
+func (s *CreateApiKeyReq) GetUserID() OptNilString {
+	return s.UserID
+}
+
+// GetOrgCode returns the value of OrgCode.
+func (s *CreateApiKeyReq) GetOrgCode() OptNilString {
+	return s.OrgCode
+}
+
+// SetName sets the value of Name.
+func (s *CreateApiKeyReq) SetName(val string) {
+	s.Name = val
+}
+
+// SetAPIID sets the value of APIID.
+func (s *CreateApiKeyReq) SetAPIID(val string) {
+	s.APIID = val
+}
+
+// SetScopeIds sets the value of ScopeIds.
+func (s *CreateApiKeyReq) SetScopeIds(val OptNilStringArray) {
+	s.ScopeIds = val
+}
+
+// SetUserID sets the value of UserID.
+func (s *CreateApiKeyReq) SetUserID(val OptNilString) {
+	s.UserID = val
+}
+
+// SetOrgCode sets the value of OrgCode.
+func (s *CreateApiKeyReq) SetOrgCode(val OptNilString) {
+	s.OrgCode = val
+}
+
+type CreateApiKeyTooManyRequests ErrorResponse
+
+func (*CreateApiKeyTooManyRequests) createApiKeyRes() {}
 
 // Ref: #/components/schemas/create_apis_response
 type CreateApisResponse struct {
@@ -868,7 +1013,7 @@ type CreateApplicationReq struct {
 	// The application's name.
 	Name string `json:"name"`
 	// The application's type. Use `reg` for regular server rendered applications, `spa` for single-page
-	// applications, and `m2m` for machine-to-machine applications.
+	// applications, `m2m` for machine-to-machine applications, and `device` for devices and IoT.
 	Type CreateApplicationReqType `json:"type"`
 	// Scope an M2M application to an org (Plus plan required).
 	OrgCode OptNilString `json:"org_code"`
@@ -905,13 +1050,14 @@ func (s *CreateApplicationReq) SetOrgCode(val OptNilString) {
 }
 
 // The application's type. Use `reg` for regular server rendered applications, `spa` for single-page
-// applications, and `m2m` for machine-to-machine applications.
+// applications, `m2m` for machine-to-machine applications, and `device` for devices and IoT.
 type CreateApplicationReqType string
 
 const (
-	CreateApplicationReqTypeReg CreateApplicationReqType = "reg"
-	CreateApplicationReqTypeSpa CreateApplicationReqType = "spa"
-	CreateApplicationReqTypeM2m CreateApplicationReqType = "m2m"
+	CreateApplicationReqTypeReg    CreateApplicationReqType = "reg"
+	CreateApplicationReqTypeSpa    CreateApplicationReqType = "spa"
+	CreateApplicationReqTypeM2m    CreateApplicationReqType = "m2m"
+	CreateApplicationReqTypeDevice CreateApplicationReqType = "device"
 )
 
 // AllValues returns all CreateApplicationReqType values.
@@ -920,6 +1066,7 @@ func (CreateApplicationReqType) AllValues() []CreateApplicationReqType {
 		CreateApplicationReqTypeReg,
 		CreateApplicationReqTypeSpa,
 		CreateApplicationReqTypeM2m,
+		CreateApplicationReqTypeDevice,
 	}
 }
 
@@ -931,6 +1078,8 @@ func (s CreateApplicationReqType) MarshalText() ([]byte, error) {
 	case CreateApplicationReqTypeSpa:
 		return []byte(s), nil
 	case CreateApplicationReqTypeM2m:
+		return []byte(s), nil
+	case CreateApplicationReqTypeDevice:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -948,6 +1097,9 @@ func (s *CreateApplicationReqType) UnmarshalText(data []byte) error {
 		return nil
 	case CreateApplicationReqTypeM2m:
 		*s = CreateApplicationReqTypeM2m
+		return nil
+	case CreateApplicationReqTypeDevice:
+		*s = CreateApplicationReqTypeDevice
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -1479,6 +1631,12 @@ type CreateConnectionReqOptions1 struct {
 	IsExtendedAttributesRequired OptBool `json:"is_extended_attributes_required"`
 	// Users automatically join organization when using this connection.
 	IsAutoJoinOrganizationEnabled OptBool `json:"is_auto_join_organization_enabled"`
+	// Create a user record in Kinde if the user signing in does not exist.
+	IsCreateMissingUser OptBool `json:"is_create_missing_user"`
+	// Force showing the SSO button for this connection.
+	IsForceShowSSOButton OptBool `json:"is_force_show_sso_button"`
+	// Additional upstream parameters to pass to the identity provider.
+	UpstreamParams OptCreateConnectionReqOptions1UpstreamParams `json:"upstream_params"`
 }
 
 // GetClientID returns the value of ClientID.
@@ -1526,6 +1684,21 @@ func (s *CreateConnectionReqOptions1) GetIsAutoJoinOrganizationEnabled() OptBool
 	return s.IsAutoJoinOrganizationEnabled
 }
 
+// GetIsCreateMissingUser returns the value of IsCreateMissingUser.
+func (s *CreateConnectionReqOptions1) GetIsCreateMissingUser() OptBool {
+	return s.IsCreateMissingUser
+}
+
+// GetIsForceShowSSOButton returns the value of IsForceShowSSOButton.
+func (s *CreateConnectionReqOptions1) GetIsForceShowSSOButton() OptBool {
+	return s.IsForceShowSSOButton
+}
+
+// GetUpstreamParams returns the value of UpstreamParams.
+func (s *CreateConnectionReqOptions1) GetUpstreamParams() OptCreateConnectionReqOptions1UpstreamParams {
+	return s.UpstreamParams
+}
+
 // SetClientID sets the value of ClientID.
 func (s *CreateConnectionReqOptions1) SetClientID(val OptString) {
 	s.ClientID = val
@@ -1571,6 +1744,33 @@ func (s *CreateConnectionReqOptions1) SetIsAutoJoinOrganizationEnabled(val OptBo
 	s.IsAutoJoinOrganizationEnabled = val
 }
 
+// SetIsCreateMissingUser sets the value of IsCreateMissingUser.
+func (s *CreateConnectionReqOptions1) SetIsCreateMissingUser(val OptBool) {
+	s.IsCreateMissingUser = val
+}
+
+// SetIsForceShowSSOButton sets the value of IsForceShowSSOButton.
+func (s *CreateConnectionReqOptions1) SetIsForceShowSSOButton(val OptBool) {
+	s.IsForceShowSSOButton = val
+}
+
+// SetUpstreamParams sets the value of UpstreamParams.
+func (s *CreateConnectionReqOptions1) SetUpstreamParams(val OptCreateConnectionReqOptions1UpstreamParams) {
+	s.UpstreamParams = val
+}
+
+// Additional upstream parameters to pass to the identity provider.
+type CreateConnectionReqOptions1UpstreamParams map[string]jx.Raw
+
+func (s *CreateConnectionReqOptions1UpstreamParams) init() CreateConnectionReqOptions1UpstreamParams {
+	m := *s
+	if m == nil {
+		m = map[string]jx.Raw{}
+		*s = m
+	}
+	return m
+}
+
 // SAML connection options (e.g., Cloudflare SAML).
 type CreateConnectionReqOptions2 struct {
 	// List of domains to restrict authentication.
@@ -1591,6 +1791,10 @@ type CreateConnectionReqOptions2 struct {
 	SamlLastNameKeyAttr OptString `json:"saml_last_name_key_attr"`
 	// Create user if they don’t exist.
 	IsCreateMissingUser OptBool `json:"is_create_missing_user"`
+	// Force showing the SSO button for this connection.
+	IsForceShowSSOButton OptBool `json:"is_force_show_sso_button"`
+	// Additional upstream parameters to pass to the identity provider.
+	UpstreamParams OptCreateConnectionReqOptions2UpstreamParams `json:"upstream_params"`
 	// Certificate for signing SAML requests.
 	SamlSigningCertificate OptString `json:"saml_signing_certificate"`
 	// Private key associated with the signing certificate.
@@ -1642,6 +1846,16 @@ func (s *CreateConnectionReqOptions2) GetSamlLastNameKeyAttr() OptString {
 // GetIsCreateMissingUser returns the value of IsCreateMissingUser.
 func (s *CreateConnectionReqOptions2) GetIsCreateMissingUser() OptBool {
 	return s.IsCreateMissingUser
+}
+
+// GetIsForceShowSSOButton returns the value of IsForceShowSSOButton.
+func (s *CreateConnectionReqOptions2) GetIsForceShowSSOButton() OptBool {
+	return s.IsForceShowSSOButton
+}
+
+// GetUpstreamParams returns the value of UpstreamParams.
+func (s *CreateConnectionReqOptions2) GetUpstreamParams() OptCreateConnectionReqOptions2UpstreamParams {
+	return s.UpstreamParams
 }
 
 // GetSamlSigningCertificate returns the value of SamlSigningCertificate.
@@ -1704,6 +1918,16 @@ func (s *CreateConnectionReqOptions2) SetIsCreateMissingUser(val OptBool) {
 	s.IsCreateMissingUser = val
 }
 
+// SetIsForceShowSSOButton sets the value of IsForceShowSSOButton.
+func (s *CreateConnectionReqOptions2) SetIsForceShowSSOButton(val OptBool) {
+	s.IsForceShowSSOButton = val
+}
+
+// SetUpstreamParams sets the value of UpstreamParams.
+func (s *CreateConnectionReqOptions2) SetUpstreamParams(val OptCreateConnectionReqOptions2UpstreamParams) {
+	s.UpstreamParams = val
+}
+
 // SetSamlSigningCertificate sets the value of SamlSigningCertificate.
 func (s *CreateConnectionReqOptions2) SetSamlSigningCertificate(val OptString) {
 	s.SamlSigningCertificate = val
@@ -1717,6 +1941,18 @@ func (s *CreateConnectionReqOptions2) SetSamlSigningPrivateKey(val OptString) {
 // SetIsAutoJoinOrganizationEnabled sets the value of IsAutoJoinOrganizationEnabled.
 func (s *CreateConnectionReqOptions2) SetIsAutoJoinOrganizationEnabled(val OptBool) {
 	s.IsAutoJoinOrganizationEnabled = val
+}
+
+// Additional upstream parameters to pass to the identity provider.
+type CreateConnectionReqOptions2UpstreamParams map[string]jx.Raw
+
+func (s *CreateConnectionReqOptions2UpstreamParams) init() CreateConnectionReqOptions2UpstreamParams {
+	m := *s
+	if m == nil {
+		m = map[string]jx.Raw{}
+		*s = m
+	}
+	return m
 }
 
 // The identity provider identifier for the connection.
@@ -3157,6 +3393,9 @@ type CreateRoleReq struct {
 	Key OptString `json:"key"`
 	// Set role as default for new users.
 	IsDefaultRole OptBool `json:"is_default_role"`
+	// The public ID of the permission required to assign this role to users. If null, no permission is
+	// required.
+	AssignmentPermissionID OptNilUUID `json:"assignment_permission_id"`
 }
 
 // GetName returns the value of Name.
@@ -3179,6 +3418,11 @@ func (s *CreateRoleReq) GetIsDefaultRole() OptBool {
 	return s.IsDefaultRole
 }
 
+// GetAssignmentPermissionID returns the value of AssignmentPermissionID.
+func (s *CreateRoleReq) GetAssignmentPermissionID() OptNilUUID {
+	return s.AssignmentPermissionID
+}
+
 // SetName sets the value of Name.
 func (s *CreateRoleReq) SetName(val OptString) {
 	s.Name = val
@@ -3197,6 +3441,11 @@ func (s *CreateRoleReq) SetKey(val OptString) {
 // SetIsDefaultRole sets the value of IsDefaultRole.
 func (s *CreateRoleReq) SetIsDefaultRole(val OptBool) {
 	s.IsDefaultRole = val
+}
+
+// SetAssignmentPermissionID sets the value of AssignmentPermissionID.
+func (s *CreateRoleReq) SetAssignmentPermissionID(val OptNilUUID) {
+	s.AssignmentPermissionID = val
 }
 
 type CreateRoleTooManyRequests ErrorResponse
@@ -3917,6 +4166,18 @@ func (*DeleteAPIScopeTooManyRequests) deleteAPIScopeRes() {}
 type DeleteAPITooManyRequests ErrorResponse
 
 func (*DeleteAPITooManyRequests) deleteAPIRes() {}
+
+type DeleteApiKeyBadRequest ErrorResponse
+
+func (*DeleteApiKeyBadRequest) deleteApiKeyRes() {}
+
+type DeleteApiKeyForbidden ErrorResponse
+
+func (*DeleteApiKeyForbidden) deleteApiKeyRes() {}
+
+type DeleteApiKeyTooManyRequests ErrorResponse
+
+func (*DeleteApiKeyTooManyRequests) deleteApiKeyRes() {}
 
 type DeleteApplicationBadRequest ErrorResponse
 
@@ -4641,6 +4902,430 @@ type GetAPIForbidden ErrorResponse
 
 func (*GetAPIForbidden) getAPIRes() {}
 
+// Ref: #/components/schemas/get_api_key_response
+type GetAPIKeyResponse struct {
+	// Response code.
+	Code OptString `json:"code"`
+	// Response message.
+	Message OptString                  `json:"message"`
+	APIKey  OptGetAPIKeyResponseAPIKey `json:"api_key"`
+}
+
+// GetCode returns the value of Code.
+func (s *GetAPIKeyResponse) GetCode() OptString {
+	return s.Code
+}
+
+// GetMessage returns the value of Message.
+func (s *GetAPIKeyResponse) GetMessage() OptString {
+	return s.Message
+}
+
+// GetAPIKey returns the value of APIKey.
+func (s *GetAPIKeyResponse) GetAPIKey() OptGetAPIKeyResponseAPIKey {
+	return s.APIKey
+}
+
+// SetCode sets the value of Code.
+func (s *GetAPIKeyResponse) SetCode(val OptString) {
+	s.Code = val
+}
+
+// SetMessage sets the value of Message.
+func (s *GetAPIKeyResponse) SetMessage(val OptString) {
+	s.Message = val
+}
+
+// SetAPIKey sets the value of APIKey.
+func (s *GetAPIKeyResponse) SetAPIKey(val OptGetAPIKeyResponseAPIKey) {
+	s.APIKey = val
+}
+
+func (*GetAPIKeyResponse) getApiKeyRes() {}
+
+type GetAPIKeyResponseAPIKey struct {
+	// The unique ID for the API key.
+	ID OptString `json:"id"`
+	// The API key's name.
+	Name OptString `json:"name"`
+	// The type of API key.
+	Type OptString `json:"type"`
+	// The status of the API key.
+	Status OptString `json:"status"`
+	// The first 6 characters of the API key for identification.
+	KeyPrefix OptString `json:"key_prefix"`
+	// The last 4 characters of the API key for identification.
+	KeySuffix OptNilString `json:"key_suffix"`
+	// When the API key was created.
+	CreatedOn OptDateTime `json:"created_on"`
+	// When the API key was last verified.
+	LastVerifiedOn OptNilDateTime `json:"last_verified_on"`
+	// The IP address from which the API key was last verified.
+	LastVerifiedIP OptNilString `json:"last_verified_ip"`
+	// The name of the user who created the API key.
+	CreatedBy OptNilString `json:"created_by"`
+	// Array of API IDs associated with this key.
+	APIIds []string `json:"api_ids"`
+	// Array of scopes associated with this key.
+	Scopes []string `json:"scopes"`
+	// Number of times this API key has been verified.
+	VerificationCount OptNilInt `json:"verification_count"`
+	// The organization code associated with this key.
+	OrganizationID OptNilString `json:"organization_id"`
+	// The user ID associated with this key.
+	UserID OptNilString `json:"user_id"`
+}
+
+// GetID returns the value of ID.
+func (s *GetAPIKeyResponseAPIKey) GetID() OptString {
+	return s.ID
+}
+
+// GetName returns the value of Name.
+func (s *GetAPIKeyResponseAPIKey) GetName() OptString {
+	return s.Name
+}
+
+// GetType returns the value of Type.
+func (s *GetAPIKeyResponseAPIKey) GetType() OptString {
+	return s.Type
+}
+
+// GetStatus returns the value of Status.
+func (s *GetAPIKeyResponseAPIKey) GetStatus() OptString {
+	return s.Status
+}
+
+// GetKeyPrefix returns the value of KeyPrefix.
+func (s *GetAPIKeyResponseAPIKey) GetKeyPrefix() OptString {
+	return s.KeyPrefix
+}
+
+// GetKeySuffix returns the value of KeySuffix.
+func (s *GetAPIKeyResponseAPIKey) GetKeySuffix() OptNilString {
+	return s.KeySuffix
+}
+
+// GetCreatedOn returns the value of CreatedOn.
+func (s *GetAPIKeyResponseAPIKey) GetCreatedOn() OptDateTime {
+	return s.CreatedOn
+}
+
+// GetLastVerifiedOn returns the value of LastVerifiedOn.
+func (s *GetAPIKeyResponseAPIKey) GetLastVerifiedOn() OptNilDateTime {
+	return s.LastVerifiedOn
+}
+
+// GetLastVerifiedIP returns the value of LastVerifiedIP.
+func (s *GetAPIKeyResponseAPIKey) GetLastVerifiedIP() OptNilString {
+	return s.LastVerifiedIP
+}
+
+// GetCreatedBy returns the value of CreatedBy.
+func (s *GetAPIKeyResponseAPIKey) GetCreatedBy() OptNilString {
+	return s.CreatedBy
+}
+
+// GetAPIIds returns the value of APIIds.
+func (s *GetAPIKeyResponseAPIKey) GetAPIIds() []string {
+	return s.APIIds
+}
+
+// GetScopes returns the value of Scopes.
+func (s *GetAPIKeyResponseAPIKey) GetScopes() []string {
+	return s.Scopes
+}
+
+// GetVerificationCount returns the value of VerificationCount.
+func (s *GetAPIKeyResponseAPIKey) GetVerificationCount() OptNilInt {
+	return s.VerificationCount
+}
+
+// GetOrganizationID returns the value of OrganizationID.
+func (s *GetAPIKeyResponseAPIKey) GetOrganizationID() OptNilString {
+	return s.OrganizationID
+}
+
+// GetUserID returns the value of UserID.
+func (s *GetAPIKeyResponseAPIKey) GetUserID() OptNilString {
+	return s.UserID
+}
+
+// SetID sets the value of ID.
+func (s *GetAPIKeyResponseAPIKey) SetID(val OptString) {
+	s.ID = val
+}
+
+// SetName sets the value of Name.
+func (s *GetAPIKeyResponseAPIKey) SetName(val OptString) {
+	s.Name = val
+}
+
+// SetType sets the value of Type.
+func (s *GetAPIKeyResponseAPIKey) SetType(val OptString) {
+	s.Type = val
+}
+
+// SetStatus sets the value of Status.
+func (s *GetAPIKeyResponseAPIKey) SetStatus(val OptString) {
+	s.Status = val
+}
+
+// SetKeyPrefix sets the value of KeyPrefix.
+func (s *GetAPIKeyResponseAPIKey) SetKeyPrefix(val OptString) {
+	s.KeyPrefix = val
+}
+
+// SetKeySuffix sets the value of KeySuffix.
+func (s *GetAPIKeyResponseAPIKey) SetKeySuffix(val OptNilString) {
+	s.KeySuffix = val
+}
+
+// SetCreatedOn sets the value of CreatedOn.
+func (s *GetAPIKeyResponseAPIKey) SetCreatedOn(val OptDateTime) {
+	s.CreatedOn = val
+}
+
+// SetLastVerifiedOn sets the value of LastVerifiedOn.
+func (s *GetAPIKeyResponseAPIKey) SetLastVerifiedOn(val OptNilDateTime) {
+	s.LastVerifiedOn = val
+}
+
+// SetLastVerifiedIP sets the value of LastVerifiedIP.
+func (s *GetAPIKeyResponseAPIKey) SetLastVerifiedIP(val OptNilString) {
+	s.LastVerifiedIP = val
+}
+
+// SetCreatedBy sets the value of CreatedBy.
+func (s *GetAPIKeyResponseAPIKey) SetCreatedBy(val OptNilString) {
+	s.CreatedBy = val
+}
+
+// SetAPIIds sets the value of APIIds.
+func (s *GetAPIKeyResponseAPIKey) SetAPIIds(val []string) {
+	s.APIIds = val
+}
+
+// SetScopes sets the value of Scopes.
+func (s *GetAPIKeyResponseAPIKey) SetScopes(val []string) {
+	s.Scopes = val
+}
+
+// SetVerificationCount sets the value of VerificationCount.
+func (s *GetAPIKeyResponseAPIKey) SetVerificationCount(val OptNilInt) {
+	s.VerificationCount = val
+}
+
+// SetOrganizationID sets the value of OrganizationID.
+func (s *GetAPIKeyResponseAPIKey) SetOrganizationID(val OptNilString) {
+	s.OrganizationID = val
+}
+
+// SetUserID sets the value of UserID.
+func (s *GetAPIKeyResponseAPIKey) SetUserID(val OptNilString) {
+	s.UserID = val
+}
+
+// Ref: #/components/schemas/get_api_keys_response
+type GetAPIKeysResponse struct {
+	// Response code.
+	Code OptString `json:"code"`
+	// Response message.
+	Message OptString `json:"message"`
+	// Whether more records exist.
+	HasMore OptBool                         `json:"has_more"`
+	APIKeys []GetAPIKeysResponseAPIKeysItem `json:"api_keys"`
+}
+
+// GetCode returns the value of Code.
+func (s *GetAPIKeysResponse) GetCode() OptString {
+	return s.Code
+}
+
+// GetMessage returns the value of Message.
+func (s *GetAPIKeysResponse) GetMessage() OptString {
+	return s.Message
+}
+
+// GetHasMore returns the value of HasMore.
+func (s *GetAPIKeysResponse) GetHasMore() OptBool {
+	return s.HasMore
+}
+
+// GetAPIKeys returns the value of APIKeys.
+func (s *GetAPIKeysResponse) GetAPIKeys() []GetAPIKeysResponseAPIKeysItem {
+	return s.APIKeys
+}
+
+// SetCode sets the value of Code.
+func (s *GetAPIKeysResponse) SetCode(val OptString) {
+	s.Code = val
+}
+
+// SetMessage sets the value of Message.
+func (s *GetAPIKeysResponse) SetMessage(val OptString) {
+	s.Message = val
+}
+
+// SetHasMore sets the value of HasMore.
+func (s *GetAPIKeysResponse) SetHasMore(val OptBool) {
+	s.HasMore = val
+}
+
+// SetAPIKeys sets the value of APIKeys.
+func (s *GetAPIKeysResponse) SetAPIKeys(val []GetAPIKeysResponseAPIKeysItem) {
+	s.APIKeys = val
+}
+
+func (*GetAPIKeysResponse) getApiKeysRes() {}
+
+type GetAPIKeysResponseAPIKeysItem struct {
+	// The unique ID for the API key.
+	ID OptString `json:"id"`
+	// The API key's name.
+	Name OptString `json:"name"`
+	// The type of API key.
+	Type OptString `json:"type"`
+	// The status of the API key.
+	Status OptString `json:"status"`
+	// The first 6 characters of the API key for identification.
+	KeyPrefix OptString `json:"key_prefix"`
+	// The last 4 characters of the API key for identification.
+	KeySuffix OptNilString `json:"key_suffix"`
+	// When the API key was created.
+	CreatedOn OptDateTime `json:"created_on"`
+	// When the API key was last verified.
+	LastVerifiedOn OptNilDateTime `json:"last_verified_on"`
+	// The IP address from which the API key was last verified.
+	LastVerifiedIP OptNilString `json:"last_verified_ip"`
+	// The name of the user who created the API key.
+	CreatedBy OptNilString `json:"created_by"`
+	// Array of API IDs associated with this key.
+	APIIds []string `json:"api_ids"`
+	// Array of scopes associated with this key.
+	Scopes []string `json:"scopes"`
+}
+
+// GetID returns the value of ID.
+func (s *GetAPIKeysResponseAPIKeysItem) GetID() OptString {
+	return s.ID
+}
+
+// GetName returns the value of Name.
+func (s *GetAPIKeysResponseAPIKeysItem) GetName() OptString {
+	return s.Name
+}
+
+// GetType returns the value of Type.
+func (s *GetAPIKeysResponseAPIKeysItem) GetType() OptString {
+	return s.Type
+}
+
+// GetStatus returns the value of Status.
+func (s *GetAPIKeysResponseAPIKeysItem) GetStatus() OptString {
+	return s.Status
+}
+
+// GetKeyPrefix returns the value of KeyPrefix.
+func (s *GetAPIKeysResponseAPIKeysItem) GetKeyPrefix() OptString {
+	return s.KeyPrefix
+}
+
+// GetKeySuffix returns the value of KeySuffix.
+func (s *GetAPIKeysResponseAPIKeysItem) GetKeySuffix() OptNilString {
+	return s.KeySuffix
+}
+
+// GetCreatedOn returns the value of CreatedOn.
+func (s *GetAPIKeysResponseAPIKeysItem) GetCreatedOn() OptDateTime {
+	return s.CreatedOn
+}
+
+// GetLastVerifiedOn returns the value of LastVerifiedOn.
+func (s *GetAPIKeysResponseAPIKeysItem) GetLastVerifiedOn() OptNilDateTime {
+	return s.LastVerifiedOn
+}
+
+// GetLastVerifiedIP returns the value of LastVerifiedIP.
+func (s *GetAPIKeysResponseAPIKeysItem) GetLastVerifiedIP() OptNilString {
+	return s.LastVerifiedIP
+}
+
+// GetCreatedBy returns the value of CreatedBy.
+func (s *GetAPIKeysResponseAPIKeysItem) GetCreatedBy() OptNilString {
+	return s.CreatedBy
+}
+
+// GetAPIIds returns the value of APIIds.
+func (s *GetAPIKeysResponseAPIKeysItem) GetAPIIds() []string {
+	return s.APIIds
+}
+
+// GetScopes returns the value of Scopes.
+func (s *GetAPIKeysResponseAPIKeysItem) GetScopes() []string {
+	return s.Scopes
+}
+
+// SetID sets the value of ID.
+func (s *GetAPIKeysResponseAPIKeysItem) SetID(val OptString) {
+	s.ID = val
+}
+
+// SetName sets the value of Name.
+func (s *GetAPIKeysResponseAPIKeysItem) SetName(val OptString) {
+	s.Name = val
+}
+
+// SetType sets the value of Type.
+func (s *GetAPIKeysResponseAPIKeysItem) SetType(val OptString) {
+	s.Type = val
+}
+
+// SetStatus sets the value of Status.
+func (s *GetAPIKeysResponseAPIKeysItem) SetStatus(val OptString) {
+	s.Status = val
+}
+
+// SetKeyPrefix sets the value of KeyPrefix.
+func (s *GetAPIKeysResponseAPIKeysItem) SetKeyPrefix(val OptString) {
+	s.KeyPrefix = val
+}
+
+// SetKeySuffix sets the value of KeySuffix.
+func (s *GetAPIKeysResponseAPIKeysItem) SetKeySuffix(val OptNilString) {
+	s.KeySuffix = val
+}
+
+// SetCreatedOn sets the value of CreatedOn.
+func (s *GetAPIKeysResponseAPIKeysItem) SetCreatedOn(val OptDateTime) {
+	s.CreatedOn = val
+}
+
+// SetLastVerifiedOn sets the value of LastVerifiedOn.
+func (s *GetAPIKeysResponseAPIKeysItem) SetLastVerifiedOn(val OptNilDateTime) {
+	s.LastVerifiedOn = val
+}
+
+// SetLastVerifiedIP sets the value of LastVerifiedIP.
+func (s *GetAPIKeysResponseAPIKeysItem) SetLastVerifiedIP(val OptNilString) {
+	s.LastVerifiedIP = val
+}
+
+// SetCreatedBy sets the value of CreatedBy.
+func (s *GetAPIKeysResponseAPIKeysItem) SetCreatedBy(val OptNilString) {
+	s.CreatedBy = val
+}
+
+// SetAPIIds sets the value of APIIds.
+func (s *GetAPIKeysResponseAPIKeysItem) SetAPIIds(val []string) {
+	s.APIIds = val
+}
+
+// SetScopes sets the value of Scopes.
+func (s *GetAPIKeysResponseAPIKeysItem) SetScopes(val []string) {
+	s.Scopes = val
+}
+
 // Ref: #/components/schemas/get_api_response
 type GetAPIResponse struct {
 	// Response code.
@@ -4685,7 +5370,7 @@ func (*GetAPIResponse) getAPIRes() {}
 type GetAPIResponseAPI struct {
 	// Unique ID of the API.
 	ID OptString `json:"id"`
-	// The API’s name.
+	// The API's name.
 	Name OptString `json:"name"`
 	// A unique identifier for the API - commonly the URL. This value will be used as the `audience`
 	// parameter in authorization claims.
@@ -4814,6 +5499,7 @@ const (
 	GetAPIResponseAPIApplicationsItemTypeMachineToMachineM2M GetAPIResponseAPIApplicationsItemType = "Machine to machine (M2M)"
 	GetAPIResponseAPIApplicationsItemTypeBackEndWeb          GetAPIResponseAPIApplicationsItemType = "Back-end web"
 	GetAPIResponseAPIApplicationsItemTypeFrontEndAndMobile   GetAPIResponseAPIApplicationsItemType = "Front-end and mobile"
+	GetAPIResponseAPIApplicationsItemTypeDeviceAndIoT        GetAPIResponseAPIApplicationsItemType = "Device and IoT"
 )
 
 // AllValues returns all GetAPIResponseAPIApplicationsItemType values.
@@ -4822,6 +5508,7 @@ func (GetAPIResponseAPIApplicationsItemType) AllValues() []GetAPIResponseAPIAppl
 		GetAPIResponseAPIApplicationsItemTypeMachineToMachineM2M,
 		GetAPIResponseAPIApplicationsItemTypeBackEndWeb,
 		GetAPIResponseAPIApplicationsItemTypeFrontEndAndMobile,
+		GetAPIResponseAPIApplicationsItemTypeDeviceAndIoT,
 	}
 }
 
@@ -4833,6 +5520,8 @@ func (s GetAPIResponseAPIApplicationsItemType) MarshalText() ([]byte, error) {
 	case GetAPIResponseAPIApplicationsItemTypeBackEndWeb:
 		return []byte(s), nil
 	case GetAPIResponseAPIApplicationsItemTypeFrontEndAndMobile:
+		return []byte(s), nil
+	case GetAPIResponseAPIApplicationsItemTypeDeviceAndIoT:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -4850,6 +5539,9 @@ func (s *GetAPIResponseAPIApplicationsItemType) UnmarshalText(data []byte) error
 		return nil
 	case GetAPIResponseAPIApplicationsItemTypeFrontEndAndMobile:
 		*s = GetAPIResponseAPIApplicationsItemTypeFrontEndAndMobile
+		return nil
+	case GetAPIResponseAPIApplicationsItemTypeDeviceAndIoT:
+		*s = GetAPIResponseAPIApplicationsItemTypeDeviceAndIoT
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -5117,6 +5809,119 @@ type GetAPIsTooManyRequests ErrorResponse
 
 func (*GetAPIsTooManyRequests) getAPIsRes() {}
 
+type GetApiKeyBadRequest ErrorResponse
+
+func (*GetApiKeyBadRequest) getApiKeyRes() {}
+
+type GetApiKeyForbidden ErrorResponse
+
+func (*GetApiKeyForbidden) getApiKeyRes() {}
+
+type GetApiKeyTooManyRequests ErrorResponse
+
+func (*GetApiKeyTooManyRequests) getApiKeyRes() {}
+
+type GetApiKeysBadRequest ErrorResponse
+
+func (*GetApiKeysBadRequest) getApiKeysRes() {}
+
+type GetApiKeysForbidden ErrorResponse
+
+func (*GetApiKeysForbidden) getApiKeysRes() {}
+
+type GetApiKeysKeyType string
+
+const (
+	GetApiKeysKeyTypeOrganization GetApiKeysKeyType = "organization"
+	GetApiKeysKeyTypeUser         GetApiKeysKeyType = "user"
+)
+
+// AllValues returns all GetApiKeysKeyType values.
+func (GetApiKeysKeyType) AllValues() []GetApiKeysKeyType {
+	return []GetApiKeysKeyType{
+		GetApiKeysKeyTypeOrganization,
+		GetApiKeysKeyTypeUser,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s GetApiKeysKeyType) MarshalText() ([]byte, error) {
+	switch s {
+	case GetApiKeysKeyTypeOrganization:
+		return []byte(s), nil
+	case GetApiKeysKeyTypeUser:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *GetApiKeysKeyType) UnmarshalText(data []byte) error {
+	switch GetApiKeysKeyType(data) {
+	case GetApiKeysKeyTypeOrganization:
+		*s = GetApiKeysKeyTypeOrganization
+		return nil
+	case GetApiKeysKeyTypeUser:
+		*s = GetApiKeysKeyTypeUser
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+type GetApiKeysStatus string
+
+const (
+	GetApiKeysStatusActive   GetApiKeysStatus = "active"
+	GetApiKeysStatusInactive GetApiKeysStatus = "inactive"
+	GetApiKeysStatusRevoked  GetApiKeysStatus = "revoked"
+)
+
+// AllValues returns all GetApiKeysStatus values.
+func (GetApiKeysStatus) AllValues() []GetApiKeysStatus {
+	return []GetApiKeysStatus{
+		GetApiKeysStatusActive,
+		GetApiKeysStatusInactive,
+		GetApiKeysStatusRevoked,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s GetApiKeysStatus) MarshalText() ([]byte, error) {
+	switch s {
+	case GetApiKeysStatusActive:
+		return []byte(s), nil
+	case GetApiKeysStatusInactive:
+		return []byte(s), nil
+	case GetApiKeysStatusRevoked:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *GetApiKeysStatus) UnmarshalText(data []byte) error {
+	switch GetApiKeysStatus(data) {
+	case GetApiKeysStatusActive:
+		*s = GetApiKeysStatusActive
+		return nil
+	case GetApiKeysStatusInactive:
+		*s = GetApiKeysStatusInactive
+		return nil
+	case GetApiKeysStatusRevoked:
+		*s = GetApiKeysStatusRevoked
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
+}
+
+type GetApiKeysTooManyRequests ErrorResponse
+
+func (*GetApiKeysTooManyRequests) getApiKeysRes() {}
+
 // Ref: #/components/schemas/get_apis_response
 type GetApisResponse struct {
 	// Response code.
@@ -5173,7 +5978,7 @@ func (*GetApisResponse) getAPIsRes() {}
 type GetApisResponseApisItem struct {
 	// The unique ID for the API.
 	ID OptString `json:"id"`
-	// The API’s name.
+	// The API's name.
 	Name OptString `json:"name"`
 	// A unique identifier for the API - commonly the URL. This value will be used as the `audience`
 	// parameter in authorization claims.
@@ -6400,403 +7205,6 @@ type GetConnectionsTooManyRequests struct{}
 
 func (*GetConnectionsTooManyRequests) getConnectionsRes() {}
 
-// GetEntitlementForbidden is response for GetEntitlement operation.
-type GetEntitlementForbidden struct{}
-
-func (*GetEntitlementForbidden) getEntitlementRes() {}
-
-// Ref: #/components/schemas/get_entitlement_response
-type GetEntitlementResponse struct {
-	Data     OptGetEntitlementResponseData   `json:"data"`
-	Metadata *GetEntitlementResponseMetadata `json:"metadata"`
-}
-
-// GetData returns the value of Data.
-func (s *GetEntitlementResponse) GetData() OptGetEntitlementResponseData {
-	return s.Data
-}
-
-// GetMetadata returns the value of Metadata.
-func (s *GetEntitlementResponse) GetMetadata() *GetEntitlementResponseMetadata {
-	return s.Metadata
-}
-
-// SetData sets the value of Data.
-func (s *GetEntitlementResponse) SetData(val OptGetEntitlementResponseData) {
-	s.Data = val
-}
-
-// SetMetadata sets the value of Metadata.
-func (s *GetEntitlementResponse) SetMetadata(val *GetEntitlementResponseMetadata) {
-	s.Metadata = val
-}
-
-func (*GetEntitlementResponse) getEntitlementRes() {}
-
-type GetEntitlementResponseData struct {
-	// The organization code the entitlements are associated with.
-	OrgCode OptString `json:"org_code"`
-	// The entitlement data.
-	Entitlement OptGetEntitlementResponseDataEntitlement `json:"entitlement"`
-}
-
-// GetOrgCode returns the value of OrgCode.
-func (s *GetEntitlementResponseData) GetOrgCode() OptString {
-	return s.OrgCode
-}
-
-// GetEntitlement returns the value of Entitlement.
-func (s *GetEntitlementResponseData) GetEntitlement() OptGetEntitlementResponseDataEntitlement {
-	return s.Entitlement
-}
-
-// SetOrgCode sets the value of OrgCode.
-func (s *GetEntitlementResponseData) SetOrgCode(val OptString) {
-	s.OrgCode = val
-}
-
-// SetEntitlement sets the value of Entitlement.
-func (s *GetEntitlementResponseData) SetEntitlement(val OptGetEntitlementResponseDataEntitlement) {
-	s.Entitlement = val
-}
-
-// The entitlement data.
-type GetEntitlementResponseDataEntitlement struct {
-	// The friendly ID of an entitlement.
-	ID OptString `json:"id"`
-	// The price charged if this is an entitlement for a fixed charged.
-	FixedCharge OptNilInt `json:"fixed_charge"`
-	// The name of the price associated with the entitlement.
-	PriceName OptString `json:"price_name"`
-	// The price charged for this entitlement in cents.
-	UnitAmount OptNilInt `json:"unit_amount"`
-	// The key of the feature corresponding to this entitlement.
-	FeatureKey OptString `json:"feature_key"`
-	// The name of the feature corresponding to this entitlement.
-	FeatureName OptString `json:"feature_name"`
-	// The maximum number of units of the feature the customer is entitled to.
-	EntitlementLimitMax OptNilInt `json:"entitlement_limit_max"`
-	// The minimum number of units of the feature the customer is entitled to.
-	EntitlementLimitMin OptNilInt `json:"entitlement_limit_min"`
-}
-
-// GetID returns the value of ID.
-func (s *GetEntitlementResponseDataEntitlement) GetID() OptString {
-	return s.ID
-}
-
-// GetFixedCharge returns the value of FixedCharge.
-func (s *GetEntitlementResponseDataEntitlement) GetFixedCharge() OptNilInt {
-	return s.FixedCharge
-}
-
-// GetPriceName returns the value of PriceName.
-func (s *GetEntitlementResponseDataEntitlement) GetPriceName() OptString {
-	return s.PriceName
-}
-
-// GetUnitAmount returns the value of UnitAmount.
-func (s *GetEntitlementResponseDataEntitlement) GetUnitAmount() OptNilInt {
-	return s.UnitAmount
-}
-
-// GetFeatureKey returns the value of FeatureKey.
-func (s *GetEntitlementResponseDataEntitlement) GetFeatureKey() OptString {
-	return s.FeatureKey
-}
-
-// GetFeatureName returns the value of FeatureName.
-func (s *GetEntitlementResponseDataEntitlement) GetFeatureName() OptString {
-	return s.FeatureName
-}
-
-// GetEntitlementLimitMax returns the value of EntitlementLimitMax.
-func (s *GetEntitlementResponseDataEntitlement) GetEntitlementLimitMax() OptNilInt {
-	return s.EntitlementLimitMax
-}
-
-// GetEntitlementLimitMin returns the value of EntitlementLimitMin.
-func (s *GetEntitlementResponseDataEntitlement) GetEntitlementLimitMin() OptNilInt {
-	return s.EntitlementLimitMin
-}
-
-// SetID sets the value of ID.
-func (s *GetEntitlementResponseDataEntitlement) SetID(val OptString) {
-	s.ID = val
-}
-
-// SetFixedCharge sets the value of FixedCharge.
-func (s *GetEntitlementResponseDataEntitlement) SetFixedCharge(val OptNilInt) {
-	s.FixedCharge = val
-}
-
-// SetPriceName sets the value of PriceName.
-func (s *GetEntitlementResponseDataEntitlement) SetPriceName(val OptString) {
-	s.PriceName = val
-}
-
-// SetUnitAmount sets the value of UnitAmount.
-func (s *GetEntitlementResponseDataEntitlement) SetUnitAmount(val OptNilInt) {
-	s.UnitAmount = val
-}
-
-// SetFeatureKey sets the value of FeatureKey.
-func (s *GetEntitlementResponseDataEntitlement) SetFeatureKey(val OptString) {
-	s.FeatureKey = val
-}
-
-// SetFeatureName sets the value of FeatureName.
-func (s *GetEntitlementResponseDataEntitlement) SetFeatureName(val OptString) {
-	s.FeatureName = val
-}
-
-// SetEntitlementLimitMax sets the value of EntitlementLimitMax.
-func (s *GetEntitlementResponseDataEntitlement) SetEntitlementLimitMax(val OptNilInt) {
-	s.EntitlementLimitMax = val
-}
-
-// SetEntitlementLimitMin sets the value of EntitlementLimitMin.
-func (s *GetEntitlementResponseDataEntitlement) SetEntitlementLimitMin(val OptNilInt) {
-	s.EntitlementLimitMin = val
-}
-
-type GetEntitlementResponseMetadata struct{}
-
-// GetEntitlementTooManyRequests is response for GetEntitlement operation.
-type GetEntitlementTooManyRequests struct{}
-
-func (*GetEntitlementTooManyRequests) getEntitlementRes() {}
-
-// GetEntitlementsForbidden is response for GetEntitlements operation.
-type GetEntitlementsForbidden struct{}
-
-func (*GetEntitlementsForbidden) getEntitlementsRes() {}
-
-// Ref: #/components/schemas/get_entitlements_response
-type GetEntitlementsResponse struct {
-	Data     OptGetEntitlementsResponseData     `json:"data"`
-	Metadata OptGetEntitlementsResponseMetadata `json:"metadata"`
-}
-
-// GetData returns the value of Data.
-func (s *GetEntitlementsResponse) GetData() OptGetEntitlementsResponseData {
-	return s.Data
-}
-
-// GetMetadata returns the value of Metadata.
-func (s *GetEntitlementsResponse) GetMetadata() OptGetEntitlementsResponseMetadata {
-	return s.Metadata
-}
-
-// SetData sets the value of Data.
-func (s *GetEntitlementsResponse) SetData(val OptGetEntitlementsResponseData) {
-	s.Data = val
-}
-
-// SetMetadata sets the value of Metadata.
-func (s *GetEntitlementsResponse) SetMetadata(val OptGetEntitlementsResponseMetadata) {
-	s.Metadata = val
-}
-
-func (*GetEntitlementsResponse) getEntitlementsRes() {}
-
-type GetEntitlementsResponseData struct {
-	// The organization code the entitlements are associated with.
-	OrgCode OptString `json:"org_code"`
-	// A list of plans the user is subscribed to.
-	Plans []GetEntitlementsResponseDataPlansItem `json:"plans"`
-	// A list of entitlements.
-	Entitlements []GetEntitlementsResponseDataEntitlementsItem `json:"entitlements"`
-}
-
-// GetOrgCode returns the value of OrgCode.
-func (s *GetEntitlementsResponseData) GetOrgCode() OptString {
-	return s.OrgCode
-}
-
-// GetPlans returns the value of Plans.
-func (s *GetEntitlementsResponseData) GetPlans() []GetEntitlementsResponseDataPlansItem {
-	return s.Plans
-}
-
-// GetEntitlements returns the value of Entitlements.
-func (s *GetEntitlementsResponseData) GetEntitlements() []GetEntitlementsResponseDataEntitlementsItem {
-	return s.Entitlements
-}
-
-// SetOrgCode sets the value of OrgCode.
-func (s *GetEntitlementsResponseData) SetOrgCode(val OptString) {
-	s.OrgCode = val
-}
-
-// SetPlans sets the value of Plans.
-func (s *GetEntitlementsResponseData) SetPlans(val []GetEntitlementsResponseDataPlansItem) {
-	s.Plans = val
-}
-
-// SetEntitlements sets the value of Entitlements.
-func (s *GetEntitlementsResponseData) SetEntitlements(val []GetEntitlementsResponseDataEntitlementsItem) {
-	s.Entitlements = val
-}
-
-type GetEntitlementsResponseDataEntitlementsItem struct {
-	// The friendly id of an entitlement.
-	ID OptString `json:"id"`
-	// The price charged if this is an entitlement for a fixed charged.
-	FixedCharge OptNilInt `json:"fixed_charge"`
-	// The name of the price associated with the entitlement.
-	PriceName OptString `json:"price_name"`
-	// The price charged for this entitlement in cents.
-	UnitAmount OptNilInt `json:"unit_amount"`
-	// The key of the feature corresponding to this entitlement.
-	FeatureKey OptString `json:"feature_key"`
-	// The name of the feature corresponding to this entitlement.
-	FeatureName OptString `json:"feature_name"`
-	// The maximum number of units of the feature the customer is entitled to.
-	EntitlementLimitMax OptNilInt `json:"entitlement_limit_max"`
-	// The minimum number of units of the feature the customer is entitled to.
-	EntitlementLimitMin OptNilInt `json:"entitlement_limit_min"`
-}
-
-// GetID returns the value of ID.
-func (s *GetEntitlementsResponseDataEntitlementsItem) GetID() OptString {
-	return s.ID
-}
-
-// GetFixedCharge returns the value of FixedCharge.
-func (s *GetEntitlementsResponseDataEntitlementsItem) GetFixedCharge() OptNilInt {
-	return s.FixedCharge
-}
-
-// GetPriceName returns the value of PriceName.
-func (s *GetEntitlementsResponseDataEntitlementsItem) GetPriceName() OptString {
-	return s.PriceName
-}
-
-// GetUnitAmount returns the value of UnitAmount.
-func (s *GetEntitlementsResponseDataEntitlementsItem) GetUnitAmount() OptNilInt {
-	return s.UnitAmount
-}
-
-// GetFeatureKey returns the value of FeatureKey.
-func (s *GetEntitlementsResponseDataEntitlementsItem) GetFeatureKey() OptString {
-	return s.FeatureKey
-}
-
-// GetFeatureName returns the value of FeatureName.
-func (s *GetEntitlementsResponseDataEntitlementsItem) GetFeatureName() OptString {
-	return s.FeatureName
-}
-
-// GetEntitlementLimitMax returns the value of EntitlementLimitMax.
-func (s *GetEntitlementsResponseDataEntitlementsItem) GetEntitlementLimitMax() OptNilInt {
-	return s.EntitlementLimitMax
-}
-
-// GetEntitlementLimitMin returns the value of EntitlementLimitMin.
-func (s *GetEntitlementsResponseDataEntitlementsItem) GetEntitlementLimitMin() OptNilInt {
-	return s.EntitlementLimitMin
-}
-
-// SetID sets the value of ID.
-func (s *GetEntitlementsResponseDataEntitlementsItem) SetID(val OptString) {
-	s.ID = val
-}
-
-// SetFixedCharge sets the value of FixedCharge.
-func (s *GetEntitlementsResponseDataEntitlementsItem) SetFixedCharge(val OptNilInt) {
-	s.FixedCharge = val
-}
-
-// SetPriceName sets the value of PriceName.
-func (s *GetEntitlementsResponseDataEntitlementsItem) SetPriceName(val OptString) {
-	s.PriceName = val
-}
-
-// SetUnitAmount sets the value of UnitAmount.
-func (s *GetEntitlementsResponseDataEntitlementsItem) SetUnitAmount(val OptNilInt) {
-	s.UnitAmount = val
-}
-
-// SetFeatureKey sets the value of FeatureKey.
-func (s *GetEntitlementsResponseDataEntitlementsItem) SetFeatureKey(val OptString) {
-	s.FeatureKey = val
-}
-
-// SetFeatureName sets the value of FeatureName.
-func (s *GetEntitlementsResponseDataEntitlementsItem) SetFeatureName(val OptString) {
-	s.FeatureName = val
-}
-
-// SetEntitlementLimitMax sets the value of EntitlementLimitMax.
-func (s *GetEntitlementsResponseDataEntitlementsItem) SetEntitlementLimitMax(val OptNilInt) {
-	s.EntitlementLimitMax = val
-}
-
-// SetEntitlementLimitMin sets the value of EntitlementLimitMin.
-func (s *GetEntitlementsResponseDataEntitlementsItem) SetEntitlementLimitMin(val OptNilInt) {
-	s.EntitlementLimitMin = val
-}
-
-type GetEntitlementsResponseDataPlansItem struct {
-	// A unique code for the plan.
-	Key OptString `json:"key"`
-	// The date the user subscribed to the plan.
-	SubscribedOn OptDateTime `json:"subscribed_on"`
-}
-
-// GetKey returns the value of Key.
-func (s *GetEntitlementsResponseDataPlansItem) GetKey() OptString {
-	return s.Key
-}
-
-// GetSubscribedOn returns the value of SubscribedOn.
-func (s *GetEntitlementsResponseDataPlansItem) GetSubscribedOn() OptDateTime {
-	return s.SubscribedOn
-}
-
-// SetKey sets the value of Key.
-func (s *GetEntitlementsResponseDataPlansItem) SetKey(val OptString) {
-	s.Key = val
-}
-
-// SetSubscribedOn sets the value of SubscribedOn.
-func (s *GetEntitlementsResponseDataPlansItem) SetSubscribedOn(val OptDateTime) {
-	s.SubscribedOn = val
-}
-
-type GetEntitlementsResponseMetadata struct {
-	// Whether more records exist.
-	HasMore OptBool `json:"has_more"`
-	// The ID of the last record on the current page.
-	NextPageStartingAfter OptString `json:"next_page_starting_after"`
-}
-
-// GetHasMore returns the value of HasMore.
-func (s *GetEntitlementsResponseMetadata) GetHasMore() OptBool {
-	return s.HasMore
-}
-
-// GetNextPageStartingAfter returns the value of NextPageStartingAfter.
-func (s *GetEntitlementsResponseMetadata) GetNextPageStartingAfter() OptString {
-	return s.NextPageStartingAfter
-}
-
-// SetHasMore sets the value of HasMore.
-func (s *GetEntitlementsResponseMetadata) SetHasMore(val OptBool) {
-	s.HasMore = val
-}
-
-// SetNextPageStartingAfter sets the value of NextPageStartingAfter.
-func (s *GetEntitlementsResponseMetadata) SetNextPageStartingAfter(val OptString) {
-	s.NextPageStartingAfter = val
-}
-
-// GetEntitlementsTooManyRequests is response for GetEntitlements operation.
-type GetEntitlementsTooManyRequests struct{}
-
-func (*GetEntitlementsTooManyRequests) getEntitlementsRes() {}
-
 // GetEnvironementFeatureFlagsForbidden is response for GetEnvironementFeatureFlags operation.
 type GetEnvironementFeatureFlagsForbidden struct{}
 
@@ -7018,7 +7426,7 @@ type GetEnvironmentResponseEnvironment struct {
 	LogoDark OptNilString `json:"logo_dark"`
 	// The organization's SVG favicon URL. Optimal format for most browsers.
 	FaviconSvg OptNilString `json:"favicon_svg"`
-	// The favicon URL to be used as a fallback in browsers that don’t support SVG, add a PNG.
+	// The favicon URL to be used as a fallback in browsers that don't support SVG, add a PNG.
 	FaviconFallback     OptNilString                                               `json:"favicon_fallback"`
 	LinkColor           OptNilGetEnvironmentResponseEnvironmentLinkColor           `json:"link_color"`
 	BackgroundColor     OptNilGetEnvironmentResponseEnvironmentBackgroundColor     `json:"background_color"`
@@ -7981,238 +8389,6 @@ type GetEventTypesTooManyRequests struct{}
 
 func (*GetEventTypesTooManyRequests) getEventTypesRes() {}
 
-// GetFeatureFlagsForbidden is response for GetFeatureFlags operation.
-type GetFeatureFlagsForbidden struct{}
-
-func (*GetFeatureFlagsForbidden) getFeatureFlagsRes() {}
-
-// Ref: #/components/schemas/get_feature_flags_response
-type GetFeatureFlagsResponse struct {
-	Data OptGetFeatureFlagsResponseData `json:"data"`
-}
-
-// GetData returns the value of Data.
-func (s *GetFeatureFlagsResponse) GetData() OptGetFeatureFlagsResponseData {
-	return s.Data
-}
-
-// SetData sets the value of Data.
-func (s *GetFeatureFlagsResponse) SetData(val OptGetFeatureFlagsResponseData) {
-	s.Data = val
-}
-
-func (*GetFeatureFlagsResponse) getFeatureFlagsRes() {}
-
-type GetFeatureFlagsResponseData struct {
-	// A list of feature flags.
-	FeatureFlags []GetFeatureFlagsResponseDataFeatureFlagsItem `json:"feature_flags"`
-}
-
-// GetFeatureFlags returns the value of FeatureFlags.
-func (s *GetFeatureFlagsResponseData) GetFeatureFlags() []GetFeatureFlagsResponseDataFeatureFlagsItem {
-	return s.FeatureFlags
-}
-
-// SetFeatureFlags sets the value of FeatureFlags.
-func (s *GetFeatureFlagsResponseData) SetFeatureFlags(val []GetFeatureFlagsResponseDataFeatureFlagsItem) {
-	s.FeatureFlags = val
-}
-
-type GetFeatureFlagsResponseDataFeatureFlagsItem struct {
-	// The friendly ID of an flag.
-	ID OptString `json:"id"`
-	// The name of the flag.
-	Name OptString `json:"name"`
-	// The key of the flag.
-	Key OptString `json:"key"`
-	// The type of the flag.
-	Type OptString `json:"type"`
-	// The value of the flag.
-	Value OptGetFeatureFlagsResponseDataFeatureFlagsItemValue `json:"value"`
-}
-
-// GetID returns the value of ID.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) GetID() OptString {
-	return s.ID
-}
-
-// GetName returns the value of Name.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) GetName() OptString {
-	return s.Name
-}
-
-// GetKey returns the value of Key.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) GetKey() OptString {
-	return s.Key
-}
-
-// GetType returns the value of Type.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) GetType() OptString {
-	return s.Type
-}
-
-// GetValue returns the value of Value.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) GetValue() OptGetFeatureFlagsResponseDataFeatureFlagsItemValue {
-	return s.Value
-}
-
-// SetID sets the value of ID.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) SetID(val OptString) {
-	s.ID = val
-}
-
-// SetName sets the value of Name.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) SetName(val OptString) {
-	s.Name = val
-}
-
-// SetKey sets the value of Key.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) SetKey(val OptString) {
-	s.Key = val
-}
-
-// SetType sets the value of Type.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) SetType(val OptString) {
-	s.Type = val
-}
-
-// SetValue sets the value of Value.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItem) SetValue(val OptGetFeatureFlagsResponseDataFeatureFlagsItemValue) {
-	s.Value = val
-}
-
-// The value of the flag.
-// GetFeatureFlagsResponseDataFeatureFlagsItemValue represents sum type.
-type GetFeatureFlagsResponseDataFeatureFlagsItemValue struct {
-	Type                                              GetFeatureFlagsResponseDataFeatureFlagsItemValueType // switch on this field
-	String                                            string
-	Bool                                              bool
-	Int                                               int
-	GetFeatureFlagsResponseDataFeatureFlagsItemValue3 GetFeatureFlagsResponseDataFeatureFlagsItemValue3
-}
-
-// GetFeatureFlagsResponseDataFeatureFlagsItemValueType is oneOf type of GetFeatureFlagsResponseDataFeatureFlagsItemValue.
-type GetFeatureFlagsResponseDataFeatureFlagsItemValueType string
-
-// Possible values for GetFeatureFlagsResponseDataFeatureFlagsItemValueType.
-const (
-	StringGetFeatureFlagsResponseDataFeatureFlagsItemValue                                            GetFeatureFlagsResponseDataFeatureFlagsItemValueType = "string"
-	BoolGetFeatureFlagsResponseDataFeatureFlagsItemValue                                              GetFeatureFlagsResponseDataFeatureFlagsItemValueType = "bool"
-	IntGetFeatureFlagsResponseDataFeatureFlagsItemValue                                               GetFeatureFlagsResponseDataFeatureFlagsItemValueType = "int"
-	GetFeatureFlagsResponseDataFeatureFlagsItemValue3GetFeatureFlagsResponseDataFeatureFlagsItemValue GetFeatureFlagsResponseDataFeatureFlagsItemValueType = "GetFeatureFlagsResponseDataFeatureFlagsItemValue3"
-)
-
-// IsString reports whether GetFeatureFlagsResponseDataFeatureFlagsItemValue is string.
-func (s GetFeatureFlagsResponseDataFeatureFlagsItemValue) IsString() bool {
-	return s.Type == StringGetFeatureFlagsResponseDataFeatureFlagsItemValue
-}
-
-// IsBool reports whether GetFeatureFlagsResponseDataFeatureFlagsItemValue is bool.
-func (s GetFeatureFlagsResponseDataFeatureFlagsItemValue) IsBool() bool {
-	return s.Type == BoolGetFeatureFlagsResponseDataFeatureFlagsItemValue
-}
-
-// IsInt reports whether GetFeatureFlagsResponseDataFeatureFlagsItemValue is int.
-func (s GetFeatureFlagsResponseDataFeatureFlagsItemValue) IsInt() bool {
-	return s.Type == IntGetFeatureFlagsResponseDataFeatureFlagsItemValue
-}
-
-// IsGetFeatureFlagsResponseDataFeatureFlagsItemValue3 reports whether GetFeatureFlagsResponseDataFeatureFlagsItemValue is GetFeatureFlagsResponseDataFeatureFlagsItemValue3.
-func (s GetFeatureFlagsResponseDataFeatureFlagsItemValue) IsGetFeatureFlagsResponseDataFeatureFlagsItemValue3() bool {
-	return s.Type == GetFeatureFlagsResponseDataFeatureFlagsItemValue3GetFeatureFlagsResponseDataFeatureFlagsItemValue
-}
-
-// SetString sets GetFeatureFlagsResponseDataFeatureFlagsItemValue to string.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItemValue) SetString(v string) {
-	s.Type = StringGetFeatureFlagsResponseDataFeatureFlagsItemValue
-	s.String = v
-}
-
-// GetString returns string and true boolean if GetFeatureFlagsResponseDataFeatureFlagsItemValue is string.
-func (s GetFeatureFlagsResponseDataFeatureFlagsItemValue) GetString() (v string, ok bool) {
-	if !s.IsString() {
-		return v, false
-	}
-	return s.String, true
-}
-
-// NewStringGetFeatureFlagsResponseDataFeatureFlagsItemValue returns new GetFeatureFlagsResponseDataFeatureFlagsItemValue from string.
-func NewStringGetFeatureFlagsResponseDataFeatureFlagsItemValue(v string) GetFeatureFlagsResponseDataFeatureFlagsItemValue {
-	var s GetFeatureFlagsResponseDataFeatureFlagsItemValue
-	s.SetString(v)
-	return s
-}
-
-// SetBool sets GetFeatureFlagsResponseDataFeatureFlagsItemValue to bool.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItemValue) SetBool(v bool) {
-	s.Type = BoolGetFeatureFlagsResponseDataFeatureFlagsItemValue
-	s.Bool = v
-}
-
-// GetBool returns bool and true boolean if GetFeatureFlagsResponseDataFeatureFlagsItemValue is bool.
-func (s GetFeatureFlagsResponseDataFeatureFlagsItemValue) GetBool() (v bool, ok bool) {
-	if !s.IsBool() {
-		return v, false
-	}
-	return s.Bool, true
-}
-
-// NewBoolGetFeatureFlagsResponseDataFeatureFlagsItemValue returns new GetFeatureFlagsResponseDataFeatureFlagsItemValue from bool.
-func NewBoolGetFeatureFlagsResponseDataFeatureFlagsItemValue(v bool) GetFeatureFlagsResponseDataFeatureFlagsItemValue {
-	var s GetFeatureFlagsResponseDataFeatureFlagsItemValue
-	s.SetBool(v)
-	return s
-}
-
-// SetInt sets GetFeatureFlagsResponseDataFeatureFlagsItemValue to int.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItemValue) SetInt(v int) {
-	s.Type = IntGetFeatureFlagsResponseDataFeatureFlagsItemValue
-	s.Int = v
-}
-
-// GetInt returns int and true boolean if GetFeatureFlagsResponseDataFeatureFlagsItemValue is int.
-func (s GetFeatureFlagsResponseDataFeatureFlagsItemValue) GetInt() (v int, ok bool) {
-	if !s.IsInt() {
-		return v, false
-	}
-	return s.Int, true
-}
-
-// NewIntGetFeatureFlagsResponseDataFeatureFlagsItemValue returns new GetFeatureFlagsResponseDataFeatureFlagsItemValue from int.
-func NewIntGetFeatureFlagsResponseDataFeatureFlagsItemValue(v int) GetFeatureFlagsResponseDataFeatureFlagsItemValue {
-	var s GetFeatureFlagsResponseDataFeatureFlagsItemValue
-	s.SetInt(v)
-	return s
-}
-
-// SetGetFeatureFlagsResponseDataFeatureFlagsItemValue3 sets GetFeatureFlagsResponseDataFeatureFlagsItemValue to GetFeatureFlagsResponseDataFeatureFlagsItemValue3.
-func (s *GetFeatureFlagsResponseDataFeatureFlagsItemValue) SetGetFeatureFlagsResponseDataFeatureFlagsItemValue3(v GetFeatureFlagsResponseDataFeatureFlagsItemValue3) {
-	s.Type = GetFeatureFlagsResponseDataFeatureFlagsItemValue3GetFeatureFlagsResponseDataFeatureFlagsItemValue
-	s.GetFeatureFlagsResponseDataFeatureFlagsItemValue3 = v
-}
-
-// GetGetFeatureFlagsResponseDataFeatureFlagsItemValue3 returns GetFeatureFlagsResponseDataFeatureFlagsItemValue3 and true boolean if GetFeatureFlagsResponseDataFeatureFlagsItemValue is GetFeatureFlagsResponseDataFeatureFlagsItemValue3.
-func (s GetFeatureFlagsResponseDataFeatureFlagsItemValue) GetGetFeatureFlagsResponseDataFeatureFlagsItemValue3() (v GetFeatureFlagsResponseDataFeatureFlagsItemValue3, ok bool) {
-	if !s.IsGetFeatureFlagsResponseDataFeatureFlagsItemValue3() {
-		return v, false
-	}
-	return s.GetFeatureFlagsResponseDataFeatureFlagsItemValue3, true
-}
-
-// NewGetFeatureFlagsResponseDataFeatureFlagsItemValue3GetFeatureFlagsResponseDataFeatureFlagsItemValue returns new GetFeatureFlagsResponseDataFeatureFlagsItemValue from GetFeatureFlagsResponseDataFeatureFlagsItemValue3.
-func NewGetFeatureFlagsResponseDataFeatureFlagsItemValue3GetFeatureFlagsResponseDataFeatureFlagsItemValue(v GetFeatureFlagsResponseDataFeatureFlagsItemValue3) GetFeatureFlagsResponseDataFeatureFlagsItemValue {
-	var s GetFeatureFlagsResponseDataFeatureFlagsItemValue
-	s.SetGetFeatureFlagsResponseDataFeatureFlagsItemValue3(v)
-	return s
-}
-
-type GetFeatureFlagsResponseDataFeatureFlagsItemValue3 struct{}
-
-// GetFeatureFlagsTooManyRequests is response for GetFeatureFlags operation.
-type GetFeatureFlagsTooManyRequests struct{}
-
-func (*GetFeatureFlagsTooManyRequests) getFeatureFlagsRes() {}
-
 // Ref: #/components/schemas/get_identities_response
 type GetIdentitiesResponse struct {
 	// Response code.
@@ -8571,7 +8747,7 @@ type GetOrganizationResponse struct {
 	LogoDark OptNilString `json:"logo_dark"`
 	// The organization's SVG favicon URL. Optimal format for most browsers.
 	FaviconSvg OptNilString `json:"favicon_svg"`
-	// The favicon URL to be used as a fallback in browsers that don’t support SVG, add a PNG.
+	// The favicon URL to be used as a fallback in browsers that don't support SVG, add a PNG.
 	FaviconFallback     OptNilString                                     `json:"favicon_fallback"`
 	LinkColor           OptNilGetOrganizationResponseLinkColor           `json:"link_color"`
 	BackgroundColor     OptNilGetOrganizationResponseBackgroundColor     `json:"background_color"`
@@ -9812,92 +9988,6 @@ type GetPermissionsTooManyRequests struct{}
 
 func (*GetPermissionsTooManyRequests) getPermissionsRes() {}
 
-// GetPortalLinkForbidden is response for GetPortalLink operation.
-type GetPortalLinkForbidden struct{}
-
-func (*GetPortalLinkForbidden) getPortalLinkRes() {}
-
-type GetPortalLinkSubnav string
-
-const (
-	GetPortalLinkSubnavProfile                    GetPortalLinkSubnav = "profile"
-	GetPortalLinkSubnavOrganizationDetails        GetPortalLinkSubnav = "organization_details"
-	GetPortalLinkSubnavOrganizationPaymentDetails GetPortalLinkSubnav = "organization_payment_details"
-	GetPortalLinkSubnavOrganizationPlanSelection  GetPortalLinkSubnav = "organization_plan_selection"
-	GetPortalLinkSubnavPaymentDetails             GetPortalLinkSubnav = "payment_details"
-	GetPortalLinkSubnavPlanDetails                GetPortalLinkSubnav = "plan_details"
-	GetPortalLinkSubnavPlanSelection              GetPortalLinkSubnav = "plan_selection"
-)
-
-// AllValues returns all GetPortalLinkSubnav values.
-func (GetPortalLinkSubnav) AllValues() []GetPortalLinkSubnav {
-	return []GetPortalLinkSubnav{
-		GetPortalLinkSubnavProfile,
-		GetPortalLinkSubnavOrganizationDetails,
-		GetPortalLinkSubnavOrganizationPaymentDetails,
-		GetPortalLinkSubnavOrganizationPlanSelection,
-		GetPortalLinkSubnavPaymentDetails,
-		GetPortalLinkSubnavPlanDetails,
-		GetPortalLinkSubnavPlanSelection,
-	}
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (s GetPortalLinkSubnav) MarshalText() ([]byte, error) {
-	switch s {
-	case GetPortalLinkSubnavProfile:
-		return []byte(s), nil
-	case GetPortalLinkSubnavOrganizationDetails:
-		return []byte(s), nil
-	case GetPortalLinkSubnavOrganizationPaymentDetails:
-		return []byte(s), nil
-	case GetPortalLinkSubnavOrganizationPlanSelection:
-		return []byte(s), nil
-	case GetPortalLinkSubnavPaymentDetails:
-		return []byte(s), nil
-	case GetPortalLinkSubnavPlanDetails:
-		return []byte(s), nil
-	case GetPortalLinkSubnavPlanSelection:
-		return []byte(s), nil
-	default:
-		return nil, errors.Errorf("invalid value: %q", s)
-	}
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (s *GetPortalLinkSubnav) UnmarshalText(data []byte) error {
-	switch GetPortalLinkSubnav(data) {
-	case GetPortalLinkSubnavProfile:
-		*s = GetPortalLinkSubnavProfile
-		return nil
-	case GetPortalLinkSubnavOrganizationDetails:
-		*s = GetPortalLinkSubnavOrganizationDetails
-		return nil
-	case GetPortalLinkSubnavOrganizationPaymentDetails:
-		*s = GetPortalLinkSubnavOrganizationPaymentDetails
-		return nil
-	case GetPortalLinkSubnavOrganizationPlanSelection:
-		*s = GetPortalLinkSubnavOrganizationPlanSelection
-		return nil
-	case GetPortalLinkSubnavPaymentDetails:
-		*s = GetPortalLinkSubnavPaymentDetails
-		return nil
-	case GetPortalLinkSubnavPlanDetails:
-		*s = GetPortalLinkSubnavPlanDetails
-		return nil
-	case GetPortalLinkSubnavPlanSelection:
-		*s = GetPortalLinkSubnavPlanSelection
-		return nil
-	default:
-		return errors.Errorf("invalid value: %q", data)
-	}
-}
-
-// GetPortalLinkTooManyRequests is response for GetPortalLink operation.
-type GetPortalLinkTooManyRequests struct{}
-
-func (*GetPortalLinkTooManyRequests) getPortalLinkRes() {}
-
 type GetPropertiesBadRequest ErrorResponse
 
 func (*GetPropertiesBadRequest) getPropertiesRes() {}
@@ -10774,375 +10864,6 @@ func (s *GetUserMfaResponseMfa) SetLastUsedOn(val OptDateTime) {
 	s.LastUsedOn = val
 }
 
-// GetUserPermissionsForbidden is response for GetUserPermissions operation.
-type GetUserPermissionsForbidden struct{}
-
-func (*GetUserPermissionsForbidden) getUserPermissionsRes() {}
-
-// Ref: #/components/schemas/get_user_permissions_response
-type GetUserPermissionsResponse struct {
-	Data     OptGetUserPermissionsResponseData     `json:"data"`
-	Metadata OptGetUserPermissionsResponseMetadata `json:"metadata"`
-}
-
-// GetData returns the value of Data.
-func (s *GetUserPermissionsResponse) GetData() OptGetUserPermissionsResponseData {
-	return s.Data
-}
-
-// GetMetadata returns the value of Metadata.
-func (s *GetUserPermissionsResponse) GetMetadata() OptGetUserPermissionsResponseMetadata {
-	return s.Metadata
-}
-
-// SetData sets the value of Data.
-func (s *GetUserPermissionsResponse) SetData(val OptGetUserPermissionsResponseData) {
-	s.Data = val
-}
-
-// SetMetadata sets the value of Metadata.
-func (s *GetUserPermissionsResponse) SetMetadata(val OptGetUserPermissionsResponseMetadata) {
-	s.Metadata = val
-}
-
-func (*GetUserPermissionsResponse) getUserPermissionsRes() {}
-
-type GetUserPermissionsResponseData struct {
-	// The organization code the roles are associated with.
-	OrgCode OptString `json:"org_code"`
-	// A list of permissions.
-	Permissions []GetUserPermissionsResponseDataPermissionsItem `json:"permissions"`
-}
-
-// GetOrgCode returns the value of OrgCode.
-func (s *GetUserPermissionsResponseData) GetOrgCode() OptString {
-	return s.OrgCode
-}
-
-// GetPermissions returns the value of Permissions.
-func (s *GetUserPermissionsResponseData) GetPermissions() []GetUserPermissionsResponseDataPermissionsItem {
-	return s.Permissions
-}
-
-// SetOrgCode sets the value of OrgCode.
-func (s *GetUserPermissionsResponseData) SetOrgCode(val OptString) {
-	s.OrgCode = val
-}
-
-// SetPermissions sets the value of Permissions.
-func (s *GetUserPermissionsResponseData) SetPermissions(val []GetUserPermissionsResponseDataPermissionsItem) {
-	s.Permissions = val
-}
-
-type GetUserPermissionsResponseDataPermissionsItem struct {
-	// The friendly ID of a permission.
-	ID OptString `json:"id"`
-	// The name of the permission.
-	Name OptString `json:"name"`
-	// The key of the permission.
-	Key OptString `json:"key"`
-}
-
-// GetID returns the value of ID.
-func (s *GetUserPermissionsResponseDataPermissionsItem) GetID() OptString {
-	return s.ID
-}
-
-// GetName returns the value of Name.
-func (s *GetUserPermissionsResponseDataPermissionsItem) GetName() OptString {
-	return s.Name
-}
-
-// GetKey returns the value of Key.
-func (s *GetUserPermissionsResponseDataPermissionsItem) GetKey() OptString {
-	return s.Key
-}
-
-// SetID sets the value of ID.
-func (s *GetUserPermissionsResponseDataPermissionsItem) SetID(val OptString) {
-	s.ID = val
-}
-
-// SetName sets the value of Name.
-func (s *GetUserPermissionsResponseDataPermissionsItem) SetName(val OptString) {
-	s.Name = val
-}
-
-// SetKey sets the value of Key.
-func (s *GetUserPermissionsResponseDataPermissionsItem) SetKey(val OptString) {
-	s.Key = val
-}
-
-type GetUserPermissionsResponseMetadata struct {
-	// Whether more records exist.
-	HasMore OptBool `json:"has_more"`
-	// The ID of the last record on the current page.
-	NextPageStartingAfter OptString `json:"next_page_starting_after"`
-}
-
-// GetHasMore returns the value of HasMore.
-func (s *GetUserPermissionsResponseMetadata) GetHasMore() OptBool {
-	return s.HasMore
-}
-
-// GetNextPageStartingAfter returns the value of NextPageStartingAfter.
-func (s *GetUserPermissionsResponseMetadata) GetNextPageStartingAfter() OptString {
-	return s.NextPageStartingAfter
-}
-
-// SetHasMore sets the value of HasMore.
-func (s *GetUserPermissionsResponseMetadata) SetHasMore(val OptBool) {
-	s.HasMore = val
-}
-
-// SetNextPageStartingAfter sets the value of NextPageStartingAfter.
-func (s *GetUserPermissionsResponseMetadata) SetNextPageStartingAfter(val OptString) {
-	s.NextPageStartingAfter = val
-}
-
-// GetUserPermissionsTooManyRequests is response for GetUserPermissions operation.
-type GetUserPermissionsTooManyRequests struct{}
-
-func (*GetUserPermissionsTooManyRequests) getUserPermissionsRes() {}
-
-// GetUserProfileV2Forbidden is response for GetUserProfileV2 operation.
-type GetUserProfileV2Forbidden struct{}
-
-func (*GetUserProfileV2Forbidden) getUserProfileV2Res() {}
-
-// GetUserProfileV2TooManyRequests is response for GetUserProfileV2 operation.
-type GetUserProfileV2TooManyRequests struct{}
-
-func (*GetUserProfileV2TooManyRequests) getUserProfileV2Res() {}
-
-// GetUserPropertiesForbidden is response for GetUserProperties operation.
-type GetUserPropertiesForbidden struct{}
-
-func (*GetUserPropertiesForbidden) getUserPropertiesRes() {}
-
-// Ref: #/components/schemas/get_user_properties_response
-type GetUserPropertiesResponse struct {
-	Data     OptGetUserPropertiesResponseData     `json:"data"`
-	Metadata OptGetUserPropertiesResponseMetadata `json:"metadata"`
-}
-
-// GetData returns the value of Data.
-func (s *GetUserPropertiesResponse) GetData() OptGetUserPropertiesResponseData {
-	return s.Data
-}
-
-// GetMetadata returns the value of Metadata.
-func (s *GetUserPropertiesResponse) GetMetadata() OptGetUserPropertiesResponseMetadata {
-	return s.Metadata
-}
-
-// SetData sets the value of Data.
-func (s *GetUserPropertiesResponse) SetData(val OptGetUserPropertiesResponseData) {
-	s.Data = val
-}
-
-// SetMetadata sets the value of Metadata.
-func (s *GetUserPropertiesResponse) SetMetadata(val OptGetUserPropertiesResponseMetadata) {
-	s.Metadata = val
-}
-
-func (*GetUserPropertiesResponse) getUserPropertiesRes() {}
-
-type GetUserPropertiesResponseData struct {
-	// A list of properties.
-	Properties []GetUserPropertiesResponseDataPropertiesItem `json:"properties"`
-}
-
-// GetProperties returns the value of Properties.
-func (s *GetUserPropertiesResponseData) GetProperties() []GetUserPropertiesResponseDataPropertiesItem {
-	return s.Properties
-}
-
-// SetProperties sets the value of Properties.
-func (s *GetUserPropertiesResponseData) SetProperties(val []GetUserPropertiesResponseDataPropertiesItem) {
-	s.Properties = val
-}
-
-type GetUserPropertiesResponseDataPropertiesItem struct {
-	// The friendly ID of a property.
-	ID OptString `json:"id"`
-	// The name of the property.
-	Name OptString `json:"name"`
-	// The key of the property.
-	Key OptString `json:"key"`
-	// The value of the property.
-	Value OptGetUserPropertiesResponseDataPropertiesItemValue `json:"value"`
-}
-
-// GetID returns the value of ID.
-func (s *GetUserPropertiesResponseDataPropertiesItem) GetID() OptString {
-	return s.ID
-}
-
-// GetName returns the value of Name.
-func (s *GetUserPropertiesResponseDataPropertiesItem) GetName() OptString {
-	return s.Name
-}
-
-// GetKey returns the value of Key.
-func (s *GetUserPropertiesResponseDataPropertiesItem) GetKey() OptString {
-	return s.Key
-}
-
-// GetValue returns the value of Value.
-func (s *GetUserPropertiesResponseDataPropertiesItem) GetValue() OptGetUserPropertiesResponseDataPropertiesItemValue {
-	return s.Value
-}
-
-// SetID sets the value of ID.
-func (s *GetUserPropertiesResponseDataPropertiesItem) SetID(val OptString) {
-	s.ID = val
-}
-
-// SetName sets the value of Name.
-func (s *GetUserPropertiesResponseDataPropertiesItem) SetName(val OptString) {
-	s.Name = val
-}
-
-// SetKey sets the value of Key.
-func (s *GetUserPropertiesResponseDataPropertiesItem) SetKey(val OptString) {
-	s.Key = val
-}
-
-// SetValue sets the value of Value.
-func (s *GetUserPropertiesResponseDataPropertiesItem) SetValue(val OptGetUserPropertiesResponseDataPropertiesItemValue) {
-	s.Value = val
-}
-
-// The value of the property.
-// GetUserPropertiesResponseDataPropertiesItemValue represents sum type.
-type GetUserPropertiesResponseDataPropertiesItemValue struct {
-	Type   GetUserPropertiesResponseDataPropertiesItemValueType // switch on this field
-	String string
-	Bool   bool
-	Int    int
-}
-
-// GetUserPropertiesResponseDataPropertiesItemValueType is oneOf type of GetUserPropertiesResponseDataPropertiesItemValue.
-type GetUserPropertiesResponseDataPropertiesItemValueType string
-
-// Possible values for GetUserPropertiesResponseDataPropertiesItemValueType.
-const (
-	StringGetUserPropertiesResponseDataPropertiesItemValue GetUserPropertiesResponseDataPropertiesItemValueType = "string"
-	BoolGetUserPropertiesResponseDataPropertiesItemValue   GetUserPropertiesResponseDataPropertiesItemValueType = "bool"
-	IntGetUserPropertiesResponseDataPropertiesItemValue    GetUserPropertiesResponseDataPropertiesItemValueType = "int"
-)
-
-// IsString reports whether GetUserPropertiesResponseDataPropertiesItemValue is string.
-func (s GetUserPropertiesResponseDataPropertiesItemValue) IsString() bool {
-	return s.Type == StringGetUserPropertiesResponseDataPropertiesItemValue
-}
-
-// IsBool reports whether GetUserPropertiesResponseDataPropertiesItemValue is bool.
-func (s GetUserPropertiesResponseDataPropertiesItemValue) IsBool() bool {
-	return s.Type == BoolGetUserPropertiesResponseDataPropertiesItemValue
-}
-
-// IsInt reports whether GetUserPropertiesResponseDataPropertiesItemValue is int.
-func (s GetUserPropertiesResponseDataPropertiesItemValue) IsInt() bool {
-	return s.Type == IntGetUserPropertiesResponseDataPropertiesItemValue
-}
-
-// SetString sets GetUserPropertiesResponseDataPropertiesItemValue to string.
-func (s *GetUserPropertiesResponseDataPropertiesItemValue) SetString(v string) {
-	s.Type = StringGetUserPropertiesResponseDataPropertiesItemValue
-	s.String = v
-}
-
-// GetString returns string and true boolean if GetUserPropertiesResponseDataPropertiesItemValue is string.
-func (s GetUserPropertiesResponseDataPropertiesItemValue) GetString() (v string, ok bool) {
-	if !s.IsString() {
-		return v, false
-	}
-	return s.String, true
-}
-
-// NewStringGetUserPropertiesResponseDataPropertiesItemValue returns new GetUserPropertiesResponseDataPropertiesItemValue from string.
-func NewStringGetUserPropertiesResponseDataPropertiesItemValue(v string) GetUserPropertiesResponseDataPropertiesItemValue {
-	var s GetUserPropertiesResponseDataPropertiesItemValue
-	s.SetString(v)
-	return s
-}
-
-// SetBool sets GetUserPropertiesResponseDataPropertiesItemValue to bool.
-func (s *GetUserPropertiesResponseDataPropertiesItemValue) SetBool(v bool) {
-	s.Type = BoolGetUserPropertiesResponseDataPropertiesItemValue
-	s.Bool = v
-}
-
-// GetBool returns bool and true boolean if GetUserPropertiesResponseDataPropertiesItemValue is bool.
-func (s GetUserPropertiesResponseDataPropertiesItemValue) GetBool() (v bool, ok bool) {
-	if !s.IsBool() {
-		return v, false
-	}
-	return s.Bool, true
-}
-
-// NewBoolGetUserPropertiesResponseDataPropertiesItemValue returns new GetUserPropertiesResponseDataPropertiesItemValue from bool.
-func NewBoolGetUserPropertiesResponseDataPropertiesItemValue(v bool) GetUserPropertiesResponseDataPropertiesItemValue {
-	var s GetUserPropertiesResponseDataPropertiesItemValue
-	s.SetBool(v)
-	return s
-}
-
-// SetInt sets GetUserPropertiesResponseDataPropertiesItemValue to int.
-func (s *GetUserPropertiesResponseDataPropertiesItemValue) SetInt(v int) {
-	s.Type = IntGetUserPropertiesResponseDataPropertiesItemValue
-	s.Int = v
-}
-
-// GetInt returns int and true boolean if GetUserPropertiesResponseDataPropertiesItemValue is int.
-func (s GetUserPropertiesResponseDataPropertiesItemValue) GetInt() (v int, ok bool) {
-	if !s.IsInt() {
-		return v, false
-	}
-	return s.Int, true
-}
-
-// NewIntGetUserPropertiesResponseDataPropertiesItemValue returns new GetUserPropertiesResponseDataPropertiesItemValue from int.
-func NewIntGetUserPropertiesResponseDataPropertiesItemValue(v int) GetUserPropertiesResponseDataPropertiesItemValue {
-	var s GetUserPropertiesResponseDataPropertiesItemValue
-	s.SetInt(v)
-	return s
-}
-
-type GetUserPropertiesResponseMetadata struct {
-	// Whether more records exist.
-	HasMore OptBool `json:"has_more"`
-	// The ID of the last record on the current page.
-	NextPageStartingAfter OptString `json:"next_page_starting_after"`
-}
-
-// GetHasMore returns the value of HasMore.
-func (s *GetUserPropertiesResponseMetadata) GetHasMore() OptBool {
-	return s.HasMore
-}
-
-// GetNextPageStartingAfter returns the value of NextPageStartingAfter.
-func (s *GetUserPropertiesResponseMetadata) GetNextPageStartingAfter() OptString {
-	return s.NextPageStartingAfter
-}
-
-// SetHasMore sets the value of HasMore.
-func (s *GetUserPropertiesResponseMetadata) SetHasMore(val OptBool) {
-	s.HasMore = val
-}
-
-// SetNextPageStartingAfter sets the value of NextPageStartingAfter.
-func (s *GetUserPropertiesResponseMetadata) SetNextPageStartingAfter(val OptString) {
-	s.NextPageStartingAfter = val
-}
-
-// GetUserPropertiesTooManyRequests is response for GetUserProperties operation.
-type GetUserPropertiesTooManyRequests struct{}
-
-func (*GetUserPropertiesTooManyRequests) getUserPropertiesRes() {}
-
 // GetUserPropertyValuesForbidden is response for GetUserPropertyValues operation.
 type GetUserPropertyValuesForbidden struct{}
 
@@ -11152,137 +10873,6 @@ func (*GetUserPropertyValuesForbidden) getUserPropertyValuesRes() {}
 type GetUserPropertyValuesTooManyRequests struct{}
 
 func (*GetUserPropertyValuesTooManyRequests) getUserPropertyValuesRes() {}
-
-// GetUserRolesForbidden is response for GetUserRoles operation.
-type GetUserRolesForbidden struct{}
-
-func (*GetUserRolesForbidden) getUserRolesRes() {}
-
-// Ref: #/components/schemas/get_user_roles_response
-type GetUserRolesResponse struct {
-	Data     OptGetUserRolesResponseData     `json:"data"`
-	Metadata OptGetUserRolesResponseMetadata `json:"metadata"`
-}
-
-// GetData returns the value of Data.
-func (s *GetUserRolesResponse) GetData() OptGetUserRolesResponseData {
-	return s.Data
-}
-
-// GetMetadata returns the value of Metadata.
-func (s *GetUserRolesResponse) GetMetadata() OptGetUserRolesResponseMetadata {
-	return s.Metadata
-}
-
-// SetData sets the value of Data.
-func (s *GetUserRolesResponse) SetData(val OptGetUserRolesResponseData) {
-	s.Data = val
-}
-
-// SetMetadata sets the value of Metadata.
-func (s *GetUserRolesResponse) SetMetadata(val OptGetUserRolesResponseMetadata) {
-	s.Metadata = val
-}
-
-func (*GetUserRolesResponse) getUserRolesRes() {}
-
-type GetUserRolesResponseData struct {
-	// The organization code the roles are associated with.
-	OrgCode OptString `json:"org_code"`
-	// A list of roles.
-	Roles []GetUserRolesResponseDataRolesItem `json:"roles"`
-}
-
-// GetOrgCode returns the value of OrgCode.
-func (s *GetUserRolesResponseData) GetOrgCode() OptString {
-	return s.OrgCode
-}
-
-// GetRoles returns the value of Roles.
-func (s *GetUserRolesResponseData) GetRoles() []GetUserRolesResponseDataRolesItem {
-	return s.Roles
-}
-
-// SetOrgCode sets the value of OrgCode.
-func (s *GetUserRolesResponseData) SetOrgCode(val OptString) {
-	s.OrgCode = val
-}
-
-// SetRoles sets the value of Roles.
-func (s *GetUserRolesResponseData) SetRoles(val []GetUserRolesResponseDataRolesItem) {
-	s.Roles = val
-}
-
-type GetUserRolesResponseDataRolesItem struct {
-	// The friendly ID of a role.
-	ID OptString `json:"id"`
-	// The name of the role.
-	Name OptString `json:"name"`
-	// The key of the role.
-	Key OptString `json:"key"`
-}
-
-// GetID returns the value of ID.
-func (s *GetUserRolesResponseDataRolesItem) GetID() OptString {
-	return s.ID
-}
-
-// GetName returns the value of Name.
-func (s *GetUserRolesResponseDataRolesItem) GetName() OptString {
-	return s.Name
-}
-
-// GetKey returns the value of Key.
-func (s *GetUserRolesResponseDataRolesItem) GetKey() OptString {
-	return s.Key
-}
-
-// SetID sets the value of ID.
-func (s *GetUserRolesResponseDataRolesItem) SetID(val OptString) {
-	s.ID = val
-}
-
-// SetName sets the value of Name.
-func (s *GetUserRolesResponseDataRolesItem) SetName(val OptString) {
-	s.Name = val
-}
-
-// SetKey sets the value of Key.
-func (s *GetUserRolesResponseDataRolesItem) SetKey(val OptString) {
-	s.Key = val
-}
-
-type GetUserRolesResponseMetadata struct {
-	// Whether more records exist.
-	HasMore OptBool `json:"has_more"`
-	// The ID of the last record on the current page.
-	NextPageStartingAfter OptString `json:"next_page_starting_after"`
-}
-
-// GetHasMore returns the value of HasMore.
-func (s *GetUserRolesResponseMetadata) GetHasMore() OptBool {
-	return s.HasMore
-}
-
-// GetNextPageStartingAfter returns the value of NextPageStartingAfter.
-func (s *GetUserRolesResponseMetadata) GetNextPageStartingAfter() OptString {
-	return s.NextPageStartingAfter
-}
-
-// SetHasMore sets the value of HasMore.
-func (s *GetUserRolesResponseMetadata) SetHasMore(val OptBool) {
-	s.HasMore = val
-}
-
-// SetNextPageStartingAfter sets the value of NextPageStartingAfter.
-func (s *GetUserRolesResponseMetadata) SetNextPageStartingAfter(val OptString) {
-	s.NextPageStartingAfter = val
-}
-
-// GetUserRolesTooManyRequests is response for GetUserRoles operation.
-type GetUserRolesTooManyRequests struct{}
-
-func (*GetUserRolesTooManyRequests) getUserRolesRes() {}
 
 type GetUserSessionsBadRequest ErrorResponse
 
@@ -11686,6 +11276,7 @@ func (*Identity) getIdentityRes() {}
 
 type KindeBearerAuth struct {
 	Token string
+	Roles []string
 }
 
 // GetToken returns the value of Token.
@@ -11693,9 +11284,19 @@ func (s *KindeBearerAuth) GetToken() string {
 	return s.Token
 }
 
+// GetRoles returns the value of Roles.
+func (s *KindeBearerAuth) GetRoles() []string {
+	return s.Roles
+}
+
 // SetToken sets the value of Token.
 func (s *KindeBearerAuth) SetToken(val string) {
 	s.Token = val
+}
+
+// SetRoles sets the value of Roles.
+func (s *KindeBearerAuth) SetRoles(val []string) {
+	s.Roles = val
 }
 
 // Ref: #/components/schemas/logout_redirect_urls
@@ -11800,9 +11401,11 @@ func (s *NotFoundResponse) SetErrors(val OptNotFoundResponseErrors) {
 	s.Errors = val
 }
 
+func (*NotFoundResponse) deleteApiKeyRes()       {}
 func (*NotFoundResponse) deleteConnectionRes()   {}
 func (*NotFoundResponse) deleteOrganizationRes() {}
 func (*NotFoundResponse) deleteUserSessionsRes() {}
+func (*NotFoundResponse) getApiKeyRes()          {}
 func (*NotFoundResponse) getOrgUserMFARes()      {}
 func (*NotFoundResponse) getUserSessionsRes()    {}
 func (*NotFoundResponse) getUsersMFARes()        {}
@@ -11811,6 +11414,7 @@ func (*NotFoundResponse) resetOrgUserMFAAllRes() {}
 func (*NotFoundResponse) resetOrgUserMFARes()    {}
 func (*NotFoundResponse) resetUsersMFAAllRes()   {}
 func (*NotFoundResponse) resetUsersMFARes()      {}
+func (*NotFoundResponse) rotateApiKeyRes()       {}
 func (*NotFoundResponse) updateConnectionRes()   {}
 
 type NotFoundResponseErrors struct {
@@ -11970,6 +11574,52 @@ func (o OptConnectionConnection) Get() (v ConnectionConnection, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptConnectionConnection) Or(d ConnectionConnection) ConnectionConnection {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptCreateAPIKeyResponseAPIKey returns new OptCreateAPIKeyResponseAPIKey with value set to v.
+func NewOptCreateAPIKeyResponseAPIKey(v CreateAPIKeyResponseAPIKey) OptCreateAPIKeyResponseAPIKey {
+	return OptCreateAPIKeyResponseAPIKey{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptCreateAPIKeyResponseAPIKey is optional CreateAPIKeyResponseAPIKey.
+type OptCreateAPIKeyResponseAPIKey struct {
+	Value CreateAPIKeyResponseAPIKey
+	Set   bool
+}
+
+// IsSet returns true if OptCreateAPIKeyResponseAPIKey was set.
+func (o OptCreateAPIKeyResponseAPIKey) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptCreateAPIKeyResponseAPIKey) Reset() {
+	var v CreateAPIKeyResponseAPIKey
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptCreateAPIKeyResponseAPIKey) SetTo(v CreateAPIKeyResponseAPIKey) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptCreateAPIKeyResponseAPIKey) Get() (v CreateAPIKeyResponseAPIKey, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptCreateAPIKeyResponseAPIKey) Or(d CreateAPIKeyResponseAPIKey) CreateAPIKeyResponseAPIKey {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -12200,6 +11850,98 @@ func (o OptCreateConnectionReqOptions) Get() (v CreateConnectionReqOptions, ok b
 
 // Or returns value if set, or given parameter if does not.
 func (o OptCreateConnectionReqOptions) Or(d CreateConnectionReqOptions) CreateConnectionReqOptions {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptCreateConnectionReqOptions1UpstreamParams returns new OptCreateConnectionReqOptions1UpstreamParams with value set to v.
+func NewOptCreateConnectionReqOptions1UpstreamParams(v CreateConnectionReqOptions1UpstreamParams) OptCreateConnectionReqOptions1UpstreamParams {
+	return OptCreateConnectionReqOptions1UpstreamParams{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptCreateConnectionReqOptions1UpstreamParams is optional CreateConnectionReqOptions1UpstreamParams.
+type OptCreateConnectionReqOptions1UpstreamParams struct {
+	Value CreateConnectionReqOptions1UpstreamParams
+	Set   bool
+}
+
+// IsSet returns true if OptCreateConnectionReqOptions1UpstreamParams was set.
+func (o OptCreateConnectionReqOptions1UpstreamParams) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptCreateConnectionReqOptions1UpstreamParams) Reset() {
+	var v CreateConnectionReqOptions1UpstreamParams
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptCreateConnectionReqOptions1UpstreamParams) SetTo(v CreateConnectionReqOptions1UpstreamParams) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptCreateConnectionReqOptions1UpstreamParams) Get() (v CreateConnectionReqOptions1UpstreamParams, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptCreateConnectionReqOptions1UpstreamParams) Or(d CreateConnectionReqOptions1UpstreamParams) CreateConnectionReqOptions1UpstreamParams {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptCreateConnectionReqOptions2UpstreamParams returns new OptCreateConnectionReqOptions2UpstreamParams with value set to v.
+func NewOptCreateConnectionReqOptions2UpstreamParams(v CreateConnectionReqOptions2UpstreamParams) OptCreateConnectionReqOptions2UpstreamParams {
+	return OptCreateConnectionReqOptions2UpstreamParams{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptCreateConnectionReqOptions2UpstreamParams is optional CreateConnectionReqOptions2UpstreamParams.
+type OptCreateConnectionReqOptions2UpstreamParams struct {
+	Value CreateConnectionReqOptions2UpstreamParams
+	Set   bool
+}
+
+// IsSet returns true if OptCreateConnectionReqOptions2UpstreamParams was set.
+func (o OptCreateConnectionReqOptions2UpstreamParams) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptCreateConnectionReqOptions2UpstreamParams) Reset() {
+	var v CreateConnectionReqOptions2UpstreamParams
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptCreateConnectionReqOptions2UpstreamParams) SetTo(v CreateConnectionReqOptions2UpstreamParams) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptCreateConnectionReqOptions2UpstreamParams) Get() (v CreateConnectionReqOptions2UpstreamParams, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptCreateConnectionReqOptions2UpstreamParams) Or(d CreateConnectionReqOptions2UpstreamParams) CreateConnectionReqOptions2UpstreamParams {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -13218,6 +12960,52 @@ func (o OptEnvironmentVariable) Or(d EnvironmentVariable) EnvironmentVariable {
 	return d
 }
 
+// NewOptGetAPIKeyResponseAPIKey returns new OptGetAPIKeyResponseAPIKey with value set to v.
+func NewOptGetAPIKeyResponseAPIKey(v GetAPIKeyResponseAPIKey) OptGetAPIKeyResponseAPIKey {
+	return OptGetAPIKeyResponseAPIKey{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptGetAPIKeyResponseAPIKey is optional GetAPIKeyResponseAPIKey.
+type OptGetAPIKeyResponseAPIKey struct {
+	Value GetAPIKeyResponseAPIKey
+	Set   bool
+}
+
+// IsSet returns true if OptGetAPIKeyResponseAPIKey was set.
+func (o OptGetAPIKeyResponseAPIKey) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptGetAPIKeyResponseAPIKey) Reset() {
+	var v GetAPIKeyResponseAPIKey
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptGetAPIKeyResponseAPIKey) SetTo(v GetAPIKeyResponseAPIKey) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptGetAPIKeyResponseAPIKey) Get() (v GetAPIKeyResponseAPIKey, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptGetAPIKeyResponseAPIKey) Or(d GetAPIKeyResponseAPIKey) GetAPIKeyResponseAPIKey {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptGetAPIResponseAPI returns new OptGetAPIResponseAPI with value set to v.
 func NewOptGetAPIResponseAPI(v GetAPIResponseAPI) OptGetAPIResponseAPI {
 	return OptGetAPIResponseAPI{
@@ -13494,190 +13282,6 @@ func (o OptGetBusinessResponseBusiness) Or(d GetBusinessResponseBusiness) GetBus
 	return d
 }
 
-// NewOptGetEntitlementResponseData returns new OptGetEntitlementResponseData with value set to v.
-func NewOptGetEntitlementResponseData(v GetEntitlementResponseData) OptGetEntitlementResponseData {
-	return OptGetEntitlementResponseData{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetEntitlementResponseData is optional GetEntitlementResponseData.
-type OptGetEntitlementResponseData struct {
-	Value GetEntitlementResponseData
-	Set   bool
-}
-
-// IsSet returns true if OptGetEntitlementResponseData was set.
-func (o OptGetEntitlementResponseData) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetEntitlementResponseData) Reset() {
-	var v GetEntitlementResponseData
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetEntitlementResponseData) SetTo(v GetEntitlementResponseData) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetEntitlementResponseData) Get() (v GetEntitlementResponseData, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetEntitlementResponseData) Or(d GetEntitlementResponseData) GetEntitlementResponseData {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetEntitlementResponseDataEntitlement returns new OptGetEntitlementResponseDataEntitlement with value set to v.
-func NewOptGetEntitlementResponseDataEntitlement(v GetEntitlementResponseDataEntitlement) OptGetEntitlementResponseDataEntitlement {
-	return OptGetEntitlementResponseDataEntitlement{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetEntitlementResponseDataEntitlement is optional GetEntitlementResponseDataEntitlement.
-type OptGetEntitlementResponseDataEntitlement struct {
-	Value GetEntitlementResponseDataEntitlement
-	Set   bool
-}
-
-// IsSet returns true if OptGetEntitlementResponseDataEntitlement was set.
-func (o OptGetEntitlementResponseDataEntitlement) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetEntitlementResponseDataEntitlement) Reset() {
-	var v GetEntitlementResponseDataEntitlement
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetEntitlementResponseDataEntitlement) SetTo(v GetEntitlementResponseDataEntitlement) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetEntitlementResponseDataEntitlement) Get() (v GetEntitlementResponseDataEntitlement, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetEntitlementResponseDataEntitlement) Or(d GetEntitlementResponseDataEntitlement) GetEntitlementResponseDataEntitlement {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetEntitlementsResponseData returns new OptGetEntitlementsResponseData with value set to v.
-func NewOptGetEntitlementsResponseData(v GetEntitlementsResponseData) OptGetEntitlementsResponseData {
-	return OptGetEntitlementsResponseData{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetEntitlementsResponseData is optional GetEntitlementsResponseData.
-type OptGetEntitlementsResponseData struct {
-	Value GetEntitlementsResponseData
-	Set   bool
-}
-
-// IsSet returns true if OptGetEntitlementsResponseData was set.
-func (o OptGetEntitlementsResponseData) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetEntitlementsResponseData) Reset() {
-	var v GetEntitlementsResponseData
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetEntitlementsResponseData) SetTo(v GetEntitlementsResponseData) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetEntitlementsResponseData) Get() (v GetEntitlementsResponseData, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetEntitlementsResponseData) Or(d GetEntitlementsResponseData) GetEntitlementsResponseData {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetEntitlementsResponseMetadata returns new OptGetEntitlementsResponseMetadata with value set to v.
-func NewOptGetEntitlementsResponseMetadata(v GetEntitlementsResponseMetadata) OptGetEntitlementsResponseMetadata {
-	return OptGetEntitlementsResponseMetadata{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetEntitlementsResponseMetadata is optional GetEntitlementsResponseMetadata.
-type OptGetEntitlementsResponseMetadata struct {
-	Value GetEntitlementsResponseMetadata
-	Set   bool
-}
-
-// IsSet returns true if OptGetEntitlementsResponseMetadata was set.
-func (o OptGetEntitlementsResponseMetadata) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetEntitlementsResponseMetadata) Reset() {
-	var v GetEntitlementsResponseMetadata
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetEntitlementsResponseMetadata) SetTo(v GetEntitlementsResponseMetadata) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetEntitlementsResponseMetadata) Get() (v GetEntitlementsResponseMetadata, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetEntitlementsResponseMetadata) Or(d GetEntitlementsResponseMetadata) GetEntitlementsResponseMetadata {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // NewOptGetEnvironmentFeatureFlagsResponseFeatureFlags returns new OptGetEnvironmentFeatureFlagsResponseFeatureFlags with value set to v.
 func NewOptGetEnvironmentFeatureFlagsResponseFeatureFlags(v GetEnvironmentFeatureFlagsResponseFeatureFlags) OptGetEnvironmentFeatureFlagsResponseFeatureFlags {
 	return OptGetEnvironmentFeatureFlagsResponseFeatureFlags{
@@ -13948,98 +13552,6 @@ func (o OptGetEventResponseEvent) Get() (v GetEventResponseEvent, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptGetEventResponseEvent) Or(d GetEventResponseEvent) GetEventResponseEvent {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetFeatureFlagsResponseData returns new OptGetFeatureFlagsResponseData with value set to v.
-func NewOptGetFeatureFlagsResponseData(v GetFeatureFlagsResponseData) OptGetFeatureFlagsResponseData {
-	return OptGetFeatureFlagsResponseData{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetFeatureFlagsResponseData is optional GetFeatureFlagsResponseData.
-type OptGetFeatureFlagsResponseData struct {
-	Value GetFeatureFlagsResponseData
-	Set   bool
-}
-
-// IsSet returns true if OptGetFeatureFlagsResponseData was set.
-func (o OptGetFeatureFlagsResponseData) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetFeatureFlagsResponseData) Reset() {
-	var v GetFeatureFlagsResponseData
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetFeatureFlagsResponseData) SetTo(v GetFeatureFlagsResponseData) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetFeatureFlagsResponseData) Get() (v GetFeatureFlagsResponseData, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetFeatureFlagsResponseData) Or(d GetFeatureFlagsResponseData) GetFeatureFlagsResponseData {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetFeatureFlagsResponseDataFeatureFlagsItemValue returns new OptGetFeatureFlagsResponseDataFeatureFlagsItemValue with value set to v.
-func NewOptGetFeatureFlagsResponseDataFeatureFlagsItemValue(v GetFeatureFlagsResponseDataFeatureFlagsItemValue) OptGetFeatureFlagsResponseDataFeatureFlagsItemValue {
-	return OptGetFeatureFlagsResponseDataFeatureFlagsItemValue{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetFeatureFlagsResponseDataFeatureFlagsItemValue is optional GetFeatureFlagsResponseDataFeatureFlagsItemValue.
-type OptGetFeatureFlagsResponseDataFeatureFlagsItemValue struct {
-	Value GetFeatureFlagsResponseDataFeatureFlagsItemValue
-	Set   bool
-}
-
-// IsSet returns true if OptGetFeatureFlagsResponseDataFeatureFlagsItemValue was set.
-func (o OptGetFeatureFlagsResponseDataFeatureFlagsItemValue) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetFeatureFlagsResponseDataFeatureFlagsItemValue) Reset() {
-	var v GetFeatureFlagsResponseDataFeatureFlagsItemValue
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetFeatureFlagsResponseDataFeatureFlagsItemValue) SetTo(v GetFeatureFlagsResponseDataFeatureFlagsItemValue) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetFeatureFlagsResponseDataFeatureFlagsItemValue) Get() (v GetFeatureFlagsResponseDataFeatureFlagsItemValue, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetFeatureFlagsResponseDataFeatureFlagsItemValue) Or(d GetFeatureFlagsResponseDataFeatureFlagsItemValue) GetFeatureFlagsResponseDataFeatureFlagsItemValue {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -14368,328 +13880,6 @@ func (o OptGetUserMfaResponseMfa) Or(d GetUserMfaResponseMfa) GetUserMfaResponse
 	return d
 }
 
-// NewOptGetUserPermissionsResponseData returns new OptGetUserPermissionsResponseData with value set to v.
-func NewOptGetUserPermissionsResponseData(v GetUserPermissionsResponseData) OptGetUserPermissionsResponseData {
-	return OptGetUserPermissionsResponseData{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetUserPermissionsResponseData is optional GetUserPermissionsResponseData.
-type OptGetUserPermissionsResponseData struct {
-	Value GetUserPermissionsResponseData
-	Set   bool
-}
-
-// IsSet returns true if OptGetUserPermissionsResponseData was set.
-func (o OptGetUserPermissionsResponseData) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetUserPermissionsResponseData) Reset() {
-	var v GetUserPermissionsResponseData
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetUserPermissionsResponseData) SetTo(v GetUserPermissionsResponseData) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetUserPermissionsResponseData) Get() (v GetUserPermissionsResponseData, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetUserPermissionsResponseData) Or(d GetUserPermissionsResponseData) GetUserPermissionsResponseData {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetUserPermissionsResponseMetadata returns new OptGetUserPermissionsResponseMetadata with value set to v.
-func NewOptGetUserPermissionsResponseMetadata(v GetUserPermissionsResponseMetadata) OptGetUserPermissionsResponseMetadata {
-	return OptGetUserPermissionsResponseMetadata{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetUserPermissionsResponseMetadata is optional GetUserPermissionsResponseMetadata.
-type OptGetUserPermissionsResponseMetadata struct {
-	Value GetUserPermissionsResponseMetadata
-	Set   bool
-}
-
-// IsSet returns true if OptGetUserPermissionsResponseMetadata was set.
-func (o OptGetUserPermissionsResponseMetadata) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetUserPermissionsResponseMetadata) Reset() {
-	var v GetUserPermissionsResponseMetadata
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetUserPermissionsResponseMetadata) SetTo(v GetUserPermissionsResponseMetadata) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetUserPermissionsResponseMetadata) Get() (v GetUserPermissionsResponseMetadata, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetUserPermissionsResponseMetadata) Or(d GetUserPermissionsResponseMetadata) GetUserPermissionsResponseMetadata {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetUserPropertiesResponseData returns new OptGetUserPropertiesResponseData with value set to v.
-func NewOptGetUserPropertiesResponseData(v GetUserPropertiesResponseData) OptGetUserPropertiesResponseData {
-	return OptGetUserPropertiesResponseData{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetUserPropertiesResponseData is optional GetUserPropertiesResponseData.
-type OptGetUserPropertiesResponseData struct {
-	Value GetUserPropertiesResponseData
-	Set   bool
-}
-
-// IsSet returns true if OptGetUserPropertiesResponseData was set.
-func (o OptGetUserPropertiesResponseData) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetUserPropertiesResponseData) Reset() {
-	var v GetUserPropertiesResponseData
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetUserPropertiesResponseData) SetTo(v GetUserPropertiesResponseData) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetUserPropertiesResponseData) Get() (v GetUserPropertiesResponseData, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetUserPropertiesResponseData) Or(d GetUserPropertiesResponseData) GetUserPropertiesResponseData {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetUserPropertiesResponseDataPropertiesItemValue returns new OptGetUserPropertiesResponseDataPropertiesItemValue with value set to v.
-func NewOptGetUserPropertiesResponseDataPropertiesItemValue(v GetUserPropertiesResponseDataPropertiesItemValue) OptGetUserPropertiesResponseDataPropertiesItemValue {
-	return OptGetUserPropertiesResponseDataPropertiesItemValue{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetUserPropertiesResponseDataPropertiesItemValue is optional GetUserPropertiesResponseDataPropertiesItemValue.
-type OptGetUserPropertiesResponseDataPropertiesItemValue struct {
-	Value GetUserPropertiesResponseDataPropertiesItemValue
-	Set   bool
-}
-
-// IsSet returns true if OptGetUserPropertiesResponseDataPropertiesItemValue was set.
-func (o OptGetUserPropertiesResponseDataPropertiesItemValue) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetUserPropertiesResponseDataPropertiesItemValue) Reset() {
-	var v GetUserPropertiesResponseDataPropertiesItemValue
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetUserPropertiesResponseDataPropertiesItemValue) SetTo(v GetUserPropertiesResponseDataPropertiesItemValue) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetUserPropertiesResponseDataPropertiesItemValue) Get() (v GetUserPropertiesResponseDataPropertiesItemValue, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetUserPropertiesResponseDataPropertiesItemValue) Or(d GetUserPropertiesResponseDataPropertiesItemValue) GetUserPropertiesResponseDataPropertiesItemValue {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetUserPropertiesResponseMetadata returns new OptGetUserPropertiesResponseMetadata with value set to v.
-func NewOptGetUserPropertiesResponseMetadata(v GetUserPropertiesResponseMetadata) OptGetUserPropertiesResponseMetadata {
-	return OptGetUserPropertiesResponseMetadata{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetUserPropertiesResponseMetadata is optional GetUserPropertiesResponseMetadata.
-type OptGetUserPropertiesResponseMetadata struct {
-	Value GetUserPropertiesResponseMetadata
-	Set   bool
-}
-
-// IsSet returns true if OptGetUserPropertiesResponseMetadata was set.
-func (o OptGetUserPropertiesResponseMetadata) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetUserPropertiesResponseMetadata) Reset() {
-	var v GetUserPropertiesResponseMetadata
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetUserPropertiesResponseMetadata) SetTo(v GetUserPropertiesResponseMetadata) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetUserPropertiesResponseMetadata) Get() (v GetUserPropertiesResponseMetadata, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetUserPropertiesResponseMetadata) Or(d GetUserPropertiesResponseMetadata) GetUserPropertiesResponseMetadata {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetUserRolesResponseData returns new OptGetUserRolesResponseData with value set to v.
-func NewOptGetUserRolesResponseData(v GetUserRolesResponseData) OptGetUserRolesResponseData {
-	return OptGetUserRolesResponseData{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetUserRolesResponseData is optional GetUserRolesResponseData.
-type OptGetUserRolesResponseData struct {
-	Value GetUserRolesResponseData
-	Set   bool
-}
-
-// IsSet returns true if OptGetUserRolesResponseData was set.
-func (o OptGetUserRolesResponseData) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetUserRolesResponseData) Reset() {
-	var v GetUserRolesResponseData
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetUserRolesResponseData) SetTo(v GetUserRolesResponseData) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetUserRolesResponseData) Get() (v GetUserRolesResponseData, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetUserRolesResponseData) Or(d GetUserRolesResponseData) GetUserRolesResponseData {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptGetUserRolesResponseMetadata returns new OptGetUserRolesResponseMetadata with value set to v.
-func NewOptGetUserRolesResponseMetadata(v GetUserRolesResponseMetadata) OptGetUserRolesResponseMetadata {
-	return OptGetUserRolesResponseMetadata{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptGetUserRolesResponseMetadata is optional GetUserRolesResponseMetadata.
-type OptGetUserRolesResponseMetadata struct {
-	Value GetUserRolesResponseMetadata
-	Set   bool
-}
-
-// IsSet returns true if OptGetUserRolesResponseMetadata was set.
-func (o OptGetUserRolesResponseMetadata) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptGetUserRolesResponseMetadata) Reset() {
-	var v GetUserRolesResponseMetadata
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptGetUserRolesResponseMetadata) SetTo(v GetUserRolesResponseMetadata) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptGetUserRolesResponseMetadata) Get() (v GetUserRolesResponseMetadata, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptGetUserRolesResponseMetadata) Or(d GetUserRolesResponseMetadata) GetUserRolesResponseMetadata {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // NewOptInt returns new OptInt with value set to v.
 func NewOptInt(v int) OptInt {
 	return OptInt{
@@ -14799,6 +13989,69 @@ func (o OptNilBool) Or(d bool) bool {
 	return d
 }
 
+// NewOptNilDateTime returns new OptNilDateTime with value set to v.
+func NewOptNilDateTime(v time.Time) OptNilDateTime {
+	return OptNilDateTime{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilDateTime is optional nullable time.Time.
+type OptNilDateTime struct {
+	Value time.Time
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilDateTime was set.
+func (o OptNilDateTime) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilDateTime) Reset() {
+	var v time.Time
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilDateTime) SetTo(v time.Time) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilDateTime) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilDateTime) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v time.Time
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilDateTime) Get() (v time.Time, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilDateTime) Or(d time.Time) time.Time {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptNilGetAPIsExpand returns new OptNilGetAPIsExpand with value set to v.
 func NewOptNilGetAPIsExpand(v GetAPIsExpand) OptNilGetAPIsExpand {
 	return OptNilGetAPIsExpand{
@@ -14856,6 +14109,132 @@ func (o OptNilGetAPIsExpand) Get() (v GetAPIsExpand, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptNilGetAPIsExpand) Or(d GetAPIsExpand) GetAPIsExpand {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilGetApiKeysKeyType returns new OptNilGetApiKeysKeyType with value set to v.
+func NewOptNilGetApiKeysKeyType(v GetApiKeysKeyType) OptNilGetApiKeysKeyType {
+	return OptNilGetApiKeysKeyType{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilGetApiKeysKeyType is optional nullable GetApiKeysKeyType.
+type OptNilGetApiKeysKeyType struct {
+	Value GetApiKeysKeyType
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilGetApiKeysKeyType was set.
+func (o OptNilGetApiKeysKeyType) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilGetApiKeysKeyType) Reset() {
+	var v GetApiKeysKeyType
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilGetApiKeysKeyType) SetTo(v GetApiKeysKeyType) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilGetApiKeysKeyType) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilGetApiKeysKeyType) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v GetApiKeysKeyType
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilGetApiKeysKeyType) Get() (v GetApiKeysKeyType, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilGetApiKeysKeyType) Or(d GetApiKeysKeyType) GetApiKeysKeyType {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilGetApiKeysStatus returns new OptNilGetApiKeysStatus with value set to v.
+func NewOptNilGetApiKeysStatus(v GetApiKeysStatus) OptNilGetApiKeysStatus {
+	return OptNilGetApiKeysStatus{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilGetApiKeysStatus is optional nullable GetApiKeysStatus.
+type OptNilGetApiKeysStatus struct {
+	Value GetApiKeysStatus
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilGetApiKeysStatus was set.
+func (o OptNilGetApiKeysStatus) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilGetApiKeysStatus) Reset() {
+	var v GetApiKeysStatus
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilGetApiKeysStatus) SetTo(v GetApiKeysStatus) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilGetApiKeysStatus) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilGetApiKeysStatus) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v GetApiKeysStatus
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilGetApiKeysStatus) Get() (v GetApiKeysStatus, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilGetApiKeysStatus) Or(d GetApiKeysStatus) GetApiKeysStatus {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -16248,69 +15627,6 @@ func (o OptNilGetPermissionsSort) Or(d GetPermissionsSort) GetPermissionsSort {
 	return d
 }
 
-// NewOptNilGetPortalLinkSubnav returns new OptNilGetPortalLinkSubnav with value set to v.
-func NewOptNilGetPortalLinkSubnav(v GetPortalLinkSubnav) OptNilGetPortalLinkSubnav {
-	return OptNilGetPortalLinkSubnav{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptNilGetPortalLinkSubnav is optional nullable GetPortalLinkSubnav.
-type OptNilGetPortalLinkSubnav struct {
-	Value GetPortalLinkSubnav
-	Set   bool
-	Null  bool
-}
-
-// IsSet returns true if OptNilGetPortalLinkSubnav was set.
-func (o OptNilGetPortalLinkSubnav) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptNilGetPortalLinkSubnav) Reset() {
-	var v GetPortalLinkSubnav
-	o.Value = v
-	o.Set = false
-	o.Null = false
-}
-
-// SetTo sets value to v.
-func (o *OptNilGetPortalLinkSubnav) SetTo(v GetPortalLinkSubnav) {
-	o.Set = true
-	o.Null = false
-	o.Value = v
-}
-
-// IsNull returns true if value is Null.
-func (o OptNilGetPortalLinkSubnav) IsNull() bool { return o.Null }
-
-// SetToNull sets value to null.
-func (o *OptNilGetPortalLinkSubnav) SetToNull() {
-	o.Set = true
-	o.Null = true
-	var v GetPortalLinkSubnav
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptNilGetPortalLinkSubnav) Get() (v GetPortalLinkSubnav, ok bool) {
-	if o.Null {
-		return v, false
-	}
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptNilGetPortalLinkSubnav) Or(d GetPortalLinkSubnav) GetPortalLinkSubnav {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // NewOptNilGetPropertiesContext returns new OptNilGetPropertiesContext with value set to v.
 func NewOptNilGetPropertiesContext(v GetPropertiesContext) OptNilGetPropertiesContext {
 	return OptNilGetPropertiesContext{
@@ -16689,6 +16005,132 @@ func (o OptNilString) Or(d string) string {
 	return d
 }
 
+// NewOptNilStringArray returns new OptNilStringArray with value set to v.
+func NewOptNilStringArray(v []string) OptNilStringArray {
+	return OptNilStringArray{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilStringArray is optional nullable []string.
+type OptNilStringArray struct {
+	Value []string
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilStringArray was set.
+func (o OptNilStringArray) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilStringArray) Reset() {
+	var v []string
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilStringArray) SetTo(v []string) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilStringArray) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilStringArray) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v []string
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilStringArray) Get() (v []string, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilStringArray) Or(d []string) []string {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilUUID returns new OptNilUUID with value set to v.
+func NewOptNilUUID(v uuid.UUID) OptNilUUID {
+	return OptNilUUID{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilUUID is optional nullable uuid.UUID.
+type OptNilUUID struct {
+	Value uuid.UUID
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilUUID was set.
+func (o OptNilUUID) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilUUID) Reset() {
+	var v uuid.UUID
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilUUID) SetTo(v uuid.UUID) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilUUID) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilUUID) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v uuid.UUID
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilUUID) Get() (v uuid.UUID, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilUUID) Or(d uuid.UUID) uuid.UUID {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptNilUpdateOrganizationExpand returns new OptNilUpdateOrganizationExpand with value set to v.
 func NewOptNilUpdateOrganizationExpand(v UpdateOrganizationExpand) OptNilUpdateOrganizationExpand {
 	return OptNilUpdateOrganizationExpand{
@@ -16838,6 +16280,144 @@ func (o OptReplaceConnectionReqOptions) Get() (v ReplaceConnectionReqOptions, ok
 
 // Or returns value if set, or given parameter if does not.
 func (o OptReplaceConnectionReqOptions) Or(d ReplaceConnectionReqOptions) ReplaceConnectionReqOptions {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptReplaceConnectionReqOptions1UpstreamParams returns new OptReplaceConnectionReqOptions1UpstreamParams with value set to v.
+func NewOptReplaceConnectionReqOptions1UpstreamParams(v ReplaceConnectionReqOptions1UpstreamParams) OptReplaceConnectionReqOptions1UpstreamParams {
+	return OptReplaceConnectionReqOptions1UpstreamParams{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptReplaceConnectionReqOptions1UpstreamParams is optional ReplaceConnectionReqOptions1UpstreamParams.
+type OptReplaceConnectionReqOptions1UpstreamParams struct {
+	Value ReplaceConnectionReqOptions1UpstreamParams
+	Set   bool
+}
+
+// IsSet returns true if OptReplaceConnectionReqOptions1UpstreamParams was set.
+func (o OptReplaceConnectionReqOptions1UpstreamParams) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptReplaceConnectionReqOptions1UpstreamParams) Reset() {
+	var v ReplaceConnectionReqOptions1UpstreamParams
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptReplaceConnectionReqOptions1UpstreamParams) SetTo(v ReplaceConnectionReqOptions1UpstreamParams) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptReplaceConnectionReqOptions1UpstreamParams) Get() (v ReplaceConnectionReqOptions1UpstreamParams, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptReplaceConnectionReqOptions1UpstreamParams) Or(d ReplaceConnectionReqOptions1UpstreamParams) ReplaceConnectionReqOptions1UpstreamParams {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptReplaceConnectionReqOptions2UpstreamParams returns new OptReplaceConnectionReqOptions2UpstreamParams with value set to v.
+func NewOptReplaceConnectionReqOptions2UpstreamParams(v ReplaceConnectionReqOptions2UpstreamParams) OptReplaceConnectionReqOptions2UpstreamParams {
+	return OptReplaceConnectionReqOptions2UpstreamParams{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptReplaceConnectionReqOptions2UpstreamParams is optional ReplaceConnectionReqOptions2UpstreamParams.
+type OptReplaceConnectionReqOptions2UpstreamParams struct {
+	Value ReplaceConnectionReqOptions2UpstreamParams
+	Set   bool
+}
+
+// IsSet returns true if OptReplaceConnectionReqOptions2UpstreamParams was set.
+func (o OptReplaceConnectionReqOptions2UpstreamParams) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptReplaceConnectionReqOptions2UpstreamParams) Reset() {
+	var v ReplaceConnectionReqOptions2UpstreamParams
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptReplaceConnectionReqOptions2UpstreamParams) SetTo(v ReplaceConnectionReqOptions2UpstreamParams) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptReplaceConnectionReqOptions2UpstreamParams) Get() (v ReplaceConnectionReqOptions2UpstreamParams, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptReplaceConnectionReqOptions2UpstreamParams) Or(d ReplaceConnectionReqOptions2UpstreamParams) ReplaceConnectionReqOptions2UpstreamParams {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptRotateAPIKeyResponseAPIKey returns new OptRotateAPIKeyResponseAPIKey with value set to v.
+func NewOptRotateAPIKeyResponseAPIKey(v RotateAPIKeyResponseAPIKey) OptRotateAPIKeyResponseAPIKey {
+	return OptRotateAPIKeyResponseAPIKey{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptRotateAPIKeyResponseAPIKey is optional RotateAPIKeyResponseAPIKey.
+type OptRotateAPIKeyResponseAPIKey struct {
+	Value RotateAPIKeyResponseAPIKey
+	Set   bool
+}
+
+// IsSet returns true if OptRotateAPIKeyResponseAPIKey was set.
+func (o OptRotateAPIKeyResponseAPIKey) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptRotateAPIKeyResponseAPIKey) Reset() {
+	var v RotateAPIKeyResponseAPIKey
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptRotateAPIKeyResponseAPIKey) SetTo(v RotateAPIKeyResponseAPIKey) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptRotateAPIKeyResponseAPIKey) Get() (v RotateAPIKeyResponseAPIKey, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptRotateAPIKeyResponseAPIKey) Or(d RotateAPIKeyResponseAPIKey) RotateAPIKeyResponseAPIKey {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -17074,98 +16654,6 @@ func (o OptString) Or(d string) string {
 	return d
 }
 
-// NewOptTokenIntrospectionReqTokenTypeHint returns new OptTokenIntrospectionReqTokenTypeHint with value set to v.
-func NewOptTokenIntrospectionReqTokenTypeHint(v TokenIntrospectionReqTokenTypeHint) OptTokenIntrospectionReqTokenTypeHint {
-	return OptTokenIntrospectionReqTokenTypeHint{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptTokenIntrospectionReqTokenTypeHint is optional TokenIntrospectionReqTokenTypeHint.
-type OptTokenIntrospectionReqTokenTypeHint struct {
-	Value TokenIntrospectionReqTokenTypeHint
-	Set   bool
-}
-
-// IsSet returns true if OptTokenIntrospectionReqTokenTypeHint was set.
-func (o OptTokenIntrospectionReqTokenTypeHint) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptTokenIntrospectionReqTokenTypeHint) Reset() {
-	var v TokenIntrospectionReqTokenTypeHint
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptTokenIntrospectionReqTokenTypeHint) SetTo(v TokenIntrospectionReqTokenTypeHint) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptTokenIntrospectionReqTokenTypeHint) Get() (v TokenIntrospectionReqTokenTypeHint, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptTokenIntrospectionReqTokenTypeHint) Or(d TokenIntrospectionReqTokenTypeHint) TokenIntrospectionReqTokenTypeHint {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptTokenRevocationReqTokenTypeHint returns new OptTokenRevocationReqTokenTypeHint with value set to v.
-func NewOptTokenRevocationReqTokenTypeHint(v TokenRevocationReqTokenTypeHint) OptTokenRevocationReqTokenTypeHint {
-	return OptTokenRevocationReqTokenTypeHint{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptTokenRevocationReqTokenTypeHint is optional TokenRevocationReqTokenTypeHint.
-type OptTokenRevocationReqTokenTypeHint struct {
-	Value TokenRevocationReqTokenTypeHint
-	Set   bool
-}
-
-// IsSet returns true if OptTokenRevocationReqTokenTypeHint was set.
-func (o OptTokenRevocationReqTokenTypeHint) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptTokenRevocationReqTokenTypeHint) Reset() {
-	var v TokenRevocationReqTokenTypeHint
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptTokenRevocationReqTokenTypeHint) SetTo(v TokenRevocationReqTokenTypeHint) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptTokenRevocationReqTokenTypeHint) Get() (v TokenRevocationReqTokenTypeHint, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptTokenRevocationReqTokenTypeHint) Or(d TokenRevocationReqTokenTypeHint) TokenRevocationReqTokenTypeHint {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // NewOptUpdateApplicationReq returns new OptUpdateApplicationReq with value set to v.
 func NewOptUpdateApplicationReq(v UpdateApplicationReq) OptUpdateApplicationReq {
 	return OptUpdateApplicationReq{
@@ -17252,6 +16740,98 @@ func (o OptUpdateConnectionReqOptions) Get() (v UpdateConnectionReqOptions, ok b
 
 // Or returns value if set, or given parameter if does not.
 func (o OptUpdateConnectionReqOptions) Or(d UpdateConnectionReqOptions) UpdateConnectionReqOptions {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptUpdateConnectionReqOptions1UpstreamParams returns new OptUpdateConnectionReqOptions1UpstreamParams with value set to v.
+func NewOptUpdateConnectionReqOptions1UpstreamParams(v UpdateConnectionReqOptions1UpstreamParams) OptUpdateConnectionReqOptions1UpstreamParams {
+	return OptUpdateConnectionReqOptions1UpstreamParams{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptUpdateConnectionReqOptions1UpstreamParams is optional UpdateConnectionReqOptions1UpstreamParams.
+type OptUpdateConnectionReqOptions1UpstreamParams struct {
+	Value UpdateConnectionReqOptions1UpstreamParams
+	Set   bool
+}
+
+// IsSet returns true if OptUpdateConnectionReqOptions1UpstreamParams was set.
+func (o OptUpdateConnectionReqOptions1UpstreamParams) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptUpdateConnectionReqOptions1UpstreamParams) Reset() {
+	var v UpdateConnectionReqOptions1UpstreamParams
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptUpdateConnectionReqOptions1UpstreamParams) SetTo(v UpdateConnectionReqOptions1UpstreamParams) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptUpdateConnectionReqOptions1UpstreamParams) Get() (v UpdateConnectionReqOptions1UpstreamParams, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptUpdateConnectionReqOptions1UpstreamParams) Or(d UpdateConnectionReqOptions1UpstreamParams) UpdateConnectionReqOptions1UpstreamParams {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptUpdateConnectionReqOptions2UpstreamParams returns new OptUpdateConnectionReqOptions2UpstreamParams with value set to v.
+func NewOptUpdateConnectionReqOptions2UpstreamParams(v UpdateConnectionReqOptions2UpstreamParams) OptUpdateConnectionReqOptions2UpstreamParams {
+	return OptUpdateConnectionReqOptions2UpstreamParams{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptUpdateConnectionReqOptions2UpstreamParams is optional UpdateConnectionReqOptions2UpstreamParams.
+type OptUpdateConnectionReqOptions2UpstreamParams struct {
+	Value UpdateConnectionReqOptions2UpstreamParams
+	Set   bool
+}
+
+// IsSet returns true if OptUpdateConnectionReqOptions2UpstreamParams was set.
+func (o OptUpdateConnectionReqOptions2UpstreamParams) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptUpdateConnectionReqOptions2UpstreamParams) Reset() {
+	var v UpdateConnectionReqOptions2UpstreamParams
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptUpdateConnectionReqOptions2UpstreamParams) SetTo(v UpdateConnectionReqOptions2UpstreamParams) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptUpdateConnectionReqOptions2UpstreamParams) Get() (v UpdateConnectionReqOptions2UpstreamParams, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptUpdateConnectionReqOptions2UpstreamParams) Or(d UpdateConnectionReqOptions2UpstreamParams) UpdateConnectionReqOptions2UpstreamParams {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -17626,6 +17206,52 @@ func (o OptUserIdentityResult) Or(d UserIdentityResult) UserIdentityResult {
 	return d
 }
 
+// NewOptUsersResponseUsersItemBilling returns new OptUsersResponseUsersItemBilling with value set to v.
+func NewOptUsersResponseUsersItemBilling(v UsersResponseUsersItemBilling) OptUsersResponseUsersItemBilling {
+	return OptUsersResponseUsersItemBilling{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptUsersResponseUsersItemBilling is optional UsersResponseUsersItemBilling.
+type OptUsersResponseUsersItemBilling struct {
+	Value UsersResponseUsersItemBilling
+	Set   bool
+}
+
+// IsSet returns true if OptUsersResponseUsersItemBilling was set.
+func (o OptUsersResponseUsersItemBilling) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptUsersResponseUsersItemBilling) Reset() {
+	var v UsersResponseUsersItemBilling
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptUsersResponseUsersItemBilling) SetTo(v UsersResponseUsersItemBilling) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptUsersResponseUsersItemBilling) Get() (v UsersResponseUsersItemBilling, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptUsersResponseUsersItemBilling) Or(d UsersResponseUsersItemBilling) UsersResponseUsersItemBilling {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // Ref: #/components/schemas/organization_item_schema
 type OrganizationItemSchema struct {
 	// The unique identifier for the organization.
@@ -17987,24 +17613,6 @@ func (s *Permissions) SetName(val OptString) {
 func (s *Permissions) SetDescription(val OptString) {
 	s.Description = val
 }
-
-// Ref: #/components/schemas/portal_link
-type PortalLink struct {
-	// Unique URL to redirect the user to.
-	URL OptString `json:"url"`
-}
-
-// GetURL returns the value of URL.
-func (s *PortalLink) GetURL() OptString {
-	return s.URL
-}
-
-// SetURL sets the value of URL.
-func (s *PortalLink) SetURL(val OptString) {
-	s.URL = val
-}
-
-func (*PortalLink) getPortalLinkRes() {}
 
 // Ref: #/components/schemas/property
 type Property struct {
@@ -18596,6 +18204,12 @@ type ReplaceConnectionReqOptions1 struct {
 	IsRetrieveProviderUserGroups OptBool `json:"is_retrieve_provider_user_groups"`
 	// Include additional user profile information.
 	IsExtendedAttributesRequired OptBool `json:"is_extended_attributes_required"`
+	// Create a user record in Kinde if the user signing in does not exist.
+	IsCreateMissingUser OptBool `json:"is_create_missing_user"`
+	// Force showing the SSO button for this connection.
+	IsForceShowSSOButton OptBool `json:"is_force_show_sso_button"`
+	// Additional upstream parameters to pass to the identity provider.
+	UpstreamParams OptReplaceConnectionReqOptions1UpstreamParams `json:"upstream_params"`
 }
 
 // GetClientID returns the value of ClientID.
@@ -18638,6 +18252,21 @@ func (s *ReplaceConnectionReqOptions1) GetIsExtendedAttributesRequired() OptBool
 	return s.IsExtendedAttributesRequired
 }
 
+// GetIsCreateMissingUser returns the value of IsCreateMissingUser.
+func (s *ReplaceConnectionReqOptions1) GetIsCreateMissingUser() OptBool {
+	return s.IsCreateMissingUser
+}
+
+// GetIsForceShowSSOButton returns the value of IsForceShowSSOButton.
+func (s *ReplaceConnectionReqOptions1) GetIsForceShowSSOButton() OptBool {
+	return s.IsForceShowSSOButton
+}
+
+// GetUpstreamParams returns the value of UpstreamParams.
+func (s *ReplaceConnectionReqOptions1) GetUpstreamParams() OptReplaceConnectionReqOptions1UpstreamParams {
+	return s.UpstreamParams
+}
+
 // SetClientID sets the value of ClientID.
 func (s *ReplaceConnectionReqOptions1) SetClientID(val OptString) {
 	s.ClientID = val
@@ -18678,6 +18307,33 @@ func (s *ReplaceConnectionReqOptions1) SetIsExtendedAttributesRequired(val OptBo
 	s.IsExtendedAttributesRequired = val
 }
 
+// SetIsCreateMissingUser sets the value of IsCreateMissingUser.
+func (s *ReplaceConnectionReqOptions1) SetIsCreateMissingUser(val OptBool) {
+	s.IsCreateMissingUser = val
+}
+
+// SetIsForceShowSSOButton sets the value of IsForceShowSSOButton.
+func (s *ReplaceConnectionReqOptions1) SetIsForceShowSSOButton(val OptBool) {
+	s.IsForceShowSSOButton = val
+}
+
+// SetUpstreamParams sets the value of UpstreamParams.
+func (s *ReplaceConnectionReqOptions1) SetUpstreamParams(val OptReplaceConnectionReqOptions1UpstreamParams) {
+	s.UpstreamParams = val
+}
+
+// Additional upstream parameters to pass to the identity provider.
+type ReplaceConnectionReqOptions1UpstreamParams map[string]jx.Raw
+
+func (s *ReplaceConnectionReqOptions1UpstreamParams) init() ReplaceConnectionReqOptions1UpstreamParams {
+	m := *s
+	if m == nil {
+		m = map[string]jx.Raw{}
+		*s = m
+	}
+	return m
+}
+
 // SAML connection options (e.g., Cloudflare SAML).
 type ReplaceConnectionReqOptions2 struct {
 	// List of domains to restrict authentication.
@@ -18696,6 +18352,10 @@ type ReplaceConnectionReqOptions2 struct {
 	SamlLastNameKeyAttr OptString `json:"saml_last_name_key_attr"`
 	// Create user if they don’t exist.
 	IsCreateMissingUser OptBool `json:"is_create_missing_user"`
+	// Force showing the SSO button for this connection.
+	IsForceShowSSOButton OptBool `json:"is_force_show_sso_button"`
+	// Additional upstream parameters to pass to the identity provider.
+	UpstreamParams OptReplaceConnectionReqOptions2UpstreamParams `json:"upstream_params"`
 	// Certificate for signing SAML requests.
 	SamlSigningCertificate OptString `json:"saml_signing_certificate"`
 	// Private key associated with the signing certificate.
@@ -18740,6 +18400,16 @@ func (s *ReplaceConnectionReqOptions2) GetSamlLastNameKeyAttr() OptString {
 // GetIsCreateMissingUser returns the value of IsCreateMissingUser.
 func (s *ReplaceConnectionReqOptions2) GetIsCreateMissingUser() OptBool {
 	return s.IsCreateMissingUser
+}
+
+// GetIsForceShowSSOButton returns the value of IsForceShowSSOButton.
+func (s *ReplaceConnectionReqOptions2) GetIsForceShowSSOButton() OptBool {
+	return s.IsForceShowSSOButton
+}
+
+// GetUpstreamParams returns the value of UpstreamParams.
+func (s *ReplaceConnectionReqOptions2) GetUpstreamParams() OptReplaceConnectionReqOptions2UpstreamParams {
+	return s.UpstreamParams
 }
 
 // GetSamlSigningCertificate returns the value of SamlSigningCertificate.
@@ -18792,6 +18462,16 @@ func (s *ReplaceConnectionReqOptions2) SetIsCreateMissingUser(val OptBool) {
 	s.IsCreateMissingUser = val
 }
 
+// SetIsForceShowSSOButton sets the value of IsForceShowSSOButton.
+func (s *ReplaceConnectionReqOptions2) SetIsForceShowSSOButton(val OptBool) {
+	s.IsForceShowSSOButton = val
+}
+
+// SetUpstreamParams sets the value of UpstreamParams.
+func (s *ReplaceConnectionReqOptions2) SetUpstreamParams(val OptReplaceConnectionReqOptions2UpstreamParams) {
+	s.UpstreamParams = val
+}
+
 // SetSamlSigningCertificate sets the value of SamlSigningCertificate.
 func (s *ReplaceConnectionReqOptions2) SetSamlSigningCertificate(val OptString) {
 	s.SamlSigningCertificate = val
@@ -18800,6 +18480,18 @@ func (s *ReplaceConnectionReqOptions2) SetSamlSigningCertificate(val OptString) 
 // SetSamlSigningPrivateKey sets the value of SamlSigningPrivateKey.
 func (s *ReplaceConnectionReqOptions2) SetSamlSigningPrivateKey(val OptString) {
 	s.SamlSigningPrivateKey = val
+}
+
+// Additional upstream parameters to pass to the identity provider.
+type ReplaceConnectionReqOptions2UpstreamParams map[string]jx.Raw
+
+func (s *ReplaceConnectionReqOptions2UpstreamParams) init() ReplaceConnectionReqOptions2UpstreamParams {
+	m := *s
+	if m == nil {
+		m = map[string]jx.Raw{}
+		*s = m
+	}
+	return m
 }
 
 type ReplaceConnectionTooManyRequests ErrorResponse
@@ -19292,6 +18984,86 @@ func (s *Roles) SetDescription(val OptNilString) {
 func (s *Roles) SetIsDefaultRole(val OptBool) {
 	s.IsDefaultRole = val
 }
+
+// Ref: #/components/schemas/rotate_api_key_response
+type RotateAPIKeyResponse struct {
+	// Response code.
+	Code OptString `json:"code"`
+	// Response message.
+	Message OptString                     `json:"message"`
+	APIKey  OptRotateAPIKeyResponseAPIKey `json:"api_key"`
+}
+
+// GetCode returns the value of Code.
+func (s *RotateAPIKeyResponse) GetCode() OptString {
+	return s.Code
+}
+
+// GetMessage returns the value of Message.
+func (s *RotateAPIKeyResponse) GetMessage() OptString {
+	return s.Message
+}
+
+// GetAPIKey returns the value of APIKey.
+func (s *RotateAPIKeyResponse) GetAPIKey() OptRotateAPIKeyResponseAPIKey {
+	return s.APIKey
+}
+
+// SetCode sets the value of Code.
+func (s *RotateAPIKeyResponse) SetCode(val OptString) {
+	s.Code = val
+}
+
+// SetMessage sets the value of Message.
+func (s *RotateAPIKeyResponse) SetMessage(val OptString) {
+	s.Message = val
+}
+
+// SetAPIKey sets the value of APIKey.
+func (s *RotateAPIKeyResponse) SetAPIKey(val OptRotateAPIKeyResponseAPIKey) {
+	s.APIKey = val
+}
+
+func (*RotateAPIKeyResponse) rotateApiKeyRes() {}
+
+type RotateAPIKeyResponseAPIKey struct {
+	// The unique ID for the API key.
+	ID OptString `json:"id"`
+	// The new API key value (only shown once).
+	Key OptString `json:"key"`
+}
+
+// GetID returns the value of ID.
+func (s *RotateAPIKeyResponseAPIKey) GetID() OptString {
+	return s.ID
+}
+
+// GetKey returns the value of Key.
+func (s *RotateAPIKeyResponseAPIKey) GetKey() OptString {
+	return s.Key
+}
+
+// SetID sets the value of ID.
+func (s *RotateAPIKeyResponseAPIKey) SetID(val OptString) {
+	s.ID = val
+}
+
+// SetKey sets the value of Key.
+func (s *RotateAPIKeyResponseAPIKey) SetKey(val OptString) {
+	s.Key = val
+}
+
+type RotateApiKeyBadRequest ErrorResponse
+
+func (*RotateApiKeyBadRequest) rotateApiKeyRes() {}
+
+type RotateApiKeyForbidden ErrorResponse
+
+func (*RotateApiKeyForbidden) rotateApiKeyRes() {}
+
+type RotateApiKeyTooManyRequests ErrorResponse
+
+func (*RotateApiKeyTooManyRequests) rotateApiKeyRes() {}
 
 // Ref: #/components/schemas/scopes
 type Scopes struct {
@@ -19942,6 +19714,7 @@ func (*SuccessResponse) createFeatureFlagRes()                      {}
 func (*SuccessResponse) createOrganizationUserPermissionRes()       {}
 func (*SuccessResponse) createOrganizationUserRoleRes()             {}
 func (*SuccessResponse) createPermissionRes()                       {}
+func (*SuccessResponse) deleteApiKeyRes()                           {}
 func (*SuccessResponse) deleteApplicationRes()                      {}
 func (*SuccessResponse) deleteCallbackURLsRes()                     {}
 func (*SuccessResponse) deleteConnectionRes()                       {}
@@ -19998,292 +19771,6 @@ func (*SuccessResponse) updateRolesRes()                            {}
 func (*SuccessResponse) updateUserFeatureFlagOverrideRes()          {}
 func (*SuccessResponse) updateUserPropertiesRes()                   {}
 func (*SuccessResponse) updateUserPropertyRes()                     {}
-
-// Ref: #/components/schemas/token_error_response
-type TokenErrorResponse struct {
-	// Error.
-	Error OptString `json:"error"`
-	// The error description.
-	ErrorDescription OptString `json:"error_description"`
-}
-
-// GetError returns the value of Error.
-func (s *TokenErrorResponse) GetError() OptString {
-	return s.Error
-}
-
-// GetErrorDescription returns the value of ErrorDescription.
-func (s *TokenErrorResponse) GetErrorDescription() OptString {
-	return s.ErrorDescription
-}
-
-// SetError sets the value of Error.
-func (s *TokenErrorResponse) SetError(val OptString) {
-	s.Error = val
-}
-
-// SetErrorDescription sets the value of ErrorDescription.
-func (s *TokenErrorResponse) SetErrorDescription(val OptString) {
-	s.ErrorDescription = val
-}
-
-func (*TokenErrorResponse) tokenIntrospectionRes() {}
-func (*TokenErrorResponse) tokenRevocationRes()    {}
-
-// Ref: #/components/schemas/token_introspect
-type TokenIntrospect struct {
-	// Indicates the status of the token.
-	Active OptBool `json:"active"`
-	// Array of intended token recipients.
-	Aud []string `json:"aud"`
-	// Identifier for the requesting client.
-	ClientID OptString `json:"client_id"`
-	// Token expiration timestamp.
-	Exp OptInt `json:"exp"`
-	// Token issuance timestamp.
-	Iat OptInt `json:"iat"`
-}
-
-// GetActive returns the value of Active.
-func (s *TokenIntrospect) GetActive() OptBool {
-	return s.Active
-}
-
-// GetAud returns the value of Aud.
-func (s *TokenIntrospect) GetAud() []string {
-	return s.Aud
-}
-
-// GetClientID returns the value of ClientID.
-func (s *TokenIntrospect) GetClientID() OptString {
-	return s.ClientID
-}
-
-// GetExp returns the value of Exp.
-func (s *TokenIntrospect) GetExp() OptInt {
-	return s.Exp
-}
-
-// GetIat returns the value of Iat.
-func (s *TokenIntrospect) GetIat() OptInt {
-	return s.Iat
-}
-
-// SetActive sets the value of Active.
-func (s *TokenIntrospect) SetActive(val OptBool) {
-	s.Active = val
-}
-
-// SetAud sets the value of Aud.
-func (s *TokenIntrospect) SetAud(val []string) {
-	s.Aud = val
-}
-
-// SetClientID sets the value of ClientID.
-func (s *TokenIntrospect) SetClientID(val OptString) {
-	s.ClientID = val
-}
-
-// SetExp sets the value of Exp.
-func (s *TokenIntrospect) SetExp(val OptInt) {
-	s.Exp = val
-}
-
-// SetIat sets the value of Iat.
-func (s *TokenIntrospect) SetIat(val OptInt) {
-	s.Iat = val
-}
-
-func (*TokenIntrospect) tokenIntrospectionRes() {}
-
-// TokenIntrospectionForbidden is response for TokenIntrospection operation.
-type TokenIntrospectionForbidden struct{}
-
-func (*TokenIntrospectionForbidden) tokenIntrospectionRes() {}
-
-type TokenIntrospectionReq struct {
-	// The token to be introspected.
-	Token string `json:"token"`
-	// A hint about the token type being queried in the request.
-	TokenTypeHint OptTokenIntrospectionReqTokenTypeHint `json:"token_type_hint"`
-}
-
-// GetToken returns the value of Token.
-func (s *TokenIntrospectionReq) GetToken() string {
-	return s.Token
-}
-
-// GetTokenTypeHint returns the value of TokenTypeHint.
-func (s *TokenIntrospectionReq) GetTokenTypeHint() OptTokenIntrospectionReqTokenTypeHint {
-	return s.TokenTypeHint
-}
-
-// SetToken sets the value of Token.
-func (s *TokenIntrospectionReq) SetToken(val string) {
-	s.Token = val
-}
-
-// SetTokenTypeHint sets the value of TokenTypeHint.
-func (s *TokenIntrospectionReq) SetTokenTypeHint(val OptTokenIntrospectionReqTokenTypeHint) {
-	s.TokenTypeHint = val
-}
-
-// A hint about the token type being queried in the request.
-type TokenIntrospectionReqTokenTypeHint string
-
-const (
-	TokenIntrospectionReqTokenTypeHintAccessToken  TokenIntrospectionReqTokenTypeHint = "access_token"
-	TokenIntrospectionReqTokenTypeHintRefreshToken TokenIntrospectionReqTokenTypeHint = "refresh_token"
-)
-
-// AllValues returns all TokenIntrospectionReqTokenTypeHint values.
-func (TokenIntrospectionReqTokenTypeHint) AllValues() []TokenIntrospectionReqTokenTypeHint {
-	return []TokenIntrospectionReqTokenTypeHint{
-		TokenIntrospectionReqTokenTypeHintAccessToken,
-		TokenIntrospectionReqTokenTypeHintRefreshToken,
-	}
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (s TokenIntrospectionReqTokenTypeHint) MarshalText() ([]byte, error) {
-	switch s {
-	case TokenIntrospectionReqTokenTypeHintAccessToken:
-		return []byte(s), nil
-	case TokenIntrospectionReqTokenTypeHintRefreshToken:
-		return []byte(s), nil
-	default:
-		return nil, errors.Errorf("invalid value: %q", s)
-	}
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (s *TokenIntrospectionReqTokenTypeHint) UnmarshalText(data []byte) error {
-	switch TokenIntrospectionReqTokenTypeHint(data) {
-	case TokenIntrospectionReqTokenTypeHintAccessToken:
-		*s = TokenIntrospectionReqTokenTypeHintAccessToken
-		return nil
-	case TokenIntrospectionReqTokenTypeHintRefreshToken:
-		*s = TokenIntrospectionReqTokenTypeHintRefreshToken
-		return nil
-	default:
-		return errors.Errorf("invalid value: %q", data)
-	}
-}
-
-// TokenIntrospectionTooManyRequests is response for TokenIntrospection operation.
-type TokenIntrospectionTooManyRequests struct{}
-
-func (*TokenIntrospectionTooManyRequests) tokenIntrospectionRes() {}
-
-type TokenRevocationBadRequest ErrorResponse
-
-func (*TokenRevocationBadRequest) tokenRevocationRes() {}
-
-type TokenRevocationForbidden ErrorResponse
-
-func (*TokenRevocationForbidden) tokenRevocationRes() {}
-
-// TokenRevocationOK is response for TokenRevocation operation.
-type TokenRevocationOK struct{}
-
-func (*TokenRevocationOK) tokenRevocationRes() {}
-
-type TokenRevocationReq struct {
-	// The `client_id` of your application.
-	ClientID string `json:"client_id"`
-	// The `client_secret` of your application. Required for backend apps only.
-	ClientSecret OptString `json:"client_secret"`
-	// The token to be revoked.
-	Token string `json:"token"`
-	// The type of token to be revoked.
-	TokenTypeHint OptTokenRevocationReqTokenTypeHint `json:"token_type_hint"`
-}
-
-// GetClientID returns the value of ClientID.
-func (s *TokenRevocationReq) GetClientID() string {
-	return s.ClientID
-}
-
-// GetClientSecret returns the value of ClientSecret.
-func (s *TokenRevocationReq) GetClientSecret() OptString {
-	return s.ClientSecret
-}
-
-// GetToken returns the value of Token.
-func (s *TokenRevocationReq) GetToken() string {
-	return s.Token
-}
-
-// GetTokenTypeHint returns the value of TokenTypeHint.
-func (s *TokenRevocationReq) GetTokenTypeHint() OptTokenRevocationReqTokenTypeHint {
-	return s.TokenTypeHint
-}
-
-// SetClientID sets the value of ClientID.
-func (s *TokenRevocationReq) SetClientID(val string) {
-	s.ClientID = val
-}
-
-// SetClientSecret sets the value of ClientSecret.
-func (s *TokenRevocationReq) SetClientSecret(val OptString) {
-	s.ClientSecret = val
-}
-
-// SetToken sets the value of Token.
-func (s *TokenRevocationReq) SetToken(val string) {
-	s.Token = val
-}
-
-// SetTokenTypeHint sets the value of TokenTypeHint.
-func (s *TokenRevocationReq) SetTokenTypeHint(val OptTokenRevocationReqTokenTypeHint) {
-	s.TokenTypeHint = val
-}
-
-// The type of token to be revoked.
-type TokenRevocationReqTokenTypeHint string
-
-const (
-	TokenRevocationReqTokenTypeHintAccessToken  TokenRevocationReqTokenTypeHint = "access_token"
-	TokenRevocationReqTokenTypeHintRefreshToken TokenRevocationReqTokenTypeHint = "refresh_token"
-)
-
-// AllValues returns all TokenRevocationReqTokenTypeHint values.
-func (TokenRevocationReqTokenTypeHint) AllValues() []TokenRevocationReqTokenTypeHint {
-	return []TokenRevocationReqTokenTypeHint{
-		TokenRevocationReqTokenTypeHintAccessToken,
-		TokenRevocationReqTokenTypeHintRefreshToken,
-	}
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (s TokenRevocationReqTokenTypeHint) MarshalText() ([]byte, error) {
-	switch s {
-	case TokenRevocationReqTokenTypeHintAccessToken:
-		return []byte(s), nil
-	case TokenRevocationReqTokenTypeHintRefreshToken:
-		return []byte(s), nil
-	default:
-		return nil, errors.Errorf("invalid value: %q", s)
-	}
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (s *TokenRevocationReqTokenTypeHint) UnmarshalText(data []byte) error {
-	switch TokenRevocationReqTokenTypeHint(data) {
-	case TokenRevocationReqTokenTypeHintAccessToken:
-		*s = TokenRevocationReqTokenTypeHintAccessToken
-		return nil
-	case TokenRevocationReqTokenTypeHintRefreshToken:
-		*s = TokenRevocationReqTokenTypeHintRefreshToken
-		return nil
-	default:
-		return errors.Errorf("invalid value: %q", data)
-	}
-}
-
-type TokenRevocationTooManyRequests ErrorResponse
-
-func (*TokenRevocationTooManyRequests) tokenRevocationRes() {}
 
 type UpdateAPIApplicationsBadRequest ErrorResponse
 
@@ -21006,6 +20493,12 @@ type UpdateConnectionReqOptions1 struct {
 	IsRetrieveProviderUserGroups OptBool `json:"is_retrieve_provider_user_groups"`
 	// Include additional user profile information.
 	IsExtendedAttributesRequired OptBool `json:"is_extended_attributes_required"`
+	// Create users if they don't exist in the system.
+	IsCreateMissingUser OptBool `json:"is_create_missing_user"`
+	// Force showing the SSO button for this connection.
+	IsForceShowSSOButton OptBool `json:"is_force_show_sso_button"`
+	// Additional upstream parameters to pass to the identity provider.
+	UpstreamParams OptUpdateConnectionReqOptions1UpstreamParams `json:"upstream_params"`
 }
 
 // GetClientID returns the value of ClientID.
@@ -21048,6 +20541,21 @@ func (s *UpdateConnectionReqOptions1) GetIsExtendedAttributesRequired() OptBool 
 	return s.IsExtendedAttributesRequired
 }
 
+// GetIsCreateMissingUser returns the value of IsCreateMissingUser.
+func (s *UpdateConnectionReqOptions1) GetIsCreateMissingUser() OptBool {
+	return s.IsCreateMissingUser
+}
+
+// GetIsForceShowSSOButton returns the value of IsForceShowSSOButton.
+func (s *UpdateConnectionReqOptions1) GetIsForceShowSSOButton() OptBool {
+	return s.IsForceShowSSOButton
+}
+
+// GetUpstreamParams returns the value of UpstreamParams.
+func (s *UpdateConnectionReqOptions1) GetUpstreamParams() OptUpdateConnectionReqOptions1UpstreamParams {
+	return s.UpstreamParams
+}
+
 // SetClientID sets the value of ClientID.
 func (s *UpdateConnectionReqOptions1) SetClientID(val OptString) {
 	s.ClientID = val
@@ -21088,6 +20596,33 @@ func (s *UpdateConnectionReqOptions1) SetIsExtendedAttributesRequired(val OptBoo
 	s.IsExtendedAttributesRequired = val
 }
 
+// SetIsCreateMissingUser sets the value of IsCreateMissingUser.
+func (s *UpdateConnectionReqOptions1) SetIsCreateMissingUser(val OptBool) {
+	s.IsCreateMissingUser = val
+}
+
+// SetIsForceShowSSOButton sets the value of IsForceShowSSOButton.
+func (s *UpdateConnectionReqOptions1) SetIsForceShowSSOButton(val OptBool) {
+	s.IsForceShowSSOButton = val
+}
+
+// SetUpstreamParams sets the value of UpstreamParams.
+func (s *UpdateConnectionReqOptions1) SetUpstreamParams(val OptUpdateConnectionReqOptions1UpstreamParams) {
+	s.UpstreamParams = val
+}
+
+// Additional upstream parameters to pass to the identity provider.
+type UpdateConnectionReqOptions1UpstreamParams map[string]jx.Raw
+
+func (s *UpdateConnectionReqOptions1UpstreamParams) init() UpdateConnectionReqOptions1UpstreamParams {
+	m := *s
+	if m == nil {
+		m = map[string]jx.Raw{}
+		*s = m
+	}
+	return m
+}
+
 // SAML connection options (e.g., Cloudflare SAML).
 type UpdateConnectionReqOptions2 struct {
 	// List of domains to restrict authentication.
@@ -21106,6 +20641,10 @@ type UpdateConnectionReqOptions2 struct {
 	SamlLastNameKeyAttr OptString `json:"saml_last_name_key_attr"`
 	// Create user if they don’t exist.
 	IsCreateMissingUser OptBool `json:"is_create_missing_user"`
+	// Force showing the SSO button for this connection.
+	IsForceShowSSOButton OptBool `json:"is_force_show_sso_button"`
+	// Additional upstream parameters to pass to the identity provider.
+	UpstreamParams OptUpdateConnectionReqOptions2UpstreamParams `json:"upstream_params"`
 	// Certificate for signing SAML requests.
 	SamlSigningCertificate OptString `json:"saml_signing_certificate"`
 	// Private key associated with the signing certificate.
@@ -21150,6 +20689,16 @@ func (s *UpdateConnectionReqOptions2) GetSamlLastNameKeyAttr() OptString {
 // GetIsCreateMissingUser returns the value of IsCreateMissingUser.
 func (s *UpdateConnectionReqOptions2) GetIsCreateMissingUser() OptBool {
 	return s.IsCreateMissingUser
+}
+
+// GetIsForceShowSSOButton returns the value of IsForceShowSSOButton.
+func (s *UpdateConnectionReqOptions2) GetIsForceShowSSOButton() OptBool {
+	return s.IsForceShowSSOButton
+}
+
+// GetUpstreamParams returns the value of UpstreamParams.
+func (s *UpdateConnectionReqOptions2) GetUpstreamParams() OptUpdateConnectionReqOptions2UpstreamParams {
+	return s.UpstreamParams
 }
 
 // GetSamlSigningCertificate returns the value of SamlSigningCertificate.
@@ -21202,6 +20751,16 @@ func (s *UpdateConnectionReqOptions2) SetIsCreateMissingUser(val OptBool) {
 	s.IsCreateMissingUser = val
 }
 
+// SetIsForceShowSSOButton sets the value of IsForceShowSSOButton.
+func (s *UpdateConnectionReqOptions2) SetIsForceShowSSOButton(val OptBool) {
+	s.IsForceShowSSOButton = val
+}
+
+// SetUpstreamParams sets the value of UpstreamParams.
+func (s *UpdateConnectionReqOptions2) SetUpstreamParams(val OptUpdateConnectionReqOptions2UpstreamParams) {
+	s.UpstreamParams = val
+}
+
 // SetSamlSigningCertificate sets the value of SamlSigningCertificate.
 func (s *UpdateConnectionReqOptions2) SetSamlSigningCertificate(val OptString) {
 	s.SamlSigningCertificate = val
@@ -21210,6 +20769,18 @@ func (s *UpdateConnectionReqOptions2) SetSamlSigningCertificate(val OptString) {
 // SetSamlSigningPrivateKey sets the value of SamlSigningPrivateKey.
 func (s *UpdateConnectionReqOptions2) SetSamlSigningPrivateKey(val OptString) {
 	s.SamlSigningPrivateKey = val
+}
+
+// Additional upstream parameters to pass to the identity provider.
+type UpdateConnectionReqOptions2UpstreamParams map[string]jx.Raw
+
+func (s *UpdateConnectionReqOptions2UpstreamParams) init() UpdateConnectionReqOptions2UpstreamParams {
+	m := *s
+	if m == nil {
+		m = map[string]jx.Raw{}
+		*s = m
+	}
+	return m
 }
 
 type UpdateConnectionTooManyRequests ErrorResponse
@@ -22296,6 +21867,9 @@ type UpdateRolesReq struct {
 	Key string `json:"key"`
 	// Set role as default for new users.
 	IsDefaultRole OptBool `json:"is_default_role"`
+	// The public ID of the permission required to assign this role to users. If null, no permission is
+	// required.
+	AssignmentPermissionID OptNilUUID `json:"assignment_permission_id"`
 }
 
 // GetName returns the value of Name.
@@ -22318,6 +21892,11 @@ func (s *UpdateRolesReq) GetIsDefaultRole() OptBool {
 	return s.IsDefaultRole
 }
 
+// GetAssignmentPermissionID returns the value of AssignmentPermissionID.
+func (s *UpdateRolesReq) GetAssignmentPermissionID() OptNilUUID {
+	return s.AssignmentPermissionID
+}
+
 // SetName sets the value of Name.
 func (s *UpdateRolesReq) SetName(val string) {
 	s.Name = val
@@ -22336,6 +21915,11 @@ func (s *UpdateRolesReq) SetKey(val string) {
 // SetIsDefaultRole sets the value of IsDefaultRole.
 func (s *UpdateRolesReq) SetIsDefaultRole(val OptBool) {
 	s.IsDefaultRole = val
+}
+
+// SetAssignmentPermissionID sets the value of AssignmentPermissionID.
+func (s *UpdateRolesReq) SetAssignmentPermissionID(val OptNilUUID) {
+	s.AssignmentPermissionID = val
 }
 
 type UpdateRolesTooManyRequests ErrorResponse
@@ -22927,144 +22511,6 @@ func (s *UserIdentityResult) SetCreated(val OptBool) {
 	s.Created = val
 }
 
-// Ref: #/components/schemas/user_profile_v2
-type UserProfileV2 struct {
-	// Unique ID of the user in Kinde.
-	Sub OptString `json:"sub"`
-	// Value of the user's ID in a third-party system when the user is imported into Kinde.
-	ProvidedID OptNilString `json:"provided_id"`
-	// User's first and last name separated by a space.
-	Name OptString `json:"name"`
-	// User's first name.
-	GivenName OptString `json:"given_name"`
-	// User's last name.
-	FamilyName OptString `json:"family_name"`
-	// Date the user was last updated at (In Unix time).
-	UpdatedAt OptInt `json:"updated_at"`
-	// User's email address if available.
-	Email OptString `json:"email"`
-	// Whether the user's email address has been verified.
-	EmailVerified OptBool `json:"email_verified"`
-	// URL that point's to the user's picture or avatar.
-	Picture OptNilString `json:"picture"`
-	// User's preferred username.
-	PreferredUsername OptNilString `json:"preferred_username"`
-	// Unique ID of the user in Kinde.
-	ID OptString `json:"id"`
-}
-
-// GetSub returns the value of Sub.
-func (s *UserProfileV2) GetSub() OptString {
-	return s.Sub
-}
-
-// GetProvidedID returns the value of ProvidedID.
-func (s *UserProfileV2) GetProvidedID() OptNilString {
-	return s.ProvidedID
-}
-
-// GetName returns the value of Name.
-func (s *UserProfileV2) GetName() OptString {
-	return s.Name
-}
-
-// GetGivenName returns the value of GivenName.
-func (s *UserProfileV2) GetGivenName() OptString {
-	return s.GivenName
-}
-
-// GetFamilyName returns the value of FamilyName.
-func (s *UserProfileV2) GetFamilyName() OptString {
-	return s.FamilyName
-}
-
-// GetUpdatedAt returns the value of UpdatedAt.
-func (s *UserProfileV2) GetUpdatedAt() OptInt {
-	return s.UpdatedAt
-}
-
-// GetEmail returns the value of Email.
-func (s *UserProfileV2) GetEmail() OptString {
-	return s.Email
-}
-
-// GetEmailVerified returns the value of EmailVerified.
-func (s *UserProfileV2) GetEmailVerified() OptBool {
-	return s.EmailVerified
-}
-
-// GetPicture returns the value of Picture.
-func (s *UserProfileV2) GetPicture() OptNilString {
-	return s.Picture
-}
-
-// GetPreferredUsername returns the value of PreferredUsername.
-func (s *UserProfileV2) GetPreferredUsername() OptNilString {
-	return s.PreferredUsername
-}
-
-// GetID returns the value of ID.
-func (s *UserProfileV2) GetID() OptString {
-	return s.ID
-}
-
-// SetSub sets the value of Sub.
-func (s *UserProfileV2) SetSub(val OptString) {
-	s.Sub = val
-}
-
-// SetProvidedID sets the value of ProvidedID.
-func (s *UserProfileV2) SetProvidedID(val OptNilString) {
-	s.ProvidedID = val
-}
-
-// SetName sets the value of Name.
-func (s *UserProfileV2) SetName(val OptString) {
-	s.Name = val
-}
-
-// SetGivenName sets the value of GivenName.
-func (s *UserProfileV2) SetGivenName(val OptString) {
-	s.GivenName = val
-}
-
-// SetFamilyName sets the value of FamilyName.
-func (s *UserProfileV2) SetFamilyName(val OptString) {
-	s.FamilyName = val
-}
-
-// SetUpdatedAt sets the value of UpdatedAt.
-func (s *UserProfileV2) SetUpdatedAt(val OptInt) {
-	s.UpdatedAt = val
-}
-
-// SetEmail sets the value of Email.
-func (s *UserProfileV2) SetEmail(val OptString) {
-	s.Email = val
-}
-
-// SetEmailVerified sets the value of EmailVerified.
-func (s *UserProfileV2) SetEmailVerified(val OptBool) {
-	s.EmailVerified = val
-}
-
-// SetPicture sets the value of Picture.
-func (s *UserProfileV2) SetPicture(val OptNilString) {
-	s.Picture = val
-}
-
-// SetPreferredUsername sets the value of PreferredUsername.
-func (s *UserProfileV2) SetPreferredUsername(val OptNilString) {
-	s.PreferredUsername = val
-}
-
-// SetID sets the value of ID.
-func (s *UserProfileV2) SetID(val OptString) {
-	s.ID = val
-}
-
-func (*UserProfileV2) getUserProfileV2Res() {}
-
 // Ref: #/components/schemas/users_response
 type UsersResponse struct {
 	// Response code.
@@ -23149,6 +22595,7 @@ type UsersResponseUsersItem struct {
 	Organizations []string `json:"organizations"`
 	// Array of identities belonging to the user.
 	Identities []UsersResponseUsersItemIdentitiesItem `json:"identities"`
+	Billing    OptUsersResponseUsersItemBilling       `json:"billing"`
 }
 
 // GetID returns the value of ID.
@@ -23226,6 +22673,11 @@ func (s *UsersResponseUsersItem) GetIdentities() []UsersResponseUsersItemIdentit
 	return s.Identities
 }
 
+// GetBilling returns the value of Billing.
+func (s *UsersResponseUsersItem) GetBilling() OptUsersResponseUsersItemBilling {
+	return s.Billing
+}
+
 // SetID sets the value of ID.
 func (s *UsersResponseUsersItem) SetID(val OptString) {
 	s.ID = val
@@ -23301,6 +22753,26 @@ func (s *UsersResponseUsersItem) SetIdentities(val []UsersResponseUsersItemIdent
 	s.Identities = val
 }
 
+// SetBilling sets the value of Billing.
+func (s *UsersResponseUsersItem) SetBilling(val OptUsersResponseUsersItemBilling) {
+	s.Billing = val
+}
+
+type UsersResponseUsersItemBilling struct {
+	// The billing customer id.
+	CustomerID OptString `json:"customer_id"`
+}
+
+// GetCustomerID returns the value of CustomerID.
+func (s *UsersResponseUsersItemBilling) GetCustomerID() OptString {
+	return s.CustomerID
+}
+
+// SetCustomerID sets the value of CustomerID.
+func (s *UsersResponseUsersItemBilling) SetCustomerID(val OptString) {
+	s.CustomerID = val
+}
+
 type UsersResponseUsersItemIdentitiesItem struct {
 	Type     OptString `json:"type"`
 	Identity OptString `json:"identity"`
@@ -23325,6 +22797,159 @@ func (s *UsersResponseUsersItemIdentitiesItem) SetType(val OptString) {
 func (s *UsersResponseUsersItemIdentitiesItem) SetIdentity(val OptString) {
 	s.Identity = val
 }
+
+// Ref: #/components/schemas/verify_api_key_response
+type VerifyAPIKeyResponse struct {
+	// Response code.
+	Code OptString `json:"code"`
+	// Response message.
+	Message OptString `json:"message"`
+	// Whether the API key is valid.
+	IsValid OptBool `json:"is_valid"`
+	// The unique ID for the API key.
+	KeyID OptString `json:"key_id"`
+	// The status of the API key.
+	Status OptString `json:"status"`
+	// Array of scopes associated with this key.
+	Scopes []string `json:"scopes"`
+	// The organization code associated with this key.
+	OrgCode OptNilString `json:"org_code"`
+	// The user ID associated with this key.
+	UserID OptNilString `json:"user_id"`
+	// When the API key was last verified.
+	LastVerifiedOn OptNilDateTime `json:"last_verified_on"`
+	// Number of times this API key has been verified.
+	VerificationCount OptInt `json:"verification_count"`
+}
+
+// GetCode returns the value of Code.
+func (s *VerifyAPIKeyResponse) GetCode() OptString {
+	return s.Code
+}
+
+// GetMessage returns the value of Message.
+func (s *VerifyAPIKeyResponse) GetMessage() OptString {
+	return s.Message
+}
+
+// GetIsValid returns the value of IsValid.
+func (s *VerifyAPIKeyResponse) GetIsValid() OptBool {
+	return s.IsValid
+}
+
+// GetKeyID returns the value of KeyID.
+func (s *VerifyAPIKeyResponse) GetKeyID() OptString {
+	return s.KeyID
+}
+
+// GetStatus returns the value of Status.
+func (s *VerifyAPIKeyResponse) GetStatus() OptString {
+	return s.Status
+}
+
+// GetScopes returns the value of Scopes.
+func (s *VerifyAPIKeyResponse) GetScopes() []string {
+	return s.Scopes
+}
+
+// GetOrgCode returns the value of OrgCode.
+func (s *VerifyAPIKeyResponse) GetOrgCode() OptNilString {
+	return s.OrgCode
+}
+
+// GetUserID returns the value of UserID.
+func (s *VerifyAPIKeyResponse) GetUserID() OptNilString {
+	return s.UserID
+}
+
+// GetLastVerifiedOn returns the value of LastVerifiedOn.
+func (s *VerifyAPIKeyResponse) GetLastVerifiedOn() OptNilDateTime {
+	return s.LastVerifiedOn
+}
+
+// GetVerificationCount returns the value of VerificationCount.
+func (s *VerifyAPIKeyResponse) GetVerificationCount() OptInt {
+	return s.VerificationCount
+}
+
+// SetCode sets the value of Code.
+func (s *VerifyAPIKeyResponse) SetCode(val OptString) {
+	s.Code = val
+}
+
+// SetMessage sets the value of Message.
+func (s *VerifyAPIKeyResponse) SetMessage(val OptString) {
+	s.Message = val
+}
+
+// SetIsValid sets the value of IsValid.
+func (s *VerifyAPIKeyResponse) SetIsValid(val OptBool) {
+	s.IsValid = val
+}
+
+// SetKeyID sets the value of KeyID.
+func (s *VerifyAPIKeyResponse) SetKeyID(val OptString) {
+	s.KeyID = val
+}
+
+// SetStatus sets the value of Status.
+func (s *VerifyAPIKeyResponse) SetStatus(val OptString) {
+	s.Status = val
+}
+
+// SetScopes sets the value of Scopes.
+func (s *VerifyAPIKeyResponse) SetScopes(val []string) {
+	s.Scopes = val
+}
+
+// SetOrgCode sets the value of OrgCode.
+func (s *VerifyAPIKeyResponse) SetOrgCode(val OptNilString) {
+	s.OrgCode = val
+}
+
+// SetUserID sets the value of UserID.
+func (s *VerifyAPIKeyResponse) SetUserID(val OptNilString) {
+	s.UserID = val
+}
+
+// SetLastVerifiedOn sets the value of LastVerifiedOn.
+func (s *VerifyAPIKeyResponse) SetLastVerifiedOn(val OptNilDateTime) {
+	s.LastVerifiedOn = val
+}
+
+// SetVerificationCount sets the value of VerificationCount.
+func (s *VerifyAPIKeyResponse) SetVerificationCount(val OptInt) {
+	s.VerificationCount = val
+}
+
+func (*VerifyAPIKeyResponse) verifyApiKeyRes() {}
+
+type VerifyApiKeyBadRequest ErrorResponse
+
+func (*VerifyApiKeyBadRequest) verifyApiKeyRes() {}
+
+type VerifyApiKeyReq struct {
+	// The API key to verify.
+	APIKey string `json:"api_key"`
+}
+
+// GetAPIKey returns the value of APIKey.
+func (s *VerifyApiKeyReq) GetAPIKey() string {
+	return s.APIKey
+}
+
+// SetAPIKey sets the value of APIKey.
+func (s *VerifyApiKeyReq) SetAPIKey(val string) {
+	s.APIKey = val
+}
+
+type VerifyApiKeyTooManyRequests ErrorResponse
+
+func (*VerifyApiKeyTooManyRequests) verifyApiKeyRes() {}
+
+type VerifyApiKeyUnauthorized ErrorResponse
+
+func (*VerifyApiKeyUnauthorized) verifyApiKeyRes() {}
 
 // Ref: #/components/schemas/webhook
 type Webhook struct {

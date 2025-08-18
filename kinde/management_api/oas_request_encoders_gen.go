@@ -7,12 +7,10 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
-	"strings"
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
 
-	"github.com/ogen-go/ogen/conv"
 	ht "github.com/ogen-go/ogen/http"
 	"github.com/ogen-go/ogen/uri"
 )
@@ -137,6 +135,20 @@ func encodeAddRedirectCallbackURLsRequest(
 
 func encodeAddRoleScopeRequest(
 	req *AddRoleScopeReq,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	e := new(jx.Encoder)
+	{
+		req.Encode(e)
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
+func encodeCreateApiKeyRequest(
+	req *CreateApiKeyReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
@@ -481,119 +493,6 @@ func encodeSetUserPasswordRequest(
 	return nil
 }
 
-func encodeTokenIntrospectionRequest(
-	req *TokenIntrospectionReq,
-	r *http.Request,
-) error {
-	const contentType = "application/x-www-form-urlencoded"
-	request := req
-
-	q := uri.NewFormEncoder(map[string]string{})
-	{
-		// Encode "token" form field.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "token",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			return e.EncodeValue(conv.StringToString(request.Token))
-		}); err != nil {
-			return errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "token_type_hint" form field.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "token_type_hint",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := request.TokenTypeHint.Get(); ok {
-				return e.EncodeValue(conv.StringToString(string(val)))
-			}
-			return nil
-		}); err != nil {
-			return errors.Wrap(err, "encode query")
-		}
-	}
-	encoded := q.Values().Encode()
-	ht.SetBody(r, strings.NewReader(encoded), contentType)
-	return nil
-}
-
-func encodeTokenRevocationRequest(
-	req *TokenRevocationReq,
-	r *http.Request,
-) error {
-	const contentType = "application/x-www-form-urlencoded"
-	request := req
-
-	q := uri.NewFormEncoder(map[string]string{})
-	{
-		// Encode "client_id" form field.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "client_id",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			return e.EncodeValue(conv.StringToString(request.ClientID))
-		}); err != nil {
-			return errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "client_secret" form field.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "client_secret",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := request.ClientSecret.Get(); ok {
-				return e.EncodeValue(conv.StringToString(val))
-			}
-			return nil
-		}); err != nil {
-			return errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "token" form field.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "token",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			return e.EncodeValue(conv.StringToString(request.Token))
-		}); err != nil {
-			return errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "token_type_hint" form field.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "token_type_hint",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := request.TokenTypeHint.Get(); ok {
-				return e.EncodeValue(conv.StringToString(string(val)))
-			}
-			return nil
-		}); err != nil {
-			return errors.Wrap(err, "encode query")
-		}
-	}
-	encoded := q.Values().Encode()
-	ht.SetBody(r, strings.NewReader(encoded), contentType)
-	return nil
-}
-
 func encodeUpdateAPIApplicationsRequest(
 	req *UpdateAPIApplicationsReq,
 	r *http.Request,
@@ -920,6 +819,20 @@ func encodeUpdateUserPropertiesRequest(
 
 func encodeUpdateWebHookRequest(
 	req *UpdateWebHookReq,
+	r *http.Request,
+) error {
+	const contentType = "application/json"
+	e := new(jx.Encoder)
+	{
+		req.Encode(e)
+	}
+	encoded := e.Bytes()
+	ht.SetBody(r, bytes.NewReader(encoded), contentType)
+	return nil
+}
+
+func encodeVerifyApiKeyRequest(
+	req *VerifyApiKeyReq,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"
