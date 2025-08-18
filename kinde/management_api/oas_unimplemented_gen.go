@@ -134,6 +134,18 @@ func (UnimplementedHandler) AddRoleScope(ctx context.Context, req *AddRoleScopeR
 	return r, ht.ErrNotImplemented
 }
 
+// CreateApiKey implements createApiKey operation.
+//
+// Create a new API key.
+// <div>
+// <code>create:api_keys</code>
+// </div>.
+//
+// POST /api/v1/api_keys
+func (UnimplementedHandler) CreateApiKey(ctx context.Context, req *CreateApiKeyReq) (r CreateApiKeyRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // CreateApplication implements createApplication operation.
 //
 // Create a new client.
@@ -375,6 +387,18 @@ func (UnimplementedHandler) DeleteAPIAppliationScope(ctx context.Context, params
 //
 // DELETE /api/v1/apis/{api_id}/scopes/{scope_id}
 func (UnimplementedHandler) DeleteAPIScope(ctx context.Context, params DeleteAPIScopeParams) (r DeleteAPIScopeRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// DeleteApiKey implements deleteApiKey operation.
+//
+// Delete an API key.
+// <div>
+// <code>delete:api_keys</code>
+// </div>.
+//
+// DELETE /api/v1/api_keys/{key_id}
+func (UnimplementedHandler) DeleteApiKey(ctx context.Context, params DeleteApiKeyParams) (r DeleteApiKeyRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -751,6 +775,30 @@ func (UnimplementedHandler) GetAPIs(ctx context.Context, params GetAPIsParams) (
 	return r, ht.ErrNotImplemented
 }
 
+// GetApiKey implements getApiKey operation.
+//
+// Retrieve API key details by ID.
+// <div>
+// <code>read:api_keys</code>
+// </div>.
+//
+// GET /api/v1/api_keys/{key_id}
+func (UnimplementedHandler) GetApiKey(ctx context.Context, params GetApiKeyParams) (r GetApiKeyRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetApiKeys implements getApiKeys operation.
+//
+// Returns a list of API keys.
+// <div>
+// <code>read:api_keys</code>
+// </div>.
+//
+// GET /api/v1/api_keys
+func (UnimplementedHandler) GetApiKeys(ctx context.Context, params GetApiKeysParams) (r GetApiKeysRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetApplication implements getApplication operation.
 //
 // Gets an application given the application's ID.
@@ -908,24 +956,6 @@ func (UnimplementedHandler) GetConnections(ctx context.Context, params GetConnec
 	return r, ht.ErrNotImplemented
 }
 
-// GetEntitlement implements GetEntitlement operation.
-//
-// Returns a single entitlement by the feature key.
-//
-// GET /account_api/v1/entitlement
-func (UnimplementedHandler) GetEntitlement(ctx context.Context, params GetEntitlementParams) (r GetEntitlementRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// GetEntitlements implements GetEntitlements operation.
-//
-// Returns all the entitlements a the user currently has access to.
-//
-// GET /account_api/v1/entitlements
-func (UnimplementedHandler) GetEntitlements(ctx context.Context, params GetEntitlementsParams) (r GetEntitlementsRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
 // GetEnvironementFeatureFlags implements GetEnvironementFeatureFlags operation.
 //
 // Get environment feature flags.
@@ -996,15 +1026,6 @@ func (UnimplementedHandler) GetEvent(ctx context.Context, params GetEventParams)
 //
 // GET /api/v1/event_types
 func (UnimplementedHandler) GetEventTypes(ctx context.Context) (r GetEventTypesRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// GetFeatureFlags implements GetFeatureFlags operation.
-//
-// Returns all the feature flags that affect the user.
-//
-// GET /account_api/v1/feature_flags
-func (UnimplementedHandler) GetFeatureFlags(ctx context.Context, params GetFeatureFlagsParams) (r GetFeatureFlagsRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -1166,16 +1187,6 @@ func (UnimplementedHandler) GetPermissions(ctx context.Context, params GetPermis
 	return r, ht.ErrNotImplemented
 }
 
-// GetPortalLink implements GetPortalLink operation.
-//
-// Returns a link to the self-serve portal for the authenticated user. The user can use this link to
-// manage their account, update their profile, and view their entitlements.
-//
-// GET /account_api/v1/portal_link
-func (UnimplementedHandler) GetPortalLink(ctx context.Context, params GetPortalLinkParams) (r GetPortalLinkRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
 // GetProperties implements GetProperties operation.
 //
 // Returns a list of properties
@@ -1301,34 +1312,6 @@ func (UnimplementedHandler) GetUserIdentities(ctx context.Context, params GetUse
 	return r, ht.ErrNotImplemented
 }
 
-// GetUserPermissions implements GetUserPermissions operation.
-//
-// Returns all the permissions the user has.
-//
-// GET /account_api/v1/permissions
-func (UnimplementedHandler) GetUserPermissions(ctx context.Context, params GetUserPermissionsParams) (r GetUserPermissionsRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// GetUserProfileV2 implements getUserProfileV2 operation.
-//
-// This endpoint returns a user's ID, names, profile picture URL and email of the currently logged in
-// user.
-//
-// GET /oauth2/v2/user_profile
-func (UnimplementedHandler) GetUserProfileV2(ctx context.Context) (r GetUserProfileV2Res, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// GetUserProperties implements GetUserProperties operation.
-//
-// Returns all properties for the user.
-//
-// GET /account_api/v1/properties
-func (UnimplementedHandler) GetUserProperties(ctx context.Context, params GetUserPropertiesParams) (r GetUserPropertiesRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
 // GetUserPropertyValues implements GetUserPropertyValues operation.
 //
 // Gets properties for an user by ID.
@@ -1338,15 +1321,6 @@ func (UnimplementedHandler) GetUserProperties(ctx context.Context, params GetUse
 //
 // GET /api/v1/users/{user_id}/properties
 func (UnimplementedHandler) GetUserPropertyValues(ctx context.Context, params GetUserPropertyValuesParams) (r GetUserPropertyValuesRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// GetUserRoles implements GetUserRoles operation.
-//
-// Returns all roles for the user.
-//
-// GET /account_api/v1/roles
-func (UnimplementedHandler) GetUserRoles(ctx context.Context, params GetUserRolesParams) (r GetUserRolesRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -1604,6 +1578,18 @@ func (UnimplementedHandler) RevokeConnectedAppToken(ctx context.Context, params 
 	return r, ht.ErrNotImplemented
 }
 
+// RotateApiKey implements rotateApiKey operation.
+//
+// Rotate an API key to generate a new key while maintaining the same permissions and associations.
+// <div>
+// <code>update:api_keys</code>
+// </div>.
+//
+// PUT /api/v1/api_keys/{key_id}
+func (UnimplementedHandler) RotateApiKey(ctx context.Context, params RotateApiKeyParams) (r RotateApiKeyRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // SearchUsers implements searchUsers operation.
 //
 // Search for users based on the provided query string. Set query to '*' to filter by other
@@ -1628,25 +1614,6 @@ func (UnimplementedHandler) SearchUsers(ctx context.Context, params SearchUsersP
 //
 // PUT /api/v1/users/{user_id}/password
 func (UnimplementedHandler) SetUserPassword(ctx context.Context, req *SetUserPasswordReq, params SetUserPasswordParams) (r SetUserPasswordRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// TokenIntrospection implements tokenIntrospection operation.
-//
-// Retrieve information about the provided token.
-//
-// POST /oauth2/introspect
-func (UnimplementedHandler) TokenIntrospection(ctx context.Context, req *TokenIntrospectionReq) (r TokenIntrospectionRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// TokenRevocation implements tokenRevocation operation.
-//
-// Use this endpoint to invalidate an access or refresh token. The token will no longer be valid for
-// use.
-//
-// POST /oauth2/revoke
-func (UnimplementedHandler) TokenRevocation(ctx context.Context, req *TokenRevocationReq) (r TokenRevocationRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -1973,5 +1940,14 @@ func (UnimplementedHandler) UpdateUserProperty(ctx context.Context, params Updat
 //
 // PATCH /api/v1/webhooks/{webhook_id}
 func (UnimplementedHandler) UpdateWebHook(ctx context.Context, req *UpdateWebHookReq, params UpdateWebHookParams) (r UpdateWebHookRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// VerifyApiKey implements verifyApiKey operation.
+//
+// Verify an API key (public endpoint, no authentication required).
+//
+// POST /api/v1/api_keys/verify
+func (UnimplementedHandler) VerifyApiKey(ctx context.Context, req *VerifyApiKeyReq) (r VerifyApiKeyRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

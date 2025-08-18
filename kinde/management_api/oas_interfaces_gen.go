@@ -41,6 +41,10 @@ type AddRoleScopeRes interface {
 	addRoleScopeRes()
 }
 
+type CreateApiKeyRes interface {
+	createApiKeyRes()
+}
+
 type CreateApplicationRes interface {
 	createApplicationRes()
 }
@@ -119,6 +123,10 @@ type DeleteAPIRes interface {
 
 type DeleteAPIScopeRes interface {
 	deleteAPIScopeRes()
+}
+
+type DeleteApiKeyRes interface {
+	deleteApiKeyRes()
 }
 
 type DeleteApplicationRes interface {
@@ -245,6 +253,14 @@ type GetAPIsRes interface {
 	getAPIsRes()
 }
 
+type GetApiKeyRes interface {
+	getApiKeyRes()
+}
+
+type GetApiKeysRes interface {
+	getApiKeysRes()
+}
+
 type GetApplicationConnectionsRes interface {
 	getApplicationConnectionsRes()
 }
@@ -297,14 +313,6 @@ type GetConnectionsRes interface {
 	getConnectionsRes()
 }
 
-type GetEntitlementRes interface {
-	getEntitlementRes()
-}
-
-type GetEntitlementsRes interface {
-	getEntitlementsRes()
-}
-
 type GetEnvironementFeatureFlagsRes interface {
 	getEnvironementFeatureFlagsRes()
 }
@@ -327,10 +335,6 @@ type GetEventRes interface {
 
 type GetEventTypesRes interface {
 	getEventTypesRes()
-}
-
-type GetFeatureFlagsRes interface {
-	getFeatureFlagsRes()
 }
 
 type GetIdentityRes interface {
@@ -385,10 +389,6 @@ type GetPermissionsRes interface {
 	getPermissionsRes()
 }
 
-type GetPortalLinkRes interface {
-	getPortalLinkRes()
-}
-
 type GetPropertiesRes interface {
 	getPropertiesRes()
 }
@@ -429,24 +429,8 @@ type GetUserIdentitiesRes interface {
 	getUserIdentitiesRes()
 }
 
-type GetUserPermissionsRes interface {
-	getUserPermissionsRes()
-}
-
-type GetUserProfileV2Res interface {
-	getUserProfileV2Res()
-}
-
-type GetUserPropertiesRes interface {
-	getUserPropertiesRes()
-}
-
 type GetUserPropertyValuesRes interface {
 	getUserPropertyValuesRes()
-}
-
-type GetUserRolesRes interface {
-	getUserRolesRes()
 }
 
 type GetUserSessionsRes interface {
@@ -533,20 +517,16 @@ type RevokeConnectedAppTokenRes interface {
 	revokeConnectedAppTokenRes()
 }
 
+type RotateApiKeyRes interface {
+	rotateApiKeyRes()
+}
+
 type SearchUsersRes interface {
 	searchUsersRes()
 }
 
 type SetUserPasswordRes interface {
 	setUserPasswordRes()
-}
-
-type TokenIntrospectionRes interface {
-	tokenIntrospectionRes()
-}
-
-type TokenRevocationRes interface {
-	tokenRevocationRes()
 }
 
 type UpdateAPIApplicationsRes interface {
@@ -655,4 +635,8 @@ type UpdateUserRes interface {
 
 type UpdateWebHookRes interface {
 	updateWebHookRes()
+}
+
+type VerifyApiKeyRes interface {
+	verifyApiKeyRes()
 }
