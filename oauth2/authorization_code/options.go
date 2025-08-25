@@ -104,30 +104,37 @@ func WithTokenValidation(isValidateJWKS bool, tokenOptions ...func(*jwt.Token)) 
 func WithPKCE() Option {
 	return func(s *AuthorizationCodeFlow) {
 		s.usePKCE = true
+		s.challengeMethod = "S256" // Explicitly set recommended default
 		// Generate code verifier and challenge when PKCE is enabled
 		if codeVerifier, err := generateCodeVerifier(); err == nil {
 			// Store code verifier in session hooks
 			if s.sessionHooks != nil {
-				s.sessionHooks.SetCodeVerifier(codeVerifier)
+				_ = s.sessionHooks.SetCodeVerifier(codeVerifier)
 			}
 			s.codeChallenge = generateCodeChallenge(codeVerifier)
 		}
 	}
 }
 
-// Enables PKCE with a custom challenge method (e.g., "S256" for SHA256, "plain" for plain text).
-// Default is "S256" (SHA256) which is recommended for security.
 func WithPKCEChallengeMethod(method string) Option {
 	return func(s *AuthorizationCodeFlow) {
 		s.usePKCE = true
-		s.challengeMethod = method
+		// accept only "S256" or "plain"; default to "S256"
+		switch method {
+		case "plain":
+			s.challengeMethod = "plain"
+		case "S256":
+			s.challengeMethod = "S256"
+		default:
+			s.challengeMethod = "S256"
+		}
 		// Generate code verifier and challenge when PKCE is enabled
 		if codeVerifier, err := generateCodeVerifier(); err == nil {
 			// Store code verifier in session hooks
 			if s.sessionHooks != nil {
-				s.sessionHooks.SetCodeVerifier(codeVerifier)
+				_ = s.sessionHooks.SetCodeVerifier(codeVerifier)
 			}
-			if method == "plain" {
+			if s.challengeMethod == "plain" {
 				s.codeChallenge = codeVerifier
 			} else {
 				s.codeChallenge = generateCodeChallenge(codeVerifier)
