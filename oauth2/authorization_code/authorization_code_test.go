@@ -214,6 +214,17 @@ func (t *testSessionHooks) SetRawToken(token *oauth2.Token) error {
 	return nil
 }
 
+// GetCodeVerifier implements ISessionHooks.
+func (t *testSessionHooks) GetCodeVerifier() (string, error) {
+	return t.sessionState["code_verifier"], nil
+}
+
+// SetCodeVerifier implements ISessionHooks.
+func (t *testSessionHooks) SetCodeVerifier(codeVerifier string) error {
+	t.sessionState["code_verifier"] = codeVerifier
+	return nil
+}
+
 func newTestSessionHooks() *testSessionHooks {
 	return &testSessionHooks{
 		sessionState: make(map[string]string),

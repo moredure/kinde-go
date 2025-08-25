@@ -19,6 +19,16 @@ type (
 	}
 )
 
+// GetCodeVerifier implements authorization_code.ISessionHooks.
+func (c *cliSession) GetCodeVerifier() (string, error) {
+	return "", fmt.Errorf("not supported in CLI session")
+}
+
+// SetCodeVerifier implements authorization_code.ISessionHooks.
+func (c *cliSession) SetCodeVerifier(codeVerifier string) error {
+	return fmt.Errorf("not supported in CLI session")
+}
+
 func (c *cliSession) getChunkCount(key string) (int, error) {
 	countItem, err := c.keyring.Get(key)
 	if err != nil {

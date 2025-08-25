@@ -2,6 +2,9 @@ package authorization_code
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -28,6 +31,10 @@ type (
 		SetPostAuthRedirect(redirect string) error
 		// GetPostAuthRedirect retrieves the post-authentication redirect URL from the session.
 		GetPostAuthRedirect() (string, error)
+		// SetCodeVerifier stores the PKCE code verifier in the session.
+		SetCodeVerifier(codeVerifier string) error
+		// GetCodeVerifier retrieves the PKCE code verifier from the session.
+		GetCodeVerifier() (string, error)
 	}
 
 	// IAuthorizationCodeFlow represents the interface for the authorization code flow.
@@ -71,6 +78,10 @@ type (
 		sessionHooks   ISessionHooks
 		stateGenerator func(from *AuthorizationCodeFlow) string
 		stateVerifier  func(flow *AuthorizationCodeFlow, receivedState string) bool
+		// PKCE support fields
+		usePKCE         bool
+		codeChallenge   string
+		challengeMethod string
 	}
 )
 
@@ -128,6 +139,13 @@ func (flow *AuthorizationCodeFlow) GetAuthURL() string {
 			query[k] = v
 		}
 	}
+
+	// Add PKCE parameters if enabled
+	if flow.usePKCE {
+		query.Set("code_challenge", flow.codeChallenge)
+		query.Set("code_challenge_method", flow.challengeMethod)
+	}
+
 	url.RawQuery = query.Encode()
 	return url.String()
 }
@@ -183,6 +201,10 @@ func newAuthorizationCodeFlow(baseURL string, clientID string, clientSecret stri
 			}
 			return state == receivedState
 		},
+		// Initialize PKCE fields
+		usePKCE:         false,
+		codeChallenge:   "",
+		challengeMethod: "S256",
 	}
 
 	for _, o := range options {
@@ -211,7 +233,23 @@ func (flow *AuthorizationCodeFlow) ExchangeCode(ctx context.Context, authorizati
 		return fmt.Errorf("state mismatch: expected %s, got %s", storedState, receivedState)
 	}
 
-	token, err := flow.config.Exchange(ctx, authorizationCode)
+	var token *oauth2.Token
+	if flow.usePKCE {
+		// Get code verifier from session hooks
+		codeVerifier, err := flow.sessionHooks.GetCodeVerifier()
+		if err != nil {
+			return fmt.Errorf("failed to get code verifier from session: %w", err)
+		}
+		if codeVerifier == "" {
+			return fmt.Errorf("code verifier not found in session")
+		}
+
+		// Exchange with PKCE code verifier
+		token, err = flow.config.Exchange(ctx, authorizationCode, oauth2.SetAuthURLParam("code_verifier", codeVerifier))
+	} else {
+		// Standard exchange without PKCE
+		token, err = flow.config.Exchange(ctx, authorizationCode)
+	}
 
 	if err != nil {
 		return err
@@ -247,4 +285,18 @@ func (flow *AuthorizationCodeFlow) GetClient(ctx context.Context) (*http.Client,
 
 func (flow *AuthorizationCodeFlow) getTokenSource(_ context.Context) (sessionTokenSource, error) {
 	return sessionTokenSource{flow: flow}, nil
+}
+
+// PKCE utility functions
+func generateCodeVerifier() (string, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(bytes), nil
+}
+
+func generateCodeChallenge(codeVerifier string) string {
+	hash := sha256.Sum256([]byte(codeVerifier))
+	return base64.RawURLEncoding.EncodeToString(hash[:])
 }
