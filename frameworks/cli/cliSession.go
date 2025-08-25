@@ -19,6 +19,30 @@ type (
 	}
 )
 
+// GetCodeVerifier implements authorization_code.ISessionHooks.
+func (c *cliSession) GetCodeVerifier() (string, error) {
+	key := fmt.Sprintf("%s_code_verifier", keyPrefix)
+	item, err := c.keyring.Get(key)
+	if err != nil {
+		return "", fmt.Errorf("code_verifier not found: %w", err)
+	}
+	return string(item.Data), nil
+}
+
+// SetCodeVerifier implements authorization_code.ISessionHooks.
+func (c *cliSession) SetCodeVerifier(codeVerifier string) error {
+	key := fmt.Sprintf("%s_code_verifier", keyPrefix)
+	if codeVerifier == "" {
+		// remove when empty to avoid leaving secrets behind
+		_ = c.keyring.Remove(key)
+		return nil
+	}
+	return c.keyring.Set(keyring.Item{
+		Key:  key,
+		Data: []byte(codeVerifier),
+	})
+}
+
 func (c *cliSession) getChunkCount(key string) (int, error) {
 	countItem, err := c.keyring.Get(key)
 	if err != nil {

@@ -98,3 +98,47 @@ func WithTokenValidation(isValidateJWKS bool, tokenOptions ...func(*jwt.Token)) 
 		s.tokenOptions = append(s.tokenOptions, tokenOptions...)
 	}
 }
+
+// Enables PKCE (Proof Key for Code Exchange) for enhanced security in public clients.
+// This is recommended for applications that cannot securely store a client secret.
+func WithPKCE() Option {
+	return func(s *AuthorizationCodeFlow) {
+		s.usePKCE = true
+		s.challengeMethod = "S256" // Explicitly set recommended default
+		// Generate code verifier and challenge when PKCE is enabled
+		if codeVerifier, err := generateCodeVerifier(); err == nil {
+			// Store code verifier in session hooks
+			if s.sessionHooks != nil {
+				_ = s.sessionHooks.SetCodeVerifier(codeVerifier)
+			}
+			s.codeChallenge = generateCodeChallenge(codeVerifier)
+		}
+	}
+}
+
+func WithPKCEChallengeMethod(method string) Option {
+	return func(s *AuthorizationCodeFlow) {
+		s.usePKCE = true
+		// accept only "S256" or "plain"; default to "S256"
+		switch method {
+		case "plain":
+			s.challengeMethod = "plain"
+		case "S256":
+			s.challengeMethod = "S256"
+		default:
+			s.challengeMethod = "S256"
+		}
+		// Generate code verifier and challenge when PKCE is enabled
+		if codeVerifier, err := generateCodeVerifier(); err == nil {
+			// Store code verifier in session hooks
+			if s.sessionHooks != nil {
+				_ = s.sessionHooks.SetCodeVerifier(codeVerifier)
+			}
+			if s.challengeMethod == "plain" {
+				s.codeChallenge = codeVerifier
+			} else {
+				s.codeChallenge = generateCodeChallenge(codeVerifier)
+			}
+		}
+	}
+}

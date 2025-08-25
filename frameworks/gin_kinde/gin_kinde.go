@@ -14,6 +14,28 @@ type SessionStorage struct {
 	session sessions.Session
 }
 
+// GetCodeVerifier implements authorization_code.ISessionHooks.
+func (storage *SessionStorage) GetCodeVerifier() (string, error) {
+	v := storage.session.Get("code_verifier")
+	if v == nil {
+		return "", fmt.Errorf("code_verifier not found in session")
+	}
+	s, ok := v.(string)
+	if !ok {
+		return "", fmt.Errorf("invalid code_verifier type in session")
+	}
+	return s, nil
+}
+
+// SetCodeVerifier implements authorization_code.ISessionHooks.
+func (storage *SessionStorage) SetCodeVerifier(codeVerifier string) error {
+	storage.session.Set("code_verifier", codeVerifier)
+	if err := storage.session.Save(); err != nil {
+		return fmt.Errorf("failed to save session: %w", err)
+	}
+	return nil
+}
+
 // GetRawToken implements authorization_code.ISessionHooks.
 func (storage *SessionStorage) GetRawToken() (*oauth2.Token, error) {
 	token := storage.session.Get("kinde_token")
