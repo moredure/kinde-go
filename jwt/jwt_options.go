@@ -107,6 +107,13 @@ func WillValidateAudience(expectedAudience string) Option {
 	}
 }
 
+// WillValidateClaims will validate the claims with the given function.
+func WillValidateClaims(f func(golangjwt.MapClaims) (bool, error)) Option {
+	return func(s *Token) {
+		s.processing.validations = append(s.processing.validations, f)
+	}
+}
+
 func newError(message string, err error, more ...error) error {
 	var format string
 	var args []any
