@@ -17,69 +17,16 @@ go get github.com/kinde-oss/kinde-go
 go mod tidy
 ```
 
-## Autorization code flow
+## Authorization Code Flow
 
-`authorization_code` package, imported as `github.com/kinde-oss/kinde-go/oauth2/authorization_code`.
+For comprehensive information about the authorization code flow and device authorization flow, see [oauth2/authorization_code/README.md](oauth2/authorization_code/README.md).
 
-This is a backend authorization flow, which requires slient secret. It is designed to be used as a server-side auth flow and not exposes tokens to the browser. The user session needs to be managed by other means, for example via the session cookie.
+The `authorization_code` package provides OAuth2 authorization code flow implementations for Go applications, including:
 
-```go
-
-kindeAuthFlow, err := authorization_code.NewAuthorizationCodeFlow(
-  "<issuer URL>",                                       //Kinde subdomain or any auth provider conforming to the spec
-  "<client_id>", "<client_secret>", "<callback URL>",
-  authorization_code.WithSessionHooks(<ISessionHooks implementation>),     //example of storage for gin framework is gin_kinde.UseKindeAuth(...)
-  authorization_code.WithOffline(),                                        //adds offline scope and starts managing refresh tokens
-  authorization_code.WithAudience("<your API audience>"),                  //requesting an API audience
-  authorization_code.WithTokenValidation(
-    true,                                               // will validate token signature via JWKS
-    jwt.WillValidateAlgorithm(),                        // will validate the token alg is RS256
-    jwt.WillValidateAudience("<your API audience>"),    // will confirm that received token includes correct audience
-  ),
-)
-
-```
-
-`kindeAuthFlow` provides the following methods:
-
-| Method | Description | Parameters | Returns |
-| --- | --- | --- | --- |
-| `GetAuthURL` | Returns the URL to redirect the user to start the authentication pipeline. | none | `string` |
-| `ExchangeCode` | Exchanges the authorization code for a token and establishes KindeContext. | ctx `context.Context`, authorizationCode `string`, receivedState `string` | `error` |
-| `GetClient` | Returns an HTTP client for calling external services, automatically refreshing tokens if offline is requested. | ctx `context.Context` | `(*http.Client, error)` |
-| `IsAuthenticated` | Checks if the user is authenticated. | ctx `context.Context` | `(bool, error)` |
-| `Logout` | Clears local tokens and logs the user out. | none | `error` |
-| `AuthorizationCodeReceivedHandler` | Helper handler middleware for the code exchanger. | w `http.ResponseWriter`, r `*http.Request` | none |
-
-### Device authorization flow
-
-`authorization_code` package, imported as `github.com/kinde-oss/kinde-go/oauth2/authorization_code`.
-
-This is an extension of authorization code flow, which separatees token requester and receiver. It is best used for devices and environment with the limited input capabilities, e.g. CLIs, TVs etc.
-
-```go
-deviceFlow, err := authorization_code.NewDeviceAuthorizationFlow(
-  "<issuer_domain>",                                    // Kinde subdomain or any auth provider conforming to the spec
-  authorization_code.WithClientID(),                    // optional, when business provides a default device applicaiton, otherwise required
-  authorization_code.WithClientSecret(),                // optional (used when device flow is used against backend application with a secret)
-  authorization_code.WithSessionHooks(<ISessionHooks implementation>),		  // used for storing/retreiving tokens
-  authorization_code.WithOffline(),                     // optional - include if you'd like to maintain refresh tokens and a long session
-  authorization_code.WithTokenValidation(
-    true,                                               // will validate token signature via JWKS
-    jwt.WillValidateAlgorithm(),                        // will validate the token alg is RS256
-)
-```
-
-`deviceFlow` will provide following methods
-
-| Method | Description | Parameters | Returns |
-| --- | --- | --- | --- |
-| `StartDeviceAuth` | Starts the device authorization flow and returns the device authorization response. | ctx `context.Context` | `(*oauth2.DeviceAuthResponse, error)` |
-| `ExchangeDeviceAccessToken` | Exchanges the device code for an access token. | ctx `context.Context`, da `*oauth2.DeviceAuthResponse`, opts `...oauth2.AuthCodeOption` | `error` |
-| `GetClient` | Returns an HTTP client for calling external services, automatically refreshing tokens if offline is requested. | ctx `context.Context` | `(*http.Client, error)` |
-| `IsAuthenticated` | Checks if the user is authenticated. | ctx `context.Context` | `(bool, error)` |
-| `Logout` | Clears local tokens and logs the user out. | none | `error` |
-| `GetToken` | Returns the token for the current session. | ctx `context.Context` | `(*jwt.Token, error)` |
+- Standard authorization code flow for web applications
+- Device authorization flow for devices with limited input capabilities
+- Session management and token validation
+- Offline support with refresh token management
 
 ## Client credentials flow
 
@@ -119,14 +66,16 @@ Client willl manage tokens in the background, reading/persisting them to provide
 
 When offline scope is requested, refresh tokens will be managed as well.
 
-```go
-  //This client will cache the token and re-fetch a new one as it expires
-  client := kindeClient.GetClient(context.Background())
+````go
+// This client will cache the token and re-fetch a new one as it expires
+client, err := kindeClient.GetClient(context.Background())
+if err != nil {
+  // handle initialization error (e.g., invalid config or token source)
+  log.Fatalf("failed to init client: %v", err)
+}
 
-  //example call to Kinde Management API (client needs WithKindeManagementAPI(...)) - see README_MANAGEMENT_API.md for details
-  response, err := client.Get("<an authorized URL>")
-
-```
+// example call to Kinde Management API (client needs WithKindeManagementAPI(...)) - see README_MANAGEMENT_API.md for details
+response, err := client.Get("<an authorized URL>")
 
 ### Management API
 
@@ -168,6 +117,12 @@ This repository includes several examples demonstrating different authentication
 - **CLI Example** (`examples/cli`): Demonstrates device authorization flow and secure token storage
 - **Gin Chat Example** (`examples/gin-chat`): Shows how to integrate Kinde authentication with a Gin web application
 
+For detailed documentation on each flow:
+
+- **Authorization Code Flow**: [oauth2/authorization_code/README.md](oauth2/authorization_code/README.md)
+- **Client Credentials Flow**: See the Client Credentials Flow section below
+- **Management API**: [README_MANAGEMENT_API.md](README_MANAGEMENT_API.md)
+
 For Management API examples and detailed usage, see [README_MANAGEMENT_API.md](README_MANAGEMENT_API.md).
 
 ### SDK Development
@@ -176,7 +131,7 @@ For Management API examples and detailed usage, see [README_MANAGEMENT_API.md](R
 
    ```bash
    git clone https://github.com/kinde-oss/kinde-go.git
-   ```
+````
 
 2. Go into the project:
 

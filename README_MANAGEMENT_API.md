@@ -21,23 +21,24 @@ The Management API uses the **Client Credentials flow** for authentication, whic
 
 ```go
 import (
-    "github.com/kinde-oss/kinde-go/oauth2/client_credentials"
-    "github.com/kinde-oss/kinde-go/oauth2/client_credentials/cli"
+  "github.com/kinde-oss/kinde-go/oauth2/client_credentials"
+  "github.com/kinde-oss/kinde-go/frameworks/cli"
+  "github.com/kinde-oss/kinde-go/jwt"
 )
 
 kindeClient, err := client_credentials.NewClientCredentialsFlow(
-    "<issuer URL>",                                                       // Kinde subdomain or any auth provider conforming to the spec
-    "<client_id>",                                                        // required for client_credentials
-    "<client_secret>",                                                    // required for client_credentials
-    client_credentials.WithAudience("[your API audience]"),               // optionally include your API audience
-    client_credentials.WithScopes()                                       // optional - request API scopes
-    client_credentials.WithKindeManagementAPI("<https://my_kinde_tenant.kinde.com>"),   // adds kinde management API audience
-    client_credentials.WithSessionHooks(cli.NewCliSession("my-app-name")), // implement secure token storage
-    client_credentials.WithTokenValidation(                               // validates tokens when a new token is acquired
-        true,                                                             // will validate token signature via JWKS
-        jwt.WillValidateAlgorithm(),                                      // will validate the token alg is RS256
-        jwt.WillValidateAudience("<your API audience>"),                  // will confirm that received token includes correct audience
-    ),
+  "<issuer URL>",                                                    // Kinde subdomain or any auth provider conforming to the spec
+  "<client_id>",                                                     // required for client_credentials
+  "<client_secret>",                                                 // required for client_credentials
+  client_credentials.WithAudience("[your API audience]"),            // optionally include your API audience
+  client_credentials.WithScopes(),                                   // optional - request API scopes
+  client_credentials.WithKindeManagementAPI("https://my_kinde_tenant.kinde.com"),    // adds Kinde Management API audience
+  client_credentials.WithSessionHooks(cli.NewCliSession("my-app-name")), // implement secure token storage
+  client_credentials.WithTokenValidation(                            // validates tokens when a new token is acquired
+    true,                                                          // will validate token signature via JWKS
+    jwt.WillValidateAlgorithm(),                                  // will validate the token alg is RS256
+    jwt.WillValidateAudience("[your API audience]"),              // will confirm that received token includes correct audience
+  ),
 )
 ```
 
@@ -57,22 +58,26 @@ The CLI session uses your operating system's secure keychain/keyring for token s
 
 ```go
 import (
-    "github.com/kinde-oss/kinde-go/frameworks/cli"
+  "github.com/kinde-oss/kinde-go/frameworks/cli"
 )
 
 cliSession, err := cli.NewCliSession("my-app-name")
 if err != nil {
-    // Handle error
+  // Handle error
 }
 
 kindeClient, err := client_credentials.NewClientCredentialsFlow(
-    "<issuer URL>",
-    "<client_id>",
-    "<client_secret>",
-    client_credentials.WithSessionHooks(cliSession),
-    client_credentials.WithKindeManagementAPI("<https://my_kinde_tenant.kinde.com>"),
+  "<issuer URL>",
+  "<client_id>",
+  "<client_secret>",
+  client_credentials.WithKindeManagementAPI("<https://my_kinde_tenant.kinde.com>"),
+  client_credentials.WithSessionHooks(cliSession),
 )
 ```
+
+**Features:**
+
+````
 
 **Features:**
 
@@ -93,7 +98,7 @@ kindeClient, err := client_credentials.NewClientCredentialsFlow(
     "<client_secret>",
     client_credentials.WithKindeManagementAPI("<https://my_kinde_tenant.kinde.com>"),
 )
-```
+````
 
 **Features:**
 
