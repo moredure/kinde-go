@@ -2,6 +2,8 @@
 
 The Kinde SDK for Go.
 
+> **📚 Management API**: For comprehensive information about using the Kinde Management API, see [README_MANAGEMENT_API.md](README_MANAGEMENT_API.md).
+
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com) [![Kinde Docs](https://img.shields.io/badge/Kinde-Docs-eee?style=flat-square)](https://kinde.com/docs/developer-tools) [![Kinde Community](https://img.shields.io/badge/Kinde-Community-eee?style=flat-square)](https://thekindecommunity.slack.com)
 
 ## Development
@@ -94,7 +96,7 @@ kindeClient, err := client_credentials.NewClientCredentialsFlow(
   "<client_secret>",                                                    // required for client_credentials
   client_credentials.WithAudience("[your API audience]"),                             // optioanlly include your API audience
   client_credentials.WithScopes()                                                     // optional - request API scopes
-  client_credentials.WithKindeManagementAPI("<https://my_kinde_tenant.kinde.com>"),   // adds kinde management API audience
+  client_credentials.WithKindeManagementAPI("<https://my_kinde_tenant.kinde.com>"),   // adds kinde management API audience - see README_MANAGEMENT_API.md for details
   client_credentials.WithSessionHooks(<ISessionHooks implementation>),		            // example of CLI is cli.NewCliSession(...)
   client_credentials.WithTokenValidation(                                             // validates tokens when a new token is aquired
     true,                                                               // will validate token signature via JWKS
@@ -121,42 +123,16 @@ When offline scope is requested, refresh tokens will be managed as well.
   //This client will cache the token and re-fetch a new one as it expires
   client := kindeClient.GetClient(context.Background())
 
-  //example call to Kinde Management API (client needs WithKindeManagementAPI(...))
+  //example call to Kinde Management API (client needs WithKindeManagementAPI(...)) - see README_MANAGEMENT_API.md for details
   response, err := client.Get("<an authorized URL>")
 
 ```
 
-### Calling Kinde Management API
+### Management API
 
-`kinde` package, imported with `github.com/kinde-oss/kinde-go/kinde`.
+For comprehensive information about using the Kinde Management API, including authentication, setup, and usage examples, see [README_MANAGEMENT_API.md](README_MANAGEMENT_API.md).
 
-Please note, Kinde management API is only accessible via M2M applications with Management API enabled and limited by the authorized scopes.
-
-You can have multiple applications configured with different levels of access.
-
-Kinde uses generated code to map OpenAPI specification to go.
-
-```go
-	managementApi, err := kinde.NewManagementAPI(ctx, "<kinde domain>", <client credentials flow>)  //management API uses client credentials flow described earlier
-```
-
-For example to create an application
-
-```
-	res, err := managementApi.CreateApplication(ctx, &management_api.CreateApplicationReq{
-		Name: "Backend app",
-		Type: management_api.CreateApplicationReqTypeReg,
-	})
-```
-
-This call returns `CreateApplicationRes` interface, which can be one of the following:
-
-| Interface                          | Description                |
-| ---------------------------------- | -------------------------- |
-| `CreateApplicationBadRequest`      | Incorrect input parameters |
-| `CreateApplicationForbidden`       | Usually missing scope      |
-| `CreateApplicationTooManyRequests` | Throttled response         |
-| `CreateApplicationResponse`        | Successful response        |
+The Management API allows you to programmatically manage your Kinde tenant, including creating applications, managing users, configuring settings, and more. It requires M2M applications with Management API enabled and appropriate scopes configured.
 
 ### JWT helpers
 
@@ -184,6 +160,15 @@ The `jwt` package exposes the following methods:
 | GetSubject | Returns the subject claim from the token. | none | string |
 | GetClaims | Returns all claims from the token as a map. | none | map[string]any |
 | GetValidationErrors | Returns any validation errors encountered during parsing. | none | error |
+
+## Examples
+
+This repository includes several examples demonstrating different authentication flows:
+
+- **CLI Example** (`examples/cli`): Demonstrates device authorization flow and secure token storage
+- **Gin Chat Example** (`examples/gin-chat`): Shows how to integrate Kinde authentication with a Gin web application
+
+For Management API examples and detailed usage, see [README_MANAGEMENT_API.md](README_MANAGEMENT_API.md).
 
 ### SDK Development
 
