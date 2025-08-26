@@ -287,18 +287,18 @@ func validateSession(sessionData string) (*jwt.Token, error) {
 ### 3. Custom Claims Validation
 
 ```go
-func validateUserRole(token *jwt.Token) error {
+func validateFavoriteColorIsBlue(token *jwt.Token) error {
     claims := token.GetClaims()
 
-    if role, exists := claims["role"]; exists {
-        if roleStr, ok := role.(string); ok {
-            if roleStr == "admin" {
-                return nil // Valid admin role
+    if color, exists := claims["favorite_color"]; exists {
+        if colorStr, ok := color.(string); ok {
+            if colorStr == "blue" {
+                return nil // Valid favorite color
             }
         }
     }
 
-    return fmt.Errorf("insufficient permissions")
+    return fmt.Errorf("favorite color is not blue")
 }
 ```
 
