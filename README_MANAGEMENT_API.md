@@ -26,6 +26,12 @@ import (
   "github.com/kinde-oss/kinde-go/jwt"
 )
 
+cliSession, err := cli.NewCliSession("my-app-name")
+if err != nil {
+  // Handle error (e.g., keychain/secret service not available)
+  log.Fatalf("failed to init CLI session: %v", err)
+}
+
 kindeClient, err := client_credentials.NewClientCredentialsFlow(
   "<issuer URL>",                                                    // Kinde subdomain or any auth provider conforming to the spec
   "<client_id>",                                                     // required for client_credentials
@@ -33,7 +39,7 @@ kindeClient, err := client_credentials.NewClientCredentialsFlow(
   client_credentials.WithAudience("[your API audience]"),            // optionally include your API audience
   client_credentials.WithScopes(),                                   // optional - request API scopes
   client_credentials.WithKindeManagementAPI("https://my_kinde_tenant.kinde.com"),    // adds Kinde Management API audience
-  client_credentials.WithSessionHooks(cli.NewCliSession("my-app-name")), // implement secure token storage
+  client_credentials.WithSessionHooks(cliSession),                   // implement secure token storage
   client_credentials.WithTokenValidation(                            // validates tokens when a new token is acquired
     true,                                                          // will validate token signature via JWKS
     jwt.WillValidateAlgorithm(),                                  // will validate the token alg is RS256
@@ -77,10 +83,6 @@ kindeClient, err := client_credentials.NewClientCredentialsFlow(
 
 **Features:**
 
-````
-
-**Features:**
-
 - Uses OS-native secure storage (Keychain on macOS, Credential Manager on Windows, Secret Service on Linux)
 - Automatically handles token chunking for large tokens
 - Secure by default with proper access controls
@@ -98,7 +100,7 @@ kindeClient, err := client_credentials.NewClientCredentialsFlow(
     "<client_secret>",
     client_credentials.WithKindeManagementAPI("<https://my_kinde_tenant.kinde.com>"),
 )
-````
+```
 
 **Features:**
 
@@ -206,15 +208,9 @@ The Management API provides comprehensive access to manage your Kinde tenant. Ke
 
 ## Security Considerations
 
-- **Token Storage**: Always use secure token storage. The CLI session storage uses your OS's secure storage, but for production applications, implement appropriate security measures.
-- **Session Implementation**: Choose the right session storage for your use case:
-  - **CLI Session**: Best for command-line tools and desktop applications
-  - **Memory Session**: Only for testing and short-lived processes
-  - **Custom Session**: Implement with proper encryption and access controls for production
-- **Scope Limitation**: Only request the scopes your application actually needs.
 - **Audience Validation**: Always validate that tokens include the correct audience.
-- **Token Refresh**: The SDK automatically handles token refresh, but ensure your session storage can persist refresh tokens.
-- **Token Persistence**: Ensure your session storage can handle token size and implements proper cleanup for expired tokens.
+- **Access Token Renewal**: In client_credentials flow, the SDK automatically reacquires access tokens using client credentials (no refresh tokens are issued).
+- **Token Persistence**: Ensure your session storage (if used) can handle token size and implements proper cleanup policies.
 
 ## Error Handling
 

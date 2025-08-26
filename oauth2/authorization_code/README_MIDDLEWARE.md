@@ -52,7 +52,7 @@ func main() {
     })
 
     // Wrap with middleware
-    protectedWithAuth := flow.Middleware(protectedHandler)
+    protectedWithAuth := flow.InjectTokenMiddleware(protectedHandler)
 
     // Use in your mux/router
     mux := http.NewServeMux()

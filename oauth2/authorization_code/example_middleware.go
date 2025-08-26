@@ -32,7 +32,7 @@ func ExampleMiddlewareUsage() {
 	})
 
 	// Wrap your handler with the middleware
-	// protectedHandler := flow.Middleware(handler)
+	// protectedHandler := flow.InjectTokenMiddleware(handler)
 
 	// Use the protected handler in your mux/router
 	// mux.Handle("/protected", protectedHandler)

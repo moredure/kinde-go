@@ -45,9 +45,9 @@ The device authorization flow is an extension of the authorization code flow tha
 ```go
 deviceFlow, err := authorization_code.NewDeviceAuthorizationFlow(
   "<issuer_domain>",                                    // Kinde subdomain or any auth provider conforming to the spec
-  authorization_code.WithClientID(),                    // optional, when business provides a default device application, otherwise required
-  authorization_code.WithClientSecret(),                // optional (used when device flow is used against backend application with a secret)
-  authorization_code.WithSessionHooks(<ISessionHooks implementation>),		  // used for storing/retrieving tokens
+  authorization_code.WithClientID("<your-client-id>"),  // optional, when business provides a default device application, otherwise required
+  authorization_code.WithClientSecret("<your-client-secret>"), // optional (used when device flow is used against backend application with a secret)
+  authorization_code.WithSessionHooks(<ISessionHooks implementation>),      // used for storing/retrieving tokens
   authorization_code.WithOffline(),                     // optional - include if you'd like to maintain refresh tokens and a long session
   authorization_code.WithTokenValidation(
     true,                                               // will validate token signature via JWKS
@@ -55,6 +55,8 @@ deviceFlow, err := authorization_code.NewDeviceAuthorizationFlow(
   ),
 )
 ```
+
+### Available Methods
 
 ### Available Methods
 
@@ -66,6 +68,7 @@ deviceFlow, err := authorization_code.NewDeviceAuthorizationFlow(
 | `IsAuthenticated` | Checks if the user is authenticated. | ctx `context.Context` | `(bool, error)` |
 | `Logout` | Clears local tokens and logs the user out. | none | `error` |
 | `GetToken` | Returns the token for the current session. | ctx `context.Context` | `(*jwt.Token, error)` |
+| `InjectTokenMiddleware` | Middleware that injects the auth token into request context. | next `http.Handler` | `http.Handler` |
 
 ## Middleware
 

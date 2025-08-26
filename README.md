@@ -66,16 +66,16 @@ Client willl manage tokens in the background, reading/persisting them to provide
 
 When offline scope is requested, refresh tokens will be managed as well.
 
-````go
+```go
 // This client will cache the token and re-fetch a new one as it expires
 client, err := kindeClient.GetClient(context.Background())
 if err != nil {
   // handle initialization error (e.g., invalid config or token source)
   log.Fatalf("failed to init client: %v", err)
 }
+```
 
-// example call to Kinde Management API (client needs WithKindeManagementAPI(...)) - see README_MANAGEMENT_API.md for details
-response, err := client.Get("<an authorized URL>")
+// example call to Kinde Management API (client needs WithKindeManagementAPI(...)) - see README_MANAGEMENT_API.md for details response, err := client.Get("<an authorized URL>")
 
 ### Management API
 
@@ -131,7 +131,7 @@ For Management API examples and detailed usage, see [README_MANAGEMENT_API.md](R
 
    ```bash
    git clone https://github.com/kinde-oss/kinde-go.git
-````
+   ```
 
 2. Go into the project:
 
@@ -160,3 +160,7 @@ Please refer to Kinde’s [contributing guidelines](https://github.com/kinde-os
 ## License
 
 By contributing to Kinde, you agree that your contributions will be licensed under its MIT License.
+
+```
+
+```
