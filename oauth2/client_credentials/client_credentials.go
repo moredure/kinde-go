@@ -62,7 +62,7 @@ func NewClientCredentialsFlow(baseURL string, clientID string, clientSecret stri
 	}
 
 	if flow.sessionHooks == nil {
-		return nil, fmt.Errorf("session hooks cannot be nil")
+		flow.sessionHooks = NewMemorySessionHooks()
 	}
 
 	return flow, nil
