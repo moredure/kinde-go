@@ -62,7 +62,7 @@ kindeClient, err := client_credentials.NewClientCredentialsFlow(
 
 #### Using client to request an authorized endpoint
 
-Client willl manage tokens in the background, reading/persisting them to provided the session storage.
+Client will manage tokens in the background, reading/persisting them to provided the session storage.
 
 When offline scope is requested, refresh tokens will be managed as well.
 
