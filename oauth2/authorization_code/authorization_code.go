@@ -16,6 +16,7 @@ import (
 )
 
 type (
+	contextKey string
 
 	// ISessionHooks defines the interface for session management in the authorization code flow.
 	ISessionHooks interface {
@@ -51,6 +52,8 @@ type (
 		Logout() error
 		// A helper handler middleware for the code exchanger
 		AuthorizationCodeReceivedHandler(w http.ResponseWriter, r *http.Request)
+		// InjectTokenMiddleware that injects the token into the request context
+		InjectTokenMiddleware(next http.Handler) http.Handler
 	}
 
 	// IDeviceAuthorizationFlow represents the interface for the device authorization flow.
@@ -283,6 +286,29 @@ func (flow *AuthorizationCodeFlow) GetClient(ctx context.Context) (*http.Client,
 	return oauth2.NewClient(ctx, tokenSource), nil
 }
 
+// InjectTokenMiddleware injects the token into the request context for downstream handlers
+func (flow *AuthorizationCodeFlow) InjectTokenMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get the token from the session
+		token, err := flow.GetToken(r.Context())
+		if err != nil {
+			// If token retrieval fails, continue without token in context
+			// This allows downstream handlers to handle authentication as needed
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Create a new context with the token
+		ctx := context.WithValue(r.Context(), contextKey("kinde_token"), token)
+
+		// Create a new request with the updated context
+		newReq := r.WithContext(ctx)
+
+		// Call the next handler with the updated request
+		next.ServeHTTP(w, newReq)
+	})
+}
+
 func (flow *AuthorizationCodeFlow) getTokenSource(_ context.Context) (sessionTokenSource, error) {
 	return sessionTokenSource{flow: flow}, nil
 }
@@ -299,4 +325,11 @@ func generateCodeVerifier() (string, error) {
 func generateCodeChallenge(codeVerifier string) string {
 	hash := sha256.Sum256([]byte(codeVerifier))
 	return base64.RawURLEncoding.EncodeToString(hash[:])
+}
+
+// TokenFromContext extracts the Kinde token from the request context
+// This is a helper function for downstream handlers to access the token
+func TokenFromContext(ctx context.Context) (*jwt.Token, bool) {
+	token, ok := ctx.Value(contextKey("kinde_token")).(*jwt.Token)
+	return token, ok
 }
