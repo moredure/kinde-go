@@ -83,32 +83,17 @@ For comprehensive information about using the Kinde Management API, including au
 
 The Management API allows you to programmatically manage your Kinde tenant, including creating applications, managing users, configuring settings, and more. It requires M2M applications with Management API enabled and appropriate scopes configured.
 
-### JWT helpers
+### JWT Package
 
-`jwt` package, imported with `github.com/kinde-oss/kinde-go/jwt`
+The `jwt` package provides comprehensive JWT parsing, validation, and management capabilities. For detailed documentation, examples, and use cases, see the [JWT Package README](jwt/README.md).
 
-The `jwt` package exposes the following methods:
+**Quick Overview:**
 
-| Function Name | Description | Parameters | Returns |
-| --- | --- | --- | --- |
-| ParseFromAuthorizationHeader | Parses the token from the HTTP Authorization header and validates it using the provided options. | r *http.Request, options ...func(*Token) | (\*Token, error) |
-| ParseFromString | Parses the given raw access token string and validates it using the provided options. | rawAccessToken string, options ...func(\*Token) | (\*Token, error) |
-| ParseFromSessionStorage | Parses the token from a session storage string (JSON), extracts extra fields, and validates it with options. | rawToken string, options ...func(\*Token) | (\*Token, error) |
-| ParseOAuth2Token | Parses the given OAuth2 token and validates it using the provided options. | rawToken *oauth2.Token, options ...func(*Token) | (\*Token, error) |
-
-### JWT token helpers
-
-| Function Name | Description | Parameters | Returns |
-| --- | --- | --- | --- |
-| GetRawToken | Returns the raw OAuth2 token. | none | \*oauth2.Token |
-| GetIdToken | Retrieves the ID token if present. | none | (string, bool) |
-| GetAccessToken | Retrieves the access token if present. | none | (string, bool) |
-| GetRefreshToken | Retrieves the refresh token if present. | none | (string, bool) |
-| AsString | Returns the raw token as a JSON string. | none | (string, error) |
-| IsValid | Indicates if the token is valid. | none | bool |
-| GetSubject | Returns the subject claim from the token. | none | string |
-| GetClaims | Returns all claims from the token as a map. | none | map[string]any |
-| GetValidationErrors | Returns any validation errors encountered during parsing. | none | error |
+- Parse JWT tokens from HTTP headers, strings, session storage, or OAuth2 tokens
+- Flexible validation options (algorithm, audience, issuer, claims, etc.)
+- JWKS support for token signature validation
+- Comprehensive token information access
+- Seamless integration with OAuth2 flows
 
 ## Examples
 
