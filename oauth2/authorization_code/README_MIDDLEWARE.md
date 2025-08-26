@@ -127,13 +127,23 @@ func RequireScope(requiredScope string) func(http.Handler) http.Handler {
 
             // Check if user has required scope
             claims := token.GetClaims()
+            // Check for array of scopes
             if scopes, ok := claims["scp"].([]interface{}); ok {
-                for _, scope := range scopes {
-                    if scope == requiredScope {
-                        next.ServeHTTP(w, r)
-                        return
-                    }
+              for _, v := range scopes {
+                if s, ok := v.(string); ok && s == requiredScope {
+                  next.ServeHTTP(w, r)
+                  return
                 }
+              }
+            }
+            // Check for space-delimited scope string
+            if scopeStr, ok := claims["scope"].(string); ok {
+              for _, s := range strings.Split(scopeStr, " ") {
+                if s == requiredScope {
+                  next.ServeHTTP(w, r)
+                  return
+                }
+              }
             }
 
             http.Error(w, "Insufficient permissions", http.StatusForbidden)

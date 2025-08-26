@@ -58,8 +58,6 @@ deviceFlow, err := authorization_code.NewDeviceAuthorizationFlow(
 
 ### Available Methods
 
-### Available Methods
-
 | Method | Description | Parameters | Returns |
 | --- | --- | --- | --- |
 | `StartDeviceAuth` | Starts the device authorization flow and returns the device authorization response. | ctx `context.Context` | `(*oauth2.DeviceAuthResponse, error)` |
