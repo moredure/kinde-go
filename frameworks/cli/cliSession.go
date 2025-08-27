@@ -3,10 +3,14 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+	"syscall"
 
 	"github.com/99designs/keyring"
 	"github.com/kinde-oss/kinde-go/oauth2/authorization_code"
 	"golang.org/x/oauth2"
+	"golang.org/x/term"
 )
 
 const (
@@ -183,7 +187,19 @@ func NewCliSession(serviceName string) (authorization_code.ISessionHooks, error)
 	ring, err := keyring.Open(keyring.Config{
 		KeychainTrustApplication: true,
 		ServiceName:              serviceName,
-	})
+		KeychainName:             strings.ReplaceAll(serviceName, ".", "_"),
+		KeychainPasswordFunc: func(prompt string) (string, error) {
+			if !term.IsTerminal(int(os.Stdin.Fd())) {
+				return "", fmt.Errorf("cannot initialize keychain, please run in interactive terminal first to provide password")
+			}
+			fmt.Printf("%s", prompt)
+			password, err := term.ReadPassword(int(syscall.Stdin))
+			if err != nil {
+				fmt.Println("\nError reading password:", err)
+				return "", err
+			}
+			return string(password), nil
+		}})
 
 	if err != nil {
 		return nil, err
