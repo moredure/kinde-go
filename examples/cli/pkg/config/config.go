@@ -14,7 +14,7 @@ type Config struct {
 }
 
 func NewDeviceAuthorizationFlow(issuerDomain string) (authorization_code.IDeviceAuthorizationFlow, error) {
-	cliSession, err := cli.NewCliSession(CLI_NAME)
+	cliSession, err := cli.NewCliSession(issuerDomain)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}

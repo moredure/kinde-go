@@ -50,12 +50,12 @@ func (c *cliSession) SetCodeVerifier(codeVerifier string) error {
 func (c *cliSession) getChunkCount(key string) (int, error) {
 	countItem, err := c.keyring.Get(key)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get chunk count: %w", err)
+		return 0, fmt.Errorf("failed to get token chunk count: %w", err)
 	}
 
 	var chunks int
 	if _, err := fmt.Sscanf(string(countItem.Data), "%d", &chunks); err != nil {
-		return 0, fmt.Errorf("failed to parse chunk count: %w", err)
+		return 0, fmt.Errorf("failed to parse token chunk count: %w", err)
 	}
 	return chunks, nil
 }
@@ -183,14 +183,28 @@ func (c *cliSession) SetState(state string) error {
 	return fmt.Errorf("not supported in CLI session")
 }
 
+func normalizeServiceName(name string) string {
+	// Replace special characters and spaces that could cause issues in keychain
+	normalized := strings.ReplaceAll(name, "/", "_")
+	normalized = strings.ReplaceAll(normalized, ":", "_")
+	normalized = strings.ReplaceAll(normalized, ".", "_")
+	normalized = strings.ReplaceAll(normalized, " ", "_")
+	return normalized
+}
+
 func NewCliSession(serviceName string) (authorization_code.ISessionHooks, error) {
+
+	// In NewCliSession:
 	ring, err := keyring.Open(keyring.Config{
 		KeychainTrustApplication: true,
 		ServiceName:              serviceName,
-		KeychainName:             strings.ReplaceAll(serviceName, ".", "_"),
+		KeychainName:             fmt.Sprintf("kinde_cli/%s", normalizeServiceName(serviceName)),
 		KeychainPasswordFunc: func(prompt string) (string, error) {
+			if pass := os.Getenv("KINDE_KEYCHAIN_PASS"); pass != "" {
+				return pass, nil
+			}
 			if !term.IsTerminal(int(os.Stdin.Fd())) {
-				return "", fmt.Errorf("cannot initialize keychain, please run in interactive terminal first to provide password")
+				return "", fmt.Errorf("Cannot initialize keychain, please run in interactive terminal first to provide password or provide KINDE_KEYCHAIN_PASS environment variable")
 			}
 			fmt.Printf("%s", prompt)
 			password, err := term.ReadPassword(int(syscall.Stdin))
