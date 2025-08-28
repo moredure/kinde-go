@@ -48,6 +48,8 @@ func (c *cliSession) SetCodeVerifier(codeVerifier string) error {
 }
 
 func (c *cliSession) getChunkCount(key string) (int, error) {
+	xx, _ := c.keyring.Keys()
+	fmt.Printf("Keys in keyring: %v\n", xx)
 	countItem, err := c.keyring.Get(key)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get token chunk count: %w", err)
@@ -195,25 +197,30 @@ func normalizeServiceName(name string) string {
 func NewCliSession(serviceName string) (authorization_code.ISessionHooks, error) {
 
 	// In NewCliSession:
+	getPassFunc := func(prompt string) (string, error) {
+		if pass := os.Getenv("KINDE_KEYCHAIN_PASS"); pass != "" {
+			return pass, nil
+		}
+		if !term.IsTerminal(int(os.Stdin.Fd())) {
+			return "", fmt.Errorf("Cannot initialize keychain, please run in interactive terminal first to provide password or provide KINDE_KEYCHAIN_PASS environment variable")
+		}
+		fmt.Printf("%s", prompt)
+		password, err := term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			fmt.Println("\nError reading password:", err)
+			return "", err
+		}
+		return string(password), nil
+	}
+	keychainName := fmt.Sprintf("kinde_cli/%s", normalizeServiceName(serviceName))
+	serviceName = fmt.Sprintf("%s", normalizeServiceName(serviceName))
 	ring, err := keyring.Open(keyring.Config{
 		KeychainTrustApplication: true,
 		ServiceName:              serviceName,
-		KeychainName:             fmt.Sprintf("kinde_cli/%s", normalizeServiceName(serviceName)),
-		KeychainPasswordFunc: func(prompt string) (string, error) {
-			if pass := os.Getenv("KINDE_KEYCHAIN_PASS"); pass != "" {
-				return pass, nil
-			}
-			if !term.IsTerminal(int(os.Stdin.Fd())) {
-				return "", fmt.Errorf("Cannot initialize keychain, please run in interactive terminal first to provide password or provide KINDE_KEYCHAIN_PASS environment variable")
-			}
-			fmt.Printf("%s", prompt)
-			password, err := term.ReadPassword(int(syscall.Stdin))
-			if err != nil {
-				fmt.Println("\nError reading password:", err)
-				return "", err
-			}
-			return string(password), nil
-		}})
+		KeychainName:             keychainName,
+		KeychainPasswordFunc:     getPassFunc,
+		FilePasswordFunc:         getPassFunc,
+	})
 
 	if err != nil {
 		return nil, err
