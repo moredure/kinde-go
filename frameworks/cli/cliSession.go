@@ -216,7 +216,7 @@ func NewCliSession(serviceName string, opts ...Option) (authorization_code.ISess
 	serviceNameNorm := normalizeServiceName(serviceName)
 
 	// Collect options (could be passed in as variadic args to NewCliSession)
-	opts = append(opts,
+	defaultOpts := []Option{
 		WithAllowedBackends([]keyring.BackendType{keyring.WinCredBackend, keyring.KeychainBackend, keyring.FileBackend}),
 		WithKeychainTrustApplication(true),
 		WithServiceName(serviceNameNorm),
@@ -224,7 +224,9 @@ func NewCliSession(serviceName string, opts ...Option) (authorization_code.ISess
 		WithKeychainPasswordFunc(getPassFunc),
 		WithFilePasswordFunc(getPassFunc),
 		WithFileDir(fmt.Sprintf("~/.config/%s", serviceNameNorm)),
-	)
+	}
+
+	opts = append(defaultOpts, opts...)
 
 	// Build config using options
 	var cfg keyring.Config
