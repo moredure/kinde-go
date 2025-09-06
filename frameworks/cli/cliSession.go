@@ -50,12 +50,12 @@ func (c *cliSession) SetCodeVerifier(codeVerifier string) error {
 func (c *cliSession) getChunkCount(key string) (int, error) {
 	countItem, err := c.keyring.Get(key)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get chunk count: %w", err)
+		return 0, fmt.Errorf("failed to get token chunk count: %w", err)
 	}
 
 	var chunks int
 	if _, err := fmt.Sscanf(string(countItem.Data), "%d", &chunks); err != nil {
-		return 0, fmt.Errorf("failed to parse chunk count: %w", err)
+		return 0, fmt.Errorf("failed to parse token chunk count: %w", err)
 	}
 	return chunks, nil
 }
@@ -81,7 +81,7 @@ func (c *cliSession) GetRawToken() (*oauth2.Token, error) {
 	}
 
 	var tokenData []byte
-	for i := 0; i < chunks; i++ {
+	for i := range chunks {
 		chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
 		chunkItem, err := c.keyring.Get(chunkKey)
 		if err != nil {
@@ -183,23 +183,56 @@ func (c *cliSession) SetState(state string) error {
 	return fmt.Errorf("not supported in CLI session")
 }
 
-func NewCliSession(serviceName string) (authorization_code.ISessionHooks, error) {
-	ring, err := keyring.Open(keyring.Config{
-		KeychainTrustApplication: true,
-		ServiceName:              serviceName,
-		KeychainName:             strings.ReplaceAll(serviceName, ".", "_"),
-		KeychainPasswordFunc: func(prompt string) (string, error) {
-			if !term.IsTerminal(int(os.Stdin.Fd())) {
-				return "", fmt.Errorf("cannot initialize keychain, please run in interactive terminal first to provide password")
-			}
-			fmt.Printf("%s", prompt)
-			password, err := term.ReadPassword(int(syscall.Stdin))
-			if err != nil {
-				fmt.Println("\nError reading password:", err)
-				return "", err
-			}
-			return string(password), nil
-		}})
+func normalizeServiceName(name string) string {
+	// Replace special characters and spaces that could cause issues in keychain
+	normalized := strings.ReplaceAll(name, "/", "_")
+	normalized = strings.ReplaceAll(normalized, ":", "_")
+	normalized = strings.ReplaceAll(normalized, ".", "_")
+	normalized = strings.ReplaceAll(normalized, " ", "_")
+	return normalized
+}
+
+func NewCliSession(serviceName string, opts ...Option) (authorization_code.ISessionHooks, error) {
+
+	// In NewCliSession:
+	getPassFunc := func(prompt string) (string, error) {
+		if pass := os.Getenv("KINDE_KEYCHAIN_PASS"); pass != "" {
+			return pass, nil
+		}
+		if !term.IsTerminal(int(os.Stdin.Fd())) {
+			return "", fmt.Errorf("Cannot initialize keychain, please run in interactive terminal first to provide password or provide KINDE_KEYCHAIN_PASS environment variable")
+		}
+		fmt.Printf("%s", prompt)
+		password, err := term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			fmt.Println("\nError reading password:", err)
+			return "", err
+		}
+		return string(password), nil
+	}
+
+	// Default values
+	keychainName := fmt.Sprintf("kinde_cli/%s", normalizeServiceName(serviceName))
+	serviceNameNorm := normalizeServiceName(serviceName)
+
+	// Collect options (could be passed in as variadic args to NewCliSession)
+	opts = append(opts,
+		WithAllowedBackends([]keyring.BackendType{keyring.WinCredBackend, keyring.KeychainBackend, keyring.FileBackend}),
+		WithKeychainTrustApplication(true),
+		WithServiceName(serviceNameNorm),
+		WithKeychainName(keychainName),
+		WithKeychainPasswordFunc(getPassFunc),
+		WithFilePasswordFunc(getPassFunc),
+		WithFileDir(fmt.Sprintf("~/.config/%s", serviceNameNorm)),
+	)
+
+	// Build config using options
+	var cfg keyring.Config
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	ring, err := keyring.Open(cfg)
 
 	if err != nil {
 		return nil, err

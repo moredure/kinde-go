@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"errors"
+	"path"
 	"testing"
 
 	"github.com/99designs/keyring"
@@ -14,7 +15,8 @@ func TestNewCliSession(t *testing.T) {
 
 	assert := assert.New(t)
 
-	session, err := NewCliSession("test-cli")
+	opts := []Option{WithFileDir(path.Join(t.TempDir(), ".test_keyring")), WithAllowedBackends([]keyring.BackendType{keyring.FileBackend})}
+	session, err := NewCliSession("test-cli", opts...)
 	assert.Nil(err)
 	assert.NotNil(session)
 

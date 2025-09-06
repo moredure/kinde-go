@@ -26,7 +26,10 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}/examples/cli/cmd/example-cli",
-      "args": ["login", "--kinde-domain", "https://${input:commandline}"]
+      "args": ["login", "--kinde-domain", "https://${input:commandline}"],
+      "env": {
+        "KINDE_KEYCHAIN_PASS": "some_super_secret"
+      }
     },
     {
       "name": "Launch example CLI - whoami",
@@ -34,7 +37,10 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}/examples/cli/cmd/example-cli",
-      "args": ["whoami", "--kinde-domain", "https://${input:commandline}"]
+      "args": ["whoami", "--kinde-domain", "https://${input:commandline}"],
+      "env": {
+        "KINDE_KEYCHAIN_PASS": "some_super_secret"
+      }
     },
     {
       "name": "Launch example CLI - logout",
