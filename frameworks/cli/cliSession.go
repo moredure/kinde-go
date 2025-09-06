@@ -35,6 +35,7 @@ type (
 func (c *cliSession) DeleteKey(key string) error {
 	countKey := fmt.Sprintf("%s_chunk_count", key)
 	errs := make([]error, 0)
+
 	err := c.keyring.Remove(key)
 	if err != nil {
 		// If the key doesn't exist, it's not an error
@@ -45,19 +46,27 @@ func (c *cliSession) DeleteKey(key string) error {
 	if err != nil {
 		errs = append(errs, fmt.Errorf("failed to remove key %q: %w", key, err))
 	}
+
 	// Remove chunked keys and chunk count
 	if chunks, err := c.getChunkCount(countKey); err == nil {
 		for i := range chunks {
 			chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
 			if err := c.keyring.Remove(chunkKey); err != nil {
-				break
+				// Log the error but continue trying to remove other chunks
+				if !errors.Is(err, keyring.ErrKeyNotFound) {
+					errs = append(errs, fmt.Errorf("failed to remove chunk %d: %w", i, err))
+				}
 			}
 		}
 	}
+
 	err = c.keyring.Remove(countKey)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("failed to remove chunk count: %w", err))
+		if !errors.Is(err, keyring.ErrKeyNotFound) {
+			errs = append(errs, fmt.Errorf("failed to remove chunk count: %w", err))
+		}
 	}
+
 	if len(errs) > 0 {
 		return fmt.Errorf("error while deleting a key %q: %v", key, errs)
 	}

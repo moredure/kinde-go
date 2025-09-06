@@ -303,7 +303,7 @@ func TestCliSession_DeleteKey_ChunkRemoveError(t *testing.T) {
 		},
 		getErrs: map[string]error{},
 	}
-	// Simulate error on removing chunk_0
+	// Simulate error on removing chunk_0, allow chunk_1 to be removed
 	mk.RemoveFunc = func(key string) error {
 		if key == "mykey_chunk_0" {
 			return errors.New("remove error")
@@ -313,11 +313,12 @@ func TestCliSession_DeleteKey_ChunkRemoveError(t *testing.T) {
 	}
 	cs := &cliSession{keyring: mk}
 	err := cs.DeleteKey("mykey")
-	assert.Nil(err) // Should not propagate error
+	assert.NotNil(err) // Should propagate error
+	assert.Contains(err.Error(), "failed to remove chunk 0")
 	_, exists0 := mk.items["mykey_chunk_0"]
 	_, exists1 := mk.items["mykey_chunk_1"]
-	assert.True(exists0) // chunk_0 not removed due to error
-	assert.True(exists1) // chunk_1 not removed due to break
+	assert.True(exists0)  // chunk_0 not removed due to error
+	assert.False(exists1) // chunk_1 should be removed
 }
 
 func TestCliSession_DeleteKey_KeyAndChunksNotExist(t *testing.T) {
