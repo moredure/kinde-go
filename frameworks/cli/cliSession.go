@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -21,7 +22,74 @@ type (
 	cliSession struct {
 		keyring keyring.Keyring
 	}
+
+	ICliSession interface {
+		authorization_code.ISessionHooks
+		SetKey(key string, value []byte) error
+		GetKey(key string) ([]byte, error)
+		DeleteKey(key string) error
+	}
 )
+
+// DeleteKey removes key from keyring.
+func (c *cliSession) DeleteKey(key string) error {
+	countKey := fmt.Sprintf("%s_chunk_count", key)
+	errs := make([]error, 0)
+	err := c.keyring.Remove(key)
+	if err != nil {
+		// If the key doesn't exist, it's not an error
+		if errors.Is(err, keyring.ErrKeyNotFound) {
+			err = nil
+		}
+	}
+	if err != nil {
+		errs = append(errs, fmt.Errorf("failed to remove key %q: %w", key, err))
+	}
+	// Remove chunked keys and chunk count
+	if chunks, err := c.getChunkCount(countKey); err == nil {
+		for i := range chunks {
+			chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
+			if err := c.keyring.Remove(chunkKey); err != nil {
+				break
+			}
+		}
+	}
+	err = c.keyring.Remove(countKey)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("failed to remove chunk count: %w", err))
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("error while deleting a key %q: %v", key, errs)
+	}
+	return nil
+}
+
+// GetKey reads key from keyring.
+func (c *cliSession) GetKey(key string) ([]byte, error) {
+	countKey := fmt.Sprintf("%s_chunk_count", key)
+
+	// Try to get chunk count
+	chunks, err := c.getChunkCount(countKey)
+	if err != nil {
+		// fallback to single ringItem (old format)
+		ringItem, err := c.keyring.Get(key)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get token: %w", err)
+		}
+		return ringItem.Data, nil
+	}
+
+	var keyData []byte
+	for i := range chunks {
+		chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
+		chunkItem, err := c.keyring.Get(chunkKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get token chunk %d: %w", i, err)
+		}
+		keyData = append(keyData, chunkItem.Data...)
+	}
+	return keyData, nil
+}
 
 // GetCodeVerifier implements authorization_code.ISessionHooks.
 func (c *cliSession) GetCodeVerifier() (string, error) {
@@ -63,31 +131,10 @@ func (c *cliSession) getChunkCount(key string) (int, error) {
 // GetRawToken implements authorization_code.ISessionHooks.
 func (c *cliSession) GetRawToken() (*oauth2.Token, error) {
 	key := fmt.Sprintf("%s_token", keyPrefix)
-	countKey := fmt.Sprintf("%s_chunk_count", key)
 
-	// Try to get chunk count
-	chunks, err := c.getChunkCount(countKey)
+	tokenData, err := c.GetKey(key)
 	if err != nil {
-		// fallback to single token (old format)
-		token, err := c.keyring.Get(key)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get token: %w", err)
-		}
-		var t oauth2.Token
-		if err := json.Unmarshal(token.Data, &t); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal token: %w", err)
-		}
-		return &t, nil
-	}
-
-	var tokenData []byte
-	for i := range chunks {
-		chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
-		chunkItem, err := c.keyring.Get(chunkKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get token chunk %d: %w", i, err)
-		}
-		tokenData = append(tokenData, chunkItem.Data...)
+		return nil, fmt.Errorf("failed to read token: %w", err)
 	}
 
 	var t oauth2.Token
@@ -100,22 +147,9 @@ func (c *cliSession) GetRawToken() (*oauth2.Token, error) {
 // SetRawToken implements authorization_code.ISessionHooks.
 func (c *cliSession) SetRawToken(token *oauth2.Token) error {
 	key := fmt.Sprintf("%s_token", keyPrefix)
-	countKey := fmt.Sprintf("%s_chunk_count", key)
 
 	if token == nil {
-		// Remove legacy single-key entry
-		_ = c.keyring.Remove(key)
-		// Remove chunked keys and chunk count
-		if chunks, err := c.getChunkCount(countKey); err == nil {
-			for i := range chunks {
-				chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
-				if err := c.keyring.Remove(chunkKey); err != nil {
-					break
-				}
-			}
-		}
-		_ = c.keyring.Remove(countKey)
-		return nil
+		return c.DeleteKey(key)
 	}
 
 	t, err := json.Marshal(token)
@@ -123,8 +157,24 @@ func (c *cliSession) SetRawToken(token *oauth2.Token) error {
 		return fmt.Errorf("failed to marshal token: %w", err)
 	}
 
+	err = c.SetKey(key, t)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *cliSession) SetKey(key string, value []byte) error {
+	countKey := fmt.Sprintf("%s_chunk_count", key)
+
+	if len(value) == 0 {
+		// Remove legacy single-key entry
+		return c.DeleteKey(key)
+	}
+
 	const chunkSize = 1024
-	chunks := (len(t) + chunkSize - 1) / chunkSize
+	chunks := (len(value) + chunkSize - 1) / chunkSize
 
 	// Try to get chunk count
 	if chunks, err := c.getChunkCount(countKey); err == nil {
@@ -140,11 +190,11 @@ func (c *cliSession) SetRawToken(token *oauth2.Token) error {
 	// Save chunks
 	for i := range chunks {
 		start := i * chunkSize
-		end := min(start+chunkSize, len(t))
+		end := min(start+chunkSize, len(value))
 		chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
 		if err := c.keyring.Set(keyring.Item{
 			Key:  chunkKey,
-			Data: t[start:end],
+			Data: value[start:end],
 		}); err != nil {
 			return fmt.Errorf("failed to save token chunk %d: %w", i, err)
 		}
@@ -159,7 +209,6 @@ func (c *cliSession) SetRawToken(token *oauth2.Token) error {
 	}); err != nil {
 		return fmt.Errorf("failed to save chunk count: %w", err)
 	}
-
 	return nil
 }
 
@@ -192,7 +241,7 @@ func normalizeServiceName(name string) string {
 	return normalized
 }
 
-func NewCliSession(serviceName string, opts ...Option) (authorization_code.ISessionHooks, error) {
+func NewCliSession(serviceName string, opts ...Option) (ICliSession, error) {
 
 	// In NewCliSession:
 	getPassFunc := func(prompt string) (string, error) {

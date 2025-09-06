@@ -24,8 +24,9 @@ func TestNewCliSession(t *testing.T) {
 
 // mockKeyring implements keyring.Keyring for testing
 type mockKeyring struct {
-	items   map[string]keyring.Item
-	getErrs map[string]error
+	items      map[string]keyring.Item
+	getErrs    map[string]error
+	RemoveFunc func(key string) error
 }
 
 func (m *mockKeyring) Get(key string) (keyring.Item, error) {
@@ -38,10 +39,19 @@ func (m *mockKeyring) Get(key string) (keyring.Item, error) {
 	}
 	return item, nil
 }
-func (m *mockKeyring) Set(item keyring.Item) error { m.items[item.Key] = item; return nil }
-func (m *mockKeyring) Remove(key string) error     { delete(m.items, key); return nil }
-func (m *mockKeyring) Keys() ([]string, error)     { return nil, nil }
-func (m *mockKeyring) Reset() error                { m.items = map[string]keyring.Item{}; return nil }
+func (m *mockKeyring) Remove(key string) error {
+	if m.RemoveFunc != nil {
+		return m.RemoveFunc(key)
+	}
+	delete(m.items, key)
+	return nil
+}
+func (m *mockKeyring) Set(item keyring.Item) error {
+	m.items[item.Key] = item
+	return nil
+}
+func (m *mockKeyring) Keys() ([]string, error) { return nil, nil }
+func (m *mockKeyring) Reset() error            { m.items = map[string]keyring.Item{}; return nil }
 
 // GetMetadata implements keyring.Keyring for testing.
 func (m *mockKeyring) GetMetadata(key string) (keyring.Metadata, error) {
@@ -147,4 +157,176 @@ func TestCliSession_GetRawToken_UnmarshalError(t *testing.T) {
 	assert.NotNil(err)
 	assert.Nil(got)
 	assert.Contains(err.Error(), "failed to unmarshal token")
+}
+
+func TestCliSession_DeleteKey_KeyNotFound(t *testing.T) {
+	assert := assert.New(t)
+	mk := &mockKeyring{
+		items:   map[string]keyring.Item{},
+		getErrs: map[string]error{},
+	}
+	cs := &cliSession{keyring: mk}
+	err := cs.DeleteKey("missingkey")
+	assert.Nil(err) // Remove should not error if key doesn't exist
+}
+func TestCliSession_GetKey_SingleKey(t *testing.T) {
+	assert := assert.New(t)
+	expected := []byte("single_value")
+	mk := &mockKeyring{
+		items: map[string]keyring.Item{
+			"mykey": {Key: "mykey", Data: expected},
+		},
+		getErrs: map[string]error{
+			"mykey_chunk_count": keyring.ErrKeyNotFound,
+		},
+	}
+	cs := &cliSession{keyring: mk}
+	val, err := cs.GetKey("mykey")
+	assert.Nil(err)
+	assert.Equal(expected, val)
+}
+
+func TestCliSession_GetKey_ChunkedKey(t *testing.T) {
+	assert := assert.New(t)
+	chunk1 := []byte("chunk1_")
+	chunk2 := []byte("chunk2")
+	expected := append(chunk1, chunk2...)
+	mk := &mockKeyring{
+		items: map[string]keyring.Item{
+			"mykey_chunk_count": {Key: "mykey_chunk_count", Data: []byte("2")},
+			"mykey_chunk_0":     {Key: "mykey_chunk_0", Data: chunk1},
+			"mykey_chunk_1":     {Key: "mykey_chunk_1", Data: chunk2},
+		},
+		getErrs: map[string]error{},
+	}
+	cs := &cliSession{keyring: mk}
+	val, err := cs.GetKey("mykey")
+	assert.Nil(err)
+	assert.Equal(expected, val)
+}
+
+func TestCliSession_GetKey_ChunkCountParseError(t *testing.T) {
+	assert := assert.New(t)
+	mk := &mockKeyring{
+		items: map[string]keyring.Item{
+			"mykey_chunk_count": {Key: "mykey_chunk_count", Data: []byte("notanint")},
+		},
+		getErrs: map[string]error{},
+	}
+	cs := &cliSession{keyring: mk}
+	val, err := cs.GetKey("mykey")
+	assert.NotNil(err)
+	assert.Nil(val)
+	assert.Contains(err.Error(), "failed to get token")
+}
+
+func TestCliSession_GetKey_ChunkMissing(t *testing.T) {
+	assert := assert.New(t)
+	mk := &mockKeyring{
+		items: map[string]keyring.Item{
+			"mykey_chunk_count": {Key: "mykey_chunk_count", Data: []byte("1")},
+		},
+		getErrs: map[string]error{
+			"mykey_chunk_0": errors.New("not found"),
+		},
+	}
+	cs := &cliSession{keyring: mk}
+	val, err := cs.GetKey("mykey")
+	assert.NotNil(err)
+	assert.Nil(val)
+	assert.Contains(err.Error(), "failed to get token chunk 0")
+}
+
+func TestCliSession_GetKey_SingleKeyNotFound(t *testing.T) {
+	assert := assert.New(t)
+	mk := &mockKeyring{
+		items: map[string]keyring.Item{},
+		getErrs: map[string]error{
+			"mykey_chunk_count": keyring.ErrKeyNotFound,
+			"mykey":             keyring.ErrKeyNotFound,
+		},
+	}
+	cs := &cliSession{keyring: mk}
+	val, err := cs.GetKey("mykey")
+	assert.NotNil(err)
+	assert.Nil(val)
+	assert.Contains(err.Error(), "failed to get token")
+}
+func TestCliSession_DeleteKey_SingleKey(t *testing.T) {
+	assert := assert.New(t)
+	mk := &mockKeyring{
+		items: map[string]keyring.Item{
+			"mykey": {Key: "mykey", Data: []byte("value")},
+		},
+		getErrs: map[string]error{
+			"mykey_chunk_count": keyring.ErrKeyNotFound,
+		},
+	}
+	cs := &cliSession{keyring: mk}
+	err := cs.DeleteKey("mykey")
+	assert.Nil(err)
+	_, exists := mk.items["mykey"]
+	assert.False(exists)
+}
+
+func TestCliSession_DeleteKey_ChunkedKey(t *testing.T) {
+	assert := assert.New(t)
+	mk := &mockKeyring{
+		items: map[string]keyring.Item{
+			"mykey_chunk_count": {Key: "mykey_chunk_count", Data: []byte("2")},
+			"mykey_chunk_0":     {Key: "mykey_chunk_0", Data: []byte("chunk1")},
+			"mykey_chunk_1":     {Key: "mykey_chunk_1", Data: []byte("chunk2")},
+			"mykey":             {Key: "mykey", Data: []byte("legacy")},
+		},
+		getErrs: map[string]error{},
+	}
+	cs := &cliSession{keyring: mk}
+	err := cs.DeleteKey("mykey")
+	assert.Nil(err)
+	_, exists0 := mk.items["mykey_chunk_0"]
+	_, exists1 := mk.items["mykey_chunk_1"]
+	_, existsCount := mk.items["mykey_chunk_count"]
+	_, existsLegacy := mk.items["mykey"]
+	assert.False(exists0)
+	assert.False(exists1)
+	assert.False(existsCount)
+	assert.False(existsLegacy)
+}
+
+func TestCliSession_DeleteKey_ChunkRemoveError(t *testing.T) {
+	assert := assert.New(t)
+	mk := &mockKeyring{
+		items: map[string]keyring.Item{
+			"mykey_chunk_count": {Key: "mykey_chunk_count", Data: []byte("2")},
+			"mykey_chunk_0":     {Key: "mykey_chunk_0", Data: []byte("chunk1")},
+			"mykey_chunk_1":     {Key: "mykey_chunk_1", Data: []byte("chunk2")},
+		},
+		getErrs: map[string]error{},
+	}
+	// Simulate error on removing chunk_0
+	mk.RemoveFunc = func(key string) error {
+		if key == "mykey_chunk_0" {
+			return errors.New("remove error")
+		}
+		delete(mk.items, key)
+		return nil
+	}
+	cs := &cliSession{keyring: mk}
+	err := cs.DeleteKey("mykey")
+	assert.Nil(err) // Should not propagate error
+	_, exists0 := mk.items["mykey_chunk_0"]
+	_, exists1 := mk.items["mykey_chunk_1"]
+	assert.True(exists0) // chunk_0 not removed due to error
+	assert.True(exists1) // chunk_1 not removed due to break
+}
+
+func TestCliSession_DeleteKey_KeyAndChunksNotExist(t *testing.T) {
+	assert := assert.New(t)
+	mk := &mockKeyring{
+		items:   map[string]keyring.Item{},
+		getErrs: map[string]error{"mykey_chunk_count": keyring.ErrKeyNotFound},
+	}
+	cs := &cliSession{keyring: mk}
+	err := cs.DeleteKey("mykey")
+	assert.Nil(err)
 }
