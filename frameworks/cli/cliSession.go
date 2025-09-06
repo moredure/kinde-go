@@ -48,8 +48,6 @@ func (c *cliSession) SetCodeVerifier(codeVerifier string) error {
 }
 
 func (c *cliSession) getChunkCount(key string) (int, error) {
-	xx, _ := c.keyring.Keys()
-	fmt.Printf("Keys in keyring: %v\n", xx)
 	countItem, err := c.keyring.Get(key)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get token chunk count: %w", err)
@@ -83,7 +81,7 @@ func (c *cliSession) GetRawToken() (*oauth2.Token, error) {
 	}
 
 	var tokenData []byte
-	for i := 0; i < chunks; i++ {
+	for i := range chunks {
 		chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
 		chunkItem, err := c.keyring.Get(chunkKey)
 		if err != nil {
@@ -194,7 +192,7 @@ func normalizeServiceName(name string) string {
 	return normalized
 }
 
-func NewCliSession(serviceName string) (authorization_code.ISessionHooks, error) {
+func NewCliSession(serviceName string, opts ...Option) (authorization_code.ISessionHooks, error) {
 
 	// In NewCliSession:
 	getPassFunc := func(prompt string) (string, error) {
@@ -212,15 +210,29 @@ func NewCliSession(serviceName string) (authorization_code.ISessionHooks, error)
 		}
 		return string(password), nil
 	}
+
+	// Default values
 	keychainName := fmt.Sprintf("kinde_cli/%s", normalizeServiceName(serviceName))
-	serviceName = fmt.Sprintf("%s", normalizeServiceName(serviceName))
-	ring, err := keyring.Open(keyring.Config{
-		KeychainTrustApplication: true,
-		ServiceName:              serviceName,
-		KeychainName:             keychainName,
-		KeychainPasswordFunc:     getPassFunc,
-		FilePasswordFunc:         getPassFunc,
-	})
+	serviceNameNorm := normalizeServiceName(serviceName)
+
+	// Collect options (could be passed in as variadic args to NewCliSession)
+	opts = append(opts,
+		WithAllowedBackends([]keyring.BackendType{keyring.WinCredBackend, keyring.KeychainBackend, keyring.FileBackend}),
+		WithKeychainTrustApplication(true),
+		WithServiceName(serviceNameNorm),
+		WithKeychainName(keychainName),
+		WithKeychainPasswordFunc(getPassFunc),
+		WithFilePasswordFunc(getPassFunc),
+		WithFileDir(fmt.Sprintf("~/.config/%s", serviceNameNorm)),
+	)
+
+	// Build config using options
+	var cfg keyring.Config
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	ring, err := keyring.Open(cfg)
 
 	if err != nil {
 		return nil, err
