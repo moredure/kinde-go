@@ -258,7 +258,7 @@ func (flow *AuthorizationCodeFlow) ExchangeCode(ctx context.Context, authorizati
 		return err
 	}
 
-	flow.sessionHooks.SetRawToken(token)
+	err = flow.sessionHooks.SetRawToken(token)
 
 	return err
 }
