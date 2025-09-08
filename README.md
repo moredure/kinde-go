@@ -10,13 +10,6 @@ The Kinde SDK for Go.
 
 Requires Go 1.24+
 
-### Usage
-
-```bash
-go get github.com/kinde-oss/kinde-go
-go mod tidy
-```
-
 ## Authorization Code Flow
 
 For comprehensive information about the authorization code flow and device authorization flow, see [oauth2/authorization_code/README.md](oauth2/authorization_code/README.md).
