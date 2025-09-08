@@ -81,9 +81,9 @@ func (c *cliSession) GetKey(key string) ([]byte, error) {
 	chunks, err := c.getChunkCount(countKey)
 	if err != nil {
 		// fallback to single ringItem (old format)
-		ringItem, err := c.keyring.Get(key)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get token: %w", err)
+		ringItem, fallbackErr := c.keyring.Get(key)
+		if fallbackErr != nil {
+			return nil, fmt.Errorf("chunked storage (chunked: %v, fallback: %w)", err, fallbackErr)
 		}
 		return ringItem.Data, nil
 	}
@@ -93,7 +93,7 @@ func (c *cliSession) GetKey(key string) ([]byte, error) {
 		chunkKey := fmt.Sprintf("%s_chunk_%d", key, i)
 		chunkItem, err := c.keyring.Get(chunkKey)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get token chunk %d: %w", i, err)
+			return nil, fmt.Errorf("chunked storage: %w", err)
 		}
 		keyData = append(keyData, chunkItem.Data...)
 	}
@@ -105,7 +105,7 @@ func (c *cliSession) GetCodeVerifier() (string, error) {
 	key := fmt.Sprintf("%s_code_verifier", keyPrefix)
 	item, err := c.keyring.Get(key)
 	if err != nil {
-		return "", fmt.Errorf("code_verifier not found: %w", err)
+		return "", fmt.Errorf("code_verifier storage: %w", err)
 	}
 	return string(item.Data), nil
 }
@@ -127,12 +127,12 @@ func (c *cliSession) SetCodeVerifier(codeVerifier string) error {
 func (c *cliSession) getChunkCount(key string) (int, error) {
 	countItem, err := c.keyring.Get(key)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get token chunk count: %w", err)
+		return 0, fmt.Errorf("chunk count storage: %w", err)
 	}
 
 	var chunks int
 	if _, err := fmt.Sscanf(string(countItem.Data), "%d", &chunks); err != nil {
-		return 0, fmt.Errorf("failed to parse token chunk count: %w", err)
+		return 0, fmt.Errorf("chunk count storage: %w", err)
 	}
 	return chunks, nil
 }
@@ -143,12 +143,12 @@ func (c *cliSession) GetRawToken() (*oauth2.Token, error) {
 
 	tokenData, err := c.GetKey(key)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read token: %w", err)
+		return nil, fmt.Errorf("raw token storage: %w", err)
 	}
 
 	var t oauth2.Token
 	if err := json.Unmarshal(tokenData, &t); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal token: %w", err)
+		return nil, fmt.Errorf("raw token storage: %w", err)
 	}
 	return &t, nil
 }
@@ -163,7 +163,7 @@ func (c *cliSession) SetRawToken(token *oauth2.Token) error {
 
 	t, err := json.Marshal(token)
 	if err != nil {
-		return fmt.Errorf("failed to marshal token: %w", err)
+		return fmt.Errorf("raw token storage: %w", err)
 	}
 
 	err = c.SetKey(key, t)
@@ -205,7 +205,7 @@ func (c *cliSession) SetKey(key string, value []byte) error {
 			Key:  chunkKey,
 			Data: value[start:end],
 		}); err != nil {
-			return fmt.Errorf("failed to save token chunk %d: %w", i, err)
+			return fmt.Errorf("chunked storage: %w", err)
 		}
 	}
 
@@ -216,7 +216,7 @@ func (c *cliSession) SetKey(key string, value []byte) error {
 		Key:  countKey,
 		Data: countData,
 	}); err != nil {
-		return fmt.Errorf("failed to save chunk count: %w", err)
+		return fmt.Errorf("chunk count storage: %w", err)
 	}
 	return nil
 }
@@ -260,10 +260,10 @@ func NewCliSession(serviceName string, opts ...Option) (ICliSession, error) {
 		if !term.IsTerminal(int(os.Stdin.Fd())) {
 			return "", fmt.Errorf("Cannot initialize keychain, please run in interactive terminal first to provide password or provide KINDE_KEYCHAIN_PASS environment variable")
 		}
-		fmt.Printf("%s", prompt)
+		fmt.Printf("%s\n", prompt)
 		password, err := term.ReadPassword(int(syscall.Stdin))
 		if err != nil {
-			fmt.Println("\nError reading password:", err)
+			fmt.Printf("\nError reading password: %v\n", err)
 			return "", err
 		}
 		return string(password), nil

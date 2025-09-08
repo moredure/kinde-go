@@ -36,13 +36,13 @@ func (t sessionTokenSource) validateToken(_ context.Context, token *oauth2.Token
 func (t sessionTokenSource) Token() (*oauth2.Token, error) {
 	token, err := t.flow.sessionHooks.GetRawToken()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get token: %w", err)
+		return nil, fmt.Errorf("session hook: %w", err)
 	}
 	ts := t.flow.config.TokenSource(context.Background(), token)
 
 	possiblyNewToken, err := ts.Token()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get token from token source: %w", err)
+		return nil, fmt.Errorf("token source: %w", err)
 	}
 
 	if _, err := t.validateToken(context.Background(), possiblyNewToken); err != nil {

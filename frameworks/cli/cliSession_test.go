@@ -107,7 +107,7 @@ func TestCliSession_GetRawToken_TokenNotFound(t *testing.T) {
 	got, err := cs.GetRawToken()
 	assert.NotNil(err)
 	assert.Nil(got)
-	assert.Contains(err.Error(), "failed to get token")
+	assert.Contains(err.Error(), "raw token storage: chunked storage")
 }
 
 func TestCliSession_GetRawToken_ChunkCountParseError(t *testing.T) {
@@ -122,7 +122,7 @@ func TestCliSession_GetRawToken_ChunkCountParseError(t *testing.T) {
 	got, err := cs.GetRawToken()
 	assert.NotNil(err)
 	assert.Nil(got)
-	assert.Contains(err.Error(), "failed to get token")
+	assert.Contains(err.Error(), "raw token storage: chunked storage")
 }
 
 func TestCliSession_GetRawToken_ChunkMissing(t *testing.T) {
@@ -139,7 +139,7 @@ func TestCliSession_GetRawToken_ChunkMissing(t *testing.T) {
 	got, err := cs.GetRawToken()
 	assert.NotNil(err)
 	assert.Nil(got)
-	assert.Contains(err.Error(), "failed to get token chunk 0")
+	assert.Contains(err.Error(), "raw token storage: chunked storage: not found")
 }
 
 func TestCliSession_GetRawToken_UnmarshalError(t *testing.T) {
@@ -156,7 +156,7 @@ func TestCliSession_GetRawToken_UnmarshalError(t *testing.T) {
 	got, err := cs.GetRawToken()
 	assert.NotNil(err)
 	assert.Nil(got)
-	assert.Contains(err.Error(), "failed to unmarshal token")
+	assert.Contains(err.Error(), "raw token storage: invalid character")
 }
 
 func TestCliSession_DeleteKey_KeyNotFound(t *testing.T) {
@@ -217,7 +217,7 @@ func TestCliSession_GetKey_ChunkCountParseError(t *testing.T) {
 	val, err := cs.GetKey("mykey")
 	assert.NotNil(err)
 	assert.Nil(val)
-	assert.Contains(err.Error(), "failed to get token")
+	assert.Contains(err.Error(), "chunked storage")
 }
 
 func TestCliSession_GetKey_ChunkMissing(t *testing.T) {
@@ -234,7 +234,7 @@ func TestCliSession_GetKey_ChunkMissing(t *testing.T) {
 	val, err := cs.GetKey("mykey")
 	assert.NotNil(err)
 	assert.Nil(val)
-	assert.Contains(err.Error(), "failed to get token chunk 0")
+	assert.Contains(err.Error(), "chunked storage: not found")
 }
 
 func TestCliSession_GetKey_SingleKeyNotFound(t *testing.T) {
@@ -250,7 +250,7 @@ func TestCliSession_GetKey_SingleKeyNotFound(t *testing.T) {
 	val, err := cs.GetKey("mykey")
 	assert.NotNil(err)
 	assert.Nil(val)
-	assert.Contains(err.Error(), "failed to get token")
+	assert.Contains(err.Error(), "chunked storage")
 }
 func TestCliSession_DeleteKey_SingleKey(t *testing.T) {
 	assert := assert.New(t)
