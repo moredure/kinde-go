@@ -43,6 +43,10 @@ if token.IsValid() {
 }
 ```
 
+**Important**: All validation options (e.g., `WillValidateWithJWKSUrl`, `WillValidateAlgorithm`, `WillValidateAudience`) are applied **once during token parsing**, not every time the token is read. The validation results are cached in the token object, so subsequent calls to `GetSubject()`, `GetIssuer()`, `GetAudience()`, etc. do not re-validate the token.
+
+**Note for OAuth2 Flows**: When using the JWT package with OAuth2 flows (authorization_code or client_credentials), tokens are **re-validated every time they are retrieved from the token source**. This ensures that tokens remain valid throughout their lifecycle and any validation errors are caught when tokens are refreshed or retrieved from session storage.
+
 ## Parsing Methods
 
 ### ParseFromString
