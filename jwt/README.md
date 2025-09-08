@@ -2,6 +2,20 @@
 
 The `jwt` package provides comprehensive JWT (JSON Web Token) parsing, validation, and management capabilities for the Kinde Go SDK. This package is designed to work seamlessly with OAuth2 flows and provides flexible validation options.
 
+## Learn More About JWTs
+
+To better understand JSON Web Tokens, their structure, security features, and use cases, check out our comprehensive guide:
+
+**[A complete guide to JSON Web Tokens (JWTs)](https://kinde.com/learn/authentication/types-and-methods/json-web-tokens/)**
+
+This guide covers:
+
+- What JSON Web Tokens are and how they work
+- JWT structure (header, payload, signature)
+- Security considerations and best practices
+- Common use cases for authentication and authorization
+- JWT benefits compared to other token types
+
 ## Features
 
 - **Multiple Parsing Methods**: Parse JWT tokens from HTTP headers, strings, session storage, or OAuth2 tokens
@@ -10,10 +24,12 @@ The `jwt` package provides comprehensive JWT (JSON Web Token) parsing, validatio
 - **Comprehensive Token Access**: Easy access to token claims, subject, issuer, audience, and other standard JWT fields
 - **Error Handling**: Detailed validation error reporting
 
-## Installation
+## Go Imports
 
-```bash
-go get github.com/kinde-oss/kinde-go/jwt
+```go
+import (
+    "github.com/kinde-oss/kinde-go/jwt" // required
+)
 ```
 
 ## Quick Start
@@ -40,6 +56,10 @@ if token.IsValid() {
     // ... use token
 }
 ```
+
+**Important**: All validation options (e.g., `WillValidateWithJWKSUrl`, `WillValidateAlgorithm`, `WillValidateAudience`) are applied **once during token parsing**, not every time the token is read. The validation results are cached in the token object, so subsequent calls to `GetSubject()`, `GetIssuer()`, `GetAudience()`, etc. do not re-validate the token.
+
+**Note for OAuth2 Flows**: When using the JWT package with OAuth2 flows (authorization_code or client_credentials), tokens are **re-validated every time they are retrieved from the token source**. This ensures that tokens remain valid throughout their lifecycle and any validation errors are caught when tokens are refreshed or retrieved from session storage.
 
 ## Parsing Methods
 

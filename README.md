@@ -10,12 +10,9 @@ The Kinde SDK for Go.
 
 Requires Go 1.24+
 
-### Usage
+## OAuth 2.0 Flows
 
-```bash
-go get github.com/kinde-oss/kinde-go
-go mod tidy
-```
+For comprehensive information about OAuth 2.0 flows and how to choose the right flow for your application, see [OAuth 2.0 flows explained](https://kinde.com/learn/authentication/protocols/oauth-flows-explained/).
 
 ## Authorization Code Flow
 

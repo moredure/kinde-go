@@ -6,6 +6,15 @@ The `authorization_code` package provides OAuth2 authorization code flow impleme
 
 The authorization code flow is a backend authorization flow that requires a client secret. It is designed to be used as a server-side auth flow and does not expose tokens to the browser. User sessions need to be managed by other means, for example via session cookies.
 
+## Go Imports
+
+```go
+import (
+    "github.com/kinde-oss/kinde-go/oauth2/authorization_code" // required
+    "github.com/kinde-oss/kinde-go/jwt" // optional - for JWT token validation
+)
+```
+
 ## Standard Authorization Code Flow
 
 ### Basic Usage
