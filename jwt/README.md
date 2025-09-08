@@ -2,6 +2,20 @@
 
 The `jwt` package provides comprehensive JWT (JSON Web Token) parsing, validation, and management capabilities for the Kinde Go SDK. This package is designed to work seamlessly with OAuth2 flows and provides flexible validation options.
 
+## Learn More About JWTs
+
+To better understand JSON Web Tokens, their structure, security features, and use cases, check out our comprehensive guide:
+
+**[A complete guide to JSON Web Tokens (JWTs)](https://kinde.com/learn/authentication/types-and-methods/json-web-tokens/)**
+
+This guide covers:
+
+- What JSON Web Tokens are and how they work
+- JWT structure (header, payload, signature)
+- Security considerations and best practices
+- Common use cases for authentication and authorization
+- JWT benefits compared to other token types
+
 ## Features
 
 - **Multiple Parsing Methods**: Parse JWT tokens from HTTP headers, strings, session storage, or OAuth2 tokens
