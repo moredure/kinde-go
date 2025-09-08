@@ -10,10 +10,12 @@ The `jwt` package provides comprehensive JWT (JSON Web Token) parsing, validatio
 - **Comprehensive Token Access**: Easy access to token claims, subject, issuer, audience, and other standard JWT fields
 - **Error Handling**: Detailed validation error reporting
 
-## Installation
+## Go Imports
 
-```bash
-go get github.com/kinde-oss/kinde-go/jwt
+```go
+import (
+    "github.com/kinde-oss/kinde-go/jwt" // required
+)
 ```
 
 ## Quick Start
