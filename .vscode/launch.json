@@ -43,6 +43,14 @@
       }
     },
     {
+      "name": "Launch example CLI - version",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/examples/cli/cmd/example-cli",
+      "args": ["version"]
+    },
+    {
       "name": "Launch example CLI - logout",
       "type": "go",
       "request": "launch",
