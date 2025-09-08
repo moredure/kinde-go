@@ -41,7 +41,7 @@ func (c *whoAmICmd) runWhoAmI(cmd *cobra.Command, args []string) error {
 
 	token, err := deviceFlow.GetToken(cmd.Context())
 	if err != nil {
-		return fmt.Errorf("failed to get token: %w", err)
+		return fmt.Errorf("run whoami failed: %w", err)
 	}
 	fmt.Printf("Authenticated as %v\n", token.GetSubject())
 

@@ -41,7 +41,7 @@ func (t sessionTokenSource) Token() (*oauth2.Token, error) {
 
 	possiblyNewToken, err := ts.Token()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get token from token source: %w", err)
+		return nil, fmt.Errorf("token source: %w", err)
 	}
 
 	if _, err := t.validateToken(context.Background(), possiblyNewToken); err != nil {
