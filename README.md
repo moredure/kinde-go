@@ -21,61 +21,25 @@ go mod tidy
 
 For comprehensive information about the authorization code flow and device authorization flow, see [oauth2/authorization_code/README.md](oauth2/authorization_code/README.md).
 
-The `authorization_code` package provides OAuth2 authorization code flow implementations for Go applications, including:
+The `authorization_code` package provides OAuth2 authorization code flow implementations for Go applications:
 
-- Standard authorization code flow for web applications
-- Device authorization flow for devices with limited input capabilities
+| Flow Type | Description | Use Case | Documentation Link |
+| --- | --- | --- | --- |
+| **Browser-based** | Standard authorization code flow for web applications | Web apps with user interaction | [Standard Authorization Code Flow](oauth2/authorization_code/README.md#standard-authorization-code-flow) |
+| **Device Flow** | Device authorization flow for limited input devices | CLIs, TVs, IoT devices | [Device Authorization Flow](oauth2/authorization_code/README.md#device-authorization-flow) |
+
+### Key Features
+
 - Session management and token validation
 - Offline support with refresh token management
+- Middleware integration for popular Go frameworks
+- Comprehensive token validation options
 
-## Client credentials flow
+## Client Credentials Flow
 
-`client_credentials` package, imported as `github.com/kinde-oss/kinde-go/oauth2/client_credentials`.
+For comprehensive information about the client credentials flow, see [oauth2/client_credentials/README.md](oauth2/client_credentials/README.md).
 
-This flow is designed for machine-to-machine communication which doesn't involve human input. It requires Kinde M2M application. Please implement session hooks to store tokens accordingly to your security practices.
-
-We provide a pre-built CLI session storage `cli.NewCliSession(...)`, it uses respective operating system secrets storage for securely storing tokens.
-
-```go
-kindeClient, err := client_credentials.NewClientCredentialsFlow(
-  "<issuer URL>",                                                       // Kinde subdomain or any auth provider conforming to the spec
-  "<client_id>",                                                        // required for client_credentials
-  "<client_secret>",                                                    // required for client_credentials
-  client_credentials.WithAudience("[your API audience]"),                             // optioanlly include your API audience
-  client_credentials.WithScopes()                                                     // optional - request API scopes
-  client_credentials.WithKindeManagementAPI("<https://my_kinde_tenant.kinde.com>"),   // adds kinde management API audience - see README_MANAGEMENT_API.md for details
-  client_credentials.WithSessionHooks(<ISessionHooks implementation>),		            // example of CLI is cli.NewCliSession(...)
-  client_credentials.WithTokenValidation(                                             // validates tokens when a new token is aquired
-    true,                                                               // will validate token signature via JWKS
-    jwt.WillValidateAlgorithm(),                                        // will validate the token alg is RS256
-    jwt.WillValidateAudience("<your API audience>"),                  // will confirm that received token includes correct audience
-  ),
-)
-```
-
-`kindeClient` exposes the following methods:
-
-| Method | Description | Parameters | Returns |
-| --- | --- | --- | --- |
-| `GetClient` | Returns an HTTP client that uses the received token and manages refresh/access token lifetime. | ctx `context.Context` | `(*http.Client, error)` |
-| `GetToken` | Returns the `*jwt.Token`; reads from session storage if present and refreshes when token expires. | ctx `context.Context` | `(*jwt.Token, error)` |
-
-#### Using client to request an authorized endpoint
-
-Client will manage tokens in the background, reading/persisting them to provided the session storage.
-
-When offline scope is requested, refresh tokens will be managed as well.
-
-```go
-// This client will cache the token and re-fetch a new one as it expires
-client, err := kindeClient.GetClient(context.Background())
-if err != nil {
-  // handle initialization error (e.g., invalid config or token source)
-  log.Fatalf("failed to init client: %v", err)
-}
-```
-
-// example call to Kinde Management API (client needs WithKindeManagementAPI(...)) - see README_MANAGEMENT_API.md for details response, err := client.Get("<an authorized URL>")
+The `client_credentials` package provides OAuth2 client credentials flow implementation for machine-to-machine communication. This flow is designed for server-to-server authentication and doesn't involve human input. It requires a Kinde M2M application and proper session hooks implementation for secure token storage.
 
 ### Management API
 
@@ -105,7 +69,7 @@ This repository includes several examples demonstrating different authentication
 For detailed documentation on each flow:
 
 - **Authorization Code Flow**: [oauth2/authorization_code/README.md](oauth2/authorization_code/README.md)
-- **Client Credentials Flow**: See the Client Credentials Flow section below
+- **Client Credentials Flow**: [oauth2/client_credentials/README.md](oauth2/client_credentials/README.md)
 - **Management API**: [README_MANAGEMENT_API.md](README_MANAGEMENT_API.md)
 
 For Management API examples and detailed usage, see [README_MANAGEMENT_API.md](README_MANAGEMENT_API.md).
@@ -145,7 +109,3 @@ Please refer to Kinde’s [contributing guidelines](https://github.com/kinde-os
 ## License
 
 By contributing to Kinde, you agree that your contributions will be licensed under its MIT License.
-
-```
-
-```
