@@ -14,9 +14,9 @@ kindeClient, err := client_credentials.NewClientCredentialsFlow(
   "<client_id>",                                                        // required for client_credentials
   "<client_secret>",                                                    // required for client_credentials
   client_credentials.WithAudience("[your API audience]"),                             // optionally include your API audience
-  client_credentials.WithScopes()                                                     // optional - request API scopes
+  client_credentials.WithScopes(),                                                    // optional - request API scopes
   client_credentials.WithKindeManagementAPI("<https://my_kinde_tenant.kinde.com>"),   // adds kinde management API audience - see README_MANAGEMENT_API.md for details
-  client_credentials.WithSessionHooks(<ISessionHooks implementation>),		            // example of CLI is cli.NewCliSession(...)
+  client_credentials.WithSessionHooks(<ISessionHooks implementation>),                // example of CLI is cli.NewCliSession(...)
   client_credentials.WithTokenValidation(                                             // validates tokens when a new token is acquired
     true,                                                               // will validate token signature via JWKS
     jwt.WillValidateAlgorithm(),                                        // will validate the token alg is RS256
@@ -35,8 +35,6 @@ kindeClient, err := client_credentials.NewClientCredentialsFlow(
 ## Using Client to Request Authorized Endpoints
 
 The client will manage tokens in the background, reading/persisting them to the provided session storage.
-
-When offline scope is requested, refresh tokens will be managed as well.
 
 ```go
 // This client will cache the token and re-fetch a new one as it expires
