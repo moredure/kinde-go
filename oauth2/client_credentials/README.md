@@ -6,6 +6,16 @@ The `client_credentials` package provides OAuth2 client credentials flow impleme
 
 The client credentials flow is designed for machine-to-machine communication which doesn't involve human input. It requires a Kinde M2M application and is ideal for server-to-server authentication scenarios.
 
+## Go Imports
+
+```go
+import (
+    "github.com/kinde-oss/kinde-go/oauth2/client_credentials" // required
+    "github.com/kinde-oss/kinde-go/oauth2/client_credentials/cli" // optional - for CLI session storage
+    "github.com/kinde-oss/kinde-go/jwt" // optional - for JWT token validation
+)
+```
+
 ## Basic Usage
 
 ```go
