@@ -32150,6 +32150,17 @@ func (o *OptString) Decode(d *jx.Decoder) error {
 	if o == nil {
 		return errors.New("invalid: unable to decode OptString to nil")
 	}
+	// Check if the value is null and handle it gracefully
+	if d.Next() == jx.Null {
+		if err := d.Null(); err != nil {
+			return err
+		}
+		// For null values, treat as unset (not present)
+		o.Set = false
+		o.Value = ""
+		return nil
+	}
+	// Value is present and not null
 	o.Set = true
 	v, err := d.Str()
 	if err != nil {
