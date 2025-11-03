@@ -255,60 +255,6 @@ func TestOptString_Decode_WithNull(t *testing.T) {
 	}
 }
 
-func TestOptNilString_Decode_WithNull(t *testing.T) {
-	// This test shows that OptNilString handles null correctly
-	tests := []struct {
-		name     string
-		json     string
-		wantErr  bool
-		wantNull bool
-		wantSet  bool
-	}{
-		{
-			name:     "null value should be handled correctly",
-			json:     `null`,
-			wantErr:  false,
-			wantNull: true,
-			wantSet:  true,
-		},
-		{
-			name:     "string value should be handled correctly",
-			json:     `"test string"`,
-			wantErr:  false,
-			wantNull: false,
-			wantSet:  true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := jx.DecodeBytes([]byte(tt.json))
-			var opt OptNilString
-
-			err := opt.Decode(d)
-
-			if tt.wantErr {
-				if err == nil {
-					t.Errorf("OptNilString.Decode() expected error but got nil")
-				}
-			} else {
-				if err != nil {
-					t.Errorf("OptNilString.Decode() unexpected error = %v", err)
-					return
-				}
-
-				if opt.IsNull() != tt.wantNull {
-					t.Errorf("IsNull() = %v, want %v", opt.IsNull(), tt.wantNull)
-				}
-
-				if opt.IsSet() != tt.wantSet {
-					t.Errorf("IsSet() = %v, want %v", opt.IsSet(), tt.wantSet)
-				}
-			}
-		})
-	}
-}
-
 func TestGetPermissionsResponse_Decode_WithMixedDescriptions(t *testing.T) {
 	// Test with multiple permissions having various description states
 	json := `{
@@ -377,16 +323,59 @@ func TestGetPermissionsResponse_Decode_WithMixedDescriptions(t *testing.T) {
 	t.Log("Successfully decoded GetPermissionsResponse with mixed description states")
 }
 
-// Helper function to check if a string contains a substring
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
-		func() bool {
-			for i := 0; i <= len(s)-len(substr); i++ {
-				if s[i:i+len(substr)] == substr {
-					return true
+func TestOptNilString_Decode_WithNull(t *testing.T) {
+	// This test shows that OptNilString handles null correctly
+	tests := []struct {
+		name     string
+		json     string
+		wantErr  bool
+		wantNull bool
+		wantSet  bool
+	}{
+		{
+			name:     "null value should be handled correctly",
+			json:     `null`,
+			wantErr:  false,
+			wantNull: true,
+			wantSet:  true,
+		},
+		{
+			name:     "string value should be handled correctly",
+			json:     `"test string"`,
+			wantErr:  false,
+			wantNull: false,
+			wantSet:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := jx.DecodeBytes([]byte(tt.json))
+			var opt OptNilString
+
+			err := opt.Decode(d)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("OptNilString.Decode() expected error but got nil")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("OptNilString.Decode() unexpected error = %v", err)
+					return
+				}
+
+				if opt.IsNull() != tt.wantNull {
+					t.Errorf("IsNull() = %v, want %v", opt.IsNull(), tt.wantNull)
+				}
+
+				if opt.IsSet() != tt.wantSet {
+					t.Errorf("IsSet() = %v, want %v", opt.IsSet(), tt.wantSet)
 				}
 			}
-			return false
-		}())
+		})
+	}
 }
+
+
 
