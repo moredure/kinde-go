@@ -205,7 +205,9 @@ func (storage *SessionStorage) GetState() (string, error) {
 // This method implements authorization_code.SessionHooks.
 func (storage *SessionStorage) SetPostAuthRedirect(redirect string) error {
 	storage.session.Set("post_auth_redirect", redirect)
-	storage.session.Save()
+	if err := storage.session.Save(); err != nil {
+		return fmt.Errorf("failed to save session: %w", err)
+	}
 	return nil
 }
 
@@ -224,7 +226,9 @@ func (storage *SessionStorage) SetPostAuthRedirect(redirect string) error {
 // This method implements authorization_code.SessionHooks.
 func (storage *SessionStorage) SetState(state string) error {
 	storage.session.Set("auth_state", state)
-	storage.session.Save()
+	if err := storage.session.Save(); err != nil {
+		return fmt.Errorf("failed to save session: %w", err)
+	}
 	return nil
 }
 
@@ -250,9 +254,13 @@ func (storage *SessionStorage) GetItem(key string) string {
 // Parameters:
 //   - key: The session key to store the value under
 //   - value: The string value to store
+//
+// Note: This method does not return an error for backwards compatibility,
+// but errors from session.Save() are silently ignored. Consider using
+// a method that returns an error for critical session operations.
 func (storage *SessionStorage) SetItem(key, value string) {
 	storage.session.Set(key, value)
-	storage.session.Save()
+	_ = storage.session.Save() // Error ignored for backwards compatibility
 }
 
 // UseKindeAuth sets up Kinde authentication middleware for a Gin router group.

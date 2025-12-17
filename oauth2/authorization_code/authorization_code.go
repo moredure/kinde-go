@@ -242,13 +242,9 @@ func (flow *AuthorizationCodeFlow) AuthorizationCodeReceivedHandler(w http.Respo
 		http.Error(w, "invalid state parameter", http.StatusBadRequest)
 		return
 	}
-	token, err := flow.config.Exchange(r.Context(), r.URL.Query().Get("code"))
-	if err != nil {
+	// Use ExchangeCode to properly handle PKCE code verifier if enabled
+	if err := flow.ExchangeCode(r.Context(), r.URL.Query().Get("code"), receivedState); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if err := flow.sessionHooks.SetRawToken(token); err != nil {
-		http.Error(w, "failed to store token", http.StatusInternalServerError)
 		return
 	}
 }
