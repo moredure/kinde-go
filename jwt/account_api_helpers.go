@@ -611,7 +611,8 @@ type FeatureFlagCondition struct {
 type HasFeatureFlagsOptions struct {
 	// ForceAPI when true, forces fetching feature flags from the Account API instead of the token.
 	ForceAPI bool
-	// Conditions is a map of feature flag names to their validation conditions.
+	// Conditions is a map of feature flag keys to their validation conditions.
+	// The keys should match the feature flag keys (not display names), consistent with GetFlag().
 	// If a condition has a Value set, the flag must match that value.
 	// If Value is nil, only checks for existence.
 	Conditions map[string]FeatureFlagCondition
@@ -625,16 +626,19 @@ type HasFeatureFlagsOptions struct {
 // Conditions can be provided for each flag to check for specific values
 // (e.g., flag must equal "enabled" or a specific number).
 //
+// Note: The parameter should be feature flag keys (not display names), consistent with GetFlag().
+// The key is the unique identifier used in tokens, while "name" is the human-readable display name.
+//
 // Parameters:
 //   - ctx: Context for the API request (only used when ForceAPI is true)
 //   - apiClient: The Account API client for making requests (only used when ForceAPI is true)
-//   - flagNames: The list of feature flag names to check
+//   - flagKeys: The list of feature flag keys to check (not display names)
 //   - options: Configuration options controlling the check behavior
 //
 // Returns true if all flags exist (and match their conditions if provided),
 // false otherwise. Returns an error if the API request fails (when ForceAPI is true).
-func (j *Token) HasFeatureFlags(ctx context.Context, apiClient *account_api.Client, flagNames []string, options HasFeatureFlagsOptions) (bool, error) {
-	if len(flagNames) == 0 {
+func (j *Token) HasFeatureFlags(ctx context.Context, apiClient *account_api.Client, flagKeys []string, options HasFeatureFlagsOptions) (bool, error) {
+	if len(flagKeys) == 0 {
 		return true, nil
 	}
 
@@ -654,14 +658,14 @@ func (j *Token) HasFeatureFlags(ctx context.Context, apiClient *account_api.Clie
 	}
 
 	// Check each flag
-	for _, flagName := range flagNames {
-		flag, exists := flags[flagName]
+	for _, flagKey := range flagKeys {
+		flag, exists := flags[flagKey]
 		if !exists {
 			return false, nil
 		}
 
 		// Check condition if provided
-		if condition, hasCondition := options.Conditions[flagName]; hasCondition {
+		if condition, hasCondition := options.Conditions[flagKey]; hasCondition {
 			if condition.Value != nil {
 				// Value comparison with type-aware comparison
 				// This handles cases where JSON unmarshaling produces float64 for numbers
