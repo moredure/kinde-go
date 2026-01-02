@@ -282,10 +282,16 @@ func TestToken_GetPermission(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(PermissionAccess{
-				PermissionKey: "read:users",
-				OrgCode:       "org456",
-				IsGranted:     true,
+			// The API returns the data wrapped in a struct matching AccountPermissionData
+			// Following the pattern from GetEntitlement, the response includes org_code and is_granted
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"org_code":   "org456",
+				"is_granted": true,
+				"permission": map[string]interface{}{
+					"id":   "perm1",
+					"name": "Read Users",
+					"key":  "read:users",
+				},
 			})
 		}))
 		defer server.Close()
@@ -300,6 +306,30 @@ func TestToken_GetPermission(t *testing.T) {
 		assert.Equal(t, "read:users", result.PermissionKey)
 		assert.Equal(t, "org456", result.OrgCode)
 		assert.True(t, result.IsGranted)
+	})
+
+	t.Run("fetches from API when permission object is missing", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			// Test with minimal response structure (without nested permission object)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"org_code":   "org789",
+				"is_granted": false,
+			})
+		}))
+		defer server.Close()
+
+		token := createTestToken(t, map[string]interface{}{})
+		apiClient, _ := account_api.NewClient(server.URL, func(ctx context.Context) (string, error) {
+			return "token", nil
+		})
+
+		result, err := token.GetPermission(context.Background(), apiClient, "write:posts", GetPermissionOptions{ForceAPI: true})
+		require.NoError(t, err)
+		assert.Equal(t, "write:posts", result.PermissionKey)
+		assert.Equal(t, "org789", result.OrgCode)
+		assert.False(t, result.IsGranted)
 	})
 }
 

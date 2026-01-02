@@ -342,12 +342,26 @@ func (j *Token) GetPermission(ctx context.Context, apiClient *account_api.Client
 
 	// Fetch from Account API
 	route := fmt.Sprintf("account_api/v1/permission/%s", url.PathEscape(permissionKey))
-	var result PermissionAccess
+	type AccountPermissionData struct {
+		OrgCode    string `json:"org_code"`
+		IsGranted  bool   `json:"is_granted"`
+		Permission *struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+			Key  string `json:"key"`
+		} `json:"permission,omitempty"`
+	}
+
+	var result AccountPermissionData
 	if err := apiClient.CallAccountAPI(ctx, route, &result); err != nil {
 		return nil, fmt.Errorf("failed to fetch permission from API: %w", err)
 	}
 
-	return &result, nil
+	return &PermissionAccess{
+		PermissionKey: permissionKey,
+		OrgCode:       result.OrgCode,
+		IsGranted:     result.IsGranted,
+	}, nil
 }
 
 // GetFlag retrieves a specific feature flag by key.
