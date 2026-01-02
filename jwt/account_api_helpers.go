@@ -350,27 +350,32 @@ func (j *Token) GetPermission(ctx context.Context, apiClient *account_api.Client
 	return &result, nil
 }
 
-// GetFlag retrieves a specific feature flag by name.
+// GetFlag retrieves a specific feature flag by key.
 //
 // If forceAPI is false, the feature flag is extracted from the access token's claims,
 // supporting both standard "feature_flags" and Hasura "x-hasura-feature-flags" claim formats.
+// The parameter should be the feature flag key (not the display name).
 //
 // If forceAPI is true, the feature flag is fetched from the Kinde Account API,
-// ensuring the most up-to-date feature flag data.
+// ensuring the most up-to-date feature flag data. The parameter should be the feature flag key
+// (matching the "key" field from the API response, not the "name" field).
+//
+// Note: For consistency, both token and API lookups use the feature flag key. The key is the
+// unique identifier used in tokens, while "name" is the human-readable display name.
 //
 // Parameters:
 //   - ctx: Context for the API request (only used when forceAPI is true)
 //   - apiClient: The Account API client for making requests (only used when forceAPI is true)
-//   - name: The name of the feature flag to retrieve
+//   - key: The key of the feature flag to retrieve (not the display name)
 //   - forceAPI: When true, forces fetching from the Account API instead of the token
 //
 // Returns the feature flag value (which can be string, boolean, number, or object),
 // or nil if the flag is not found. Returns an error if the API request fails (when forceAPI is true).
-func (j *Token) GetFlag(ctx context.Context, apiClient *account_api.Client, name string, forceAPI bool) (interface{}, error) {
+func (j *Token) GetFlag(ctx context.Context, apiClient *account_api.Client, key string, forceAPI bool) (interface{}, error) {
 	if !forceAPI {
-		// Read from token
+		// Read from token - lookup by key
 		flags := j.GetFeatureFlags()
-		if flag, exists := flags[name]; exists {
+		if flag, exists := flags[key]; exists {
 			return flag.Value, nil
 		}
 		return nil, nil
@@ -391,9 +396,9 @@ func (j *Token) GetFlag(ctx context.Context, apiClient *account_api.Client, name
 		return nil, fmt.Errorf("failed to fetch feature flags from API: %w", err)
 	}
 
-	// Find the flag by name
+	// Find the flag by key (for consistency with token lookup)
 	for _, flag := range result.FeatureFlags {
-		if flag.Name == name {
+		if flag.Key == key {
 			return flag.Value, nil
 		}
 	}
@@ -658,8 +663,10 @@ func (j *Token) HasFeatureFlags(ctx context.Context, apiClient *account_api.Clie
 		// Check condition if provided
 		if condition, hasCondition := options.Conditions[flagName]; hasCondition {
 			if condition.Value != nil {
-				// Value comparison
-				if flag.Value != condition.Value {
+				// Value comparison with type-aware comparison
+				// This handles cases where JSON unmarshaling produces float64 for numbers
+				// but the condition value might be an int
+				if !compareValues(flag.Value, condition.Value) {
 					return false, nil
 				}
 			}
@@ -729,4 +736,83 @@ func (j *Token) HasBillingEntitlements(ctx context.Context, apiClient *account_a
 	}
 
 	return true, nil
+}
+
+// compareValues performs a type-aware comparison of two values.
+//
+// This function handles cases where JSON unmarshaling produces float64 for numbers
+// but the condition value might be an int, causing direct equality to fail.
+// For example, it correctly compares 100.0 (float64 from JSON) with 100 (int).
+//
+// The comparison logic:
+//   - First attempts direct equality comparison (works for strings, bools, exact type matches)
+//   - If both values are numeric types, converts them to float64 for comparison
+//   - Returns false for non-numeric type mismatches
+//
+// Parameters:
+//   - a: First value to compare
+//   - b: Second value to compare
+//
+// Returns true if the values are equal (accounting for numeric type differences), false otherwise.
+func compareValues(a, b interface{}) bool {
+	// Direct comparison if types match
+	if a == b {
+		return true
+	}
+
+	// Handle numeric type mismatches (common with JSON unmarshaling)
+	// Convert both to float64 for comparison
+	if aNum, aIsNum := toFloat64(a); aIsNum {
+		if bNum, bIsNum := toFloat64(b); bIsNum {
+			return aNum == bNum
+		}
+	}
+
+	// For non-numeric types, direct comparison (strings, bools, etc.)
+	return false
+}
+
+// toFloat64 attempts to convert a value to float64.
+//
+// This helper function is used to normalize numeric types for comparison.
+// It supports conversion from all Go numeric types: int, int8-64, uint, uint8-64, float32, float64.
+//
+// This is particularly useful when comparing JSON-unmarshaled values (which are float64)
+// with Go integer literals or variables.
+//
+// Parameters:
+//   - v: The value to convert to float64
+//
+// Returns:
+//   - float64: The converted value (0 if conversion is not possible)
+//   - bool: True if the value is a numeric type and conversion succeeded, false otherwise
+func toFloat64(v interface{}) (float64, bool) {
+	switch n := v.(type) {
+	case float64:
+		return n, true
+	case float32:
+		return float64(n), true
+	case int:
+		return float64(n), true
+	case int8:
+		return float64(n), true
+	case int16:
+		return float64(n), true
+	case int32:
+		return float64(n), true
+	case int64:
+		return float64(n), true
+	case uint:
+		return float64(n), true
+	case uint8:
+		return float64(n), true
+	case uint16:
+		return float64(n), true
+	case uint32:
+		return float64(n), true
+	case uint64:
+		return float64(n), true
+	default:
+		return 0, false
+	}
 }

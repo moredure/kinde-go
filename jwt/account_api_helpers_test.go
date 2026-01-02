@@ -369,7 +369,8 @@ func TestToken_GetFlag(t *testing.T) {
 			return "token", nil
 		})
 
-		result, err := token.GetFlag(context.Background(), apiClient, "Flag 1", true)
+		// Use key (not name) for consistency with token lookup
+		result, err := token.GetFlag(context.Background(), apiClient, "flag1", true)
 		require.NoError(t, err)
 		assert.Equal(t, true, result)
 	})
@@ -638,6 +639,50 @@ func TestToken_HasFeatureFlags(t *testing.T) {
 		})
 		require.NoError(t, err)
 		assert.False(t, result)
+	})
+
+	t.Run("handles numeric type mismatches correctly", func(t *testing.T) {
+		// JSON unmarshaling produces float64, but condition might be int
+		// This test verifies that 100.0 (float64) == 100 (int)
+		token := createTestToken(t, map[string]interface{}{
+			"feature_flags": map[string]interface{}{
+				"max_users": map[string]interface{}{"t": "i", "v": 100.0}, // JSON produces float64
+			},
+		})
+
+		apiClient, _ := account_api.NewClient("https://example.com", func(ctx context.Context) (string, error) {
+			return "token", nil
+		})
+
+		// Test with int condition (should match float64 from token)
+		conditions := map[string]FeatureFlagCondition{
+			"max_users": {Value: 100}, // int
+		}
+
+		result, err := token.HasFeatureFlags(context.Background(), apiClient, []string{"max_users"}, HasFeatureFlagsOptions{
+			ForceAPI:  false,
+			Conditions: conditions,
+		})
+		require.NoError(t, err)
+		assert.True(t, result, "int 100 should match float64 100.0")
+
+		// Test with int64 condition
+		conditions["max_users"] = FeatureFlagCondition{Value: int64(100)}
+		result, err = token.HasFeatureFlags(context.Background(), apiClient, []string{"max_users"}, HasFeatureFlagsOptions{
+			ForceAPI:  false,
+			Conditions: conditions,
+		})
+		require.NoError(t, err)
+		assert.True(t, result, "int64 100 should match float64 100.0")
+
+		// Test with different value (should not match)
+		conditions["max_users"] = FeatureFlagCondition{Value: 200}
+		result, err = token.HasFeatureFlags(context.Background(), apiClient, []string{"max_users"}, HasFeatureFlagsOptions{
+			ForceAPI:  false,
+			Conditions: conditions,
+		})
+		require.NoError(t, err)
+		assert.False(t, result, "int 200 should not match float64 100.0")
 	})
 }
 
