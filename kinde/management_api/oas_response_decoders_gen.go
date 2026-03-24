@@ -1009,9 +1009,6 @@ func decodeAddOrganizationUsersResponse(resp *http.Response) (res AddOrganizatio
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
-	case 204:
-		// Code 204.
-		return &AddOrganizationUsersNoContent{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -3605,11 +3602,11 @@ func decodeDeleteAPIResponse(resp *http.Response) (res DeleteAPIRes, _ error) {
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeDeleteAPIAppliationScopeResponse(resp *http.Response) (res DeleteAPIAppliationScopeRes, _ error) {
+func decodeDeleteAPIApplicationScopeResponse(resp *http.Response) (res DeleteAPIApplicationScopeRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
-		return &DeleteAPIAppliationScopeOK{}, nil
+		return &DeleteAPIApplicationScopeOK{}, nil
 	case 400:
 		// Code 400.
 		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
@@ -3624,7 +3621,7 @@ func decodeDeleteAPIAppliationScopeResponse(resp *http.Response) (res DeleteAPIA
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response DeleteAPIAppliationScopeBadRequest
+			var response DeleteAPIApplicationScopeBadRequest
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3659,7 +3656,7 @@ func decodeDeleteAPIAppliationScopeResponse(resp *http.Response) (res DeleteAPIA
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response DeleteAPIAppliationScopeForbidden
+			var response DeleteAPIApplicationScopeForbidden
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -3694,7 +3691,7 @@ func decodeDeleteAPIAppliationScopeResponse(resp *http.Response) (res DeleteAPIA
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response DeleteAPIAppliationScopeTooManyRequests
+			var response DeleteAPIApplicationScopeTooManyRequests
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -13501,6 +13498,15 @@ func decodeGetUsersResponse(resp *http.Response) (res GetUsersRes, _ error) {
 					Err:         err,
 				}
 				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
 			}
 			return &response, nil
 		default:

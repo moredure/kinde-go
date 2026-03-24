@@ -64,7 +64,7 @@ var operationRolesKindeBearerAuth = map[string][]string{
 	CreateUserIdentityOperation:                     []string{},
 	CreateWebHookOperation:                          []string{},
 	DeleteAPIOperation:                              []string{},
-	DeleteAPIAppliationScopeOperation:               []string{},
+	DeleteAPIApplicationScopeOperation:              []string{},
 	DeleteAPIScopeOperation:                         []string{},
 	DeleteApiKeyOperation:                           []string{},
 	DeleteApplicationOperation:                      []string{},

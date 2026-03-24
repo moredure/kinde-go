@@ -113,8 +113,8 @@ type CreateWebHookRes interface {
 	createWebHookRes()
 }
 
-type DeleteAPIAppliationScopeRes interface {
-	deleteAPIAppliationScopeRes()
+type DeleteAPIApplicationScopeRes interface {
+	deleteAPIApplicationScopeRes()
 }
 
 type DeleteAPIRes interface {

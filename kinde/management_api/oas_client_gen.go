@@ -295,7 +295,7 @@ type Invoker interface {
 	//
 	// DELETE /api/v1/apis/{api_id}
 	DeleteAPI(ctx context.Context, params DeleteAPIParams) (DeleteAPIRes, error)
-	// DeleteAPIAppliationScope invokes deleteAPIAppliationScope operation.
+	// DeleteAPIApplicationScope invokes deleteAPIApplicationScope operation.
 	//
 	// Delete an API application scope you previously created.
 	// <div>
@@ -303,7 +303,7 @@ type Invoker interface {
 	// </div>.
 	//
 	// DELETE /api/v1/apis/{api_id}/applications/{application_id}/scopes/{scope_id}
-	DeleteAPIAppliationScope(ctx context.Context, params DeleteAPIAppliationScopeParams) (DeleteAPIAppliationScopeRes, error)
+	DeleteAPIApplicationScope(ctx context.Context, params DeleteAPIApplicationScopeParams) (DeleteAPIApplicationScopeRes, error)
 	// DeleteAPIScope invokes deleteAPIScope operation.
 	//
 	// Delete an API scope you previously created.
@@ -5193,7 +5193,7 @@ func (c *Client) sendDeleteAPI(ctx context.Context, params DeleteAPIParams) (res
 	return result, nil
 }
 
-// DeleteAPIAppliationScope invokes deleteAPIAppliationScope operation.
+// DeleteAPIApplicationScope invokes deleteAPIApplicationScope operation.
 //
 // Delete an API application scope you previously created.
 // <div>
@@ -5201,14 +5201,14 @@ func (c *Client) sendDeleteAPI(ctx context.Context, params DeleteAPIParams) (res
 // </div>.
 //
 // DELETE /api/v1/apis/{api_id}/applications/{application_id}/scopes/{scope_id}
-func (c *Client) DeleteAPIAppliationScope(ctx context.Context, params DeleteAPIAppliationScopeParams) (DeleteAPIAppliationScopeRes, error) {
-	res, err := c.sendDeleteAPIAppliationScope(ctx, params)
+func (c *Client) DeleteAPIApplicationScope(ctx context.Context, params DeleteAPIApplicationScopeParams) (DeleteAPIApplicationScopeRes, error) {
+	res, err := c.sendDeleteAPIApplicationScope(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendDeleteAPIAppliationScope(ctx context.Context, params DeleteAPIAppliationScopeParams) (res DeleteAPIAppliationScopeRes, err error) {
+func (c *Client) sendDeleteAPIApplicationScope(ctx context.Context, params DeleteAPIApplicationScopeParams) (res DeleteAPIApplicationScopeRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("deleteAPIAppliationScope"),
+		otelogen.OperationID("deleteAPIApplicationScope"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
 		semconv.HTTPRouteKey.String("/api/v1/apis/{api_id}/applications/{application_id}/scopes/{scope_id}"),
 	}
@@ -5225,7 +5225,7 @@ func (c *Client) sendDeleteAPIAppliationScope(ctx context.Context, params Delete
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, DeleteAPIAppliationScopeOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, DeleteAPIApplicationScopeOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -5313,7 +5313,7 @@ func (c *Client) sendDeleteAPIAppliationScope(ctx context.Context, params Delete
 		var satisfied bitset
 		{
 			stage = "Security:KindeBearerAuth"
-			switch err := c.securityKindeBearerAuth(ctx, DeleteAPIAppliationScopeOperation, r); {
+			switch err := c.securityKindeBearerAuth(ctx, DeleteAPIApplicationScopeOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -5349,7 +5349,7 @@ func (c *Client) sendDeleteAPIAppliationScope(ctx context.Context, params Delete
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeDeleteAPIAppliationScopeResponse(resp)
+	result, err := decodeDeleteAPIApplicationScopeResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -16650,6 +16650,23 @@ func (c *Client) sendGetUsers(ctx context.Context, params GetUsersParams) (res G
 			return res, errors.Wrap(err, "encode query")
 		}
 	}
+	{
+		// Encode "active_since" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "active_since",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.ActiveSince.Get(); ok {
+				return e.EncodeValue(conv.DateTimeToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
 	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
@@ -19433,6 +19450,23 @@ func (c *Client) sendSearchUsers(ctx context.Context, params SearchUsersParams) 
 
 		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
 			if val, ok := params.Query.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "api_scopes" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "api_scopes",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.APIScopes.Get(); ok {
 				return e.EncodeValue(conv.StringToString(val))
 			}
 			return nil

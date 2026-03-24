@@ -303,7 +303,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 												// Leaf node.
 												switch r.Method {
 												case "DELETE":
-													s.handleDeleteAPIAppliationScopeRequest([3]string{
+													s.handleDeleteAPIApplicationScopeRequest([3]string{
 														args[0],
 														args[1],
 														args[2],
@@ -3441,9 +3441,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 												// Leaf node.
 												switch method {
 												case "DELETE":
-													r.name = DeleteAPIAppliationScopeOperation
+													r.name = DeleteAPIApplicationScopeOperation
 													r.summary = "Delete API application scope"
-													r.operationID = "deleteAPIAppliationScope"
+													r.operationID = "deleteAPIApplicationScope"
 													r.pathPattern = "/api/v1/apis/{api_id}/applications/{application_id}/scopes/{scope_id}"
 													r.args = args
 													r.count = 3

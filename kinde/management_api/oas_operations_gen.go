@@ -35,7 +35,7 @@ const (
 	CreateUserIdentityOperation                     OperationName = "CreateUserIdentity"
 	CreateWebHookOperation                          OperationName = "CreateWebHook"
 	DeleteAPIOperation                              OperationName = "DeleteAPI"
-	DeleteAPIAppliationScopeOperation               OperationName = "DeleteAPIAppliationScope"
+	DeleteAPIApplicationScopeOperation              OperationName = "DeleteAPIApplicationScope"
 	DeleteAPIScopeOperation                         OperationName = "DeleteAPIScope"
 	DeleteApiKeyOperation                           OperationName = "DeleteApiKey"
 	DeleteApplicationOperation                      OperationName = "DeleteApplication"
