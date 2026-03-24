@@ -39,6 +39,17 @@ func (s *CreateApiKeyReq) Validate() error {
 
 	var failures []validate.FieldError
 	if err := func() error {
+		if err := s.Type.Validate(); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "type",
+			Error: err,
+		})
+	}
+	if err := func() error {
 		if value, ok := s.ScopeIds.Get(); ok {
 			if err := func() error {
 				if value == nil {
@@ -60,6 +71,19 @@ func (s *CreateApiKeyReq) Validate() error {
 		return &validate.Error{Fields: failures}
 	}
 	return nil
+}
+
+func (s CreateApiKeyReqType) Validate() error {
+	switch s {
+	case "user":
+		return nil
+	case "organization":
+		return nil
+	case "environment":
+		return nil
+	default:
+		return errors.Errorf("invalid value: %v", s)
+	}
 }
 
 func (s *CreateApplicationReq) Validate() error {
@@ -201,6 +225,14 @@ func (s CreateConnectionReqStrategy) Validate() error {
 	case "oauth2:xero":
 		return nil
 	case "saml:custom":
+		return nil
+	case "saml:cloudflare":
+		return nil
+	case "saml:okta":
+		return nil
+	case "saml:microsoft":
+		return nil
+	case "saml:google":
 		return nil
 	case "wsfed:azure_ad":
 		return nil
@@ -1695,9 +1727,76 @@ func (s UpdateOrganizationSessionsReqSSOSessionPersistenceMode) Validate() error
 	switch s {
 	case "persistent":
 		return nil
-	case "non-persistent":
+	case "non_persistent":
 		return nil
 	default:
 		return errors.Errorf("invalid value: %v", s)
 	}
+}
+
+func (s *UsersResponse) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		var failures []validate.FieldError
+		for i, elem := range s.Users {
+			if err := func() error {
+				if err := elem.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				failures = append(failures, validate.FieldError{
+					Name:  fmt.Sprintf("[%d]", i),
+					Error: err,
+				})
+			}
+		}
+		if len(failures) > 0 {
+			return &validate.Error{Fields: failures}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "users",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
+}
+
+func (s *UsersResponseUsersItem) Validate() error {
+	if s == nil {
+		return validate.ErrNilPointer
+	}
+
+	var failures []validate.FieldError
+	if err := func() error {
+		if value, ok := s.LastOrganizationSignIns.Get(); ok {
+			if err := func() error {
+				if value == nil {
+					return errors.New("nil is invalid value")
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		failures = append(failures, validate.FieldError{
+			Name:  "last_organization_sign_ins",
+			Error: err,
+		})
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+	return nil
 }

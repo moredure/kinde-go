@@ -425,12 +425,6 @@ func encodeAddOrganizationUsersResponse(response AddOrganizationUsersRes, w http
 
 		return nil
 
-	case *AddOrganizationUsersNoContent:
-		w.WriteHeader(204)
-		span.SetStatus(codes.Ok, http.StatusText(204))
-
-		return nil
-
 	case *AddOrganizationUsersBadRequest:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(400)
@@ -1576,15 +1570,15 @@ func encodeDeleteAPIResponse(response DeleteAPIRes, w http.ResponseWriter, span 
 	}
 }
 
-func encodeDeleteAPIAppliationScopeResponse(response DeleteAPIAppliationScopeRes, w http.ResponseWriter, span trace.Span) error {
+func encodeDeleteAPIApplicationScopeResponse(response DeleteAPIApplicationScopeRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
-	case *DeleteAPIAppliationScopeOK:
+	case *DeleteAPIApplicationScopeOK:
 		w.WriteHeader(200)
 		span.SetStatus(codes.Ok, http.StatusText(200))
 
 		return nil
 
-	case *DeleteAPIAppliationScopeBadRequest:
+	case *DeleteAPIApplicationScopeBadRequest:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(400)
 		span.SetStatus(codes.Error, http.StatusText(400))
@@ -1597,7 +1591,7 @@ func encodeDeleteAPIAppliationScopeResponse(response DeleteAPIAppliationScopeRes
 
 		return nil
 
-	case *DeleteAPIAppliationScopeForbidden:
+	case *DeleteAPIApplicationScopeForbidden:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(403)
 		span.SetStatus(codes.Error, http.StatusText(403))
@@ -1610,7 +1604,7 @@ func encodeDeleteAPIAppliationScopeResponse(response DeleteAPIAppliationScopeRes
 
 		return nil
 
-	case *DeleteAPIAppliationScopeTooManyRequests:
+	case *DeleteAPIApplicationScopeTooManyRequests:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(429)
 		span.SetStatus(codes.Error, http.StatusText(429))

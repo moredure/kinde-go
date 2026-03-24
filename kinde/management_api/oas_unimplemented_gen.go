@@ -366,7 +366,7 @@ func (UnimplementedHandler) DeleteAPI(ctx context.Context, params DeleteAPIParam
 	return r, ht.ErrNotImplemented
 }
 
-// DeleteAPIAppliationScope implements deleteAPIAppliationScope operation.
+// DeleteAPIApplicationScope implements deleteAPIApplicationScope operation.
 //
 // Delete an API application scope you previously created.
 // <div>
@@ -374,7 +374,7 @@ func (UnimplementedHandler) DeleteAPI(ctx context.Context, params DeleteAPIParam
 // </div>.
 //
 // DELETE /api/v1/apis/{api_id}/applications/{application_id}/scopes/{scope_id}
-func (UnimplementedHandler) DeleteAPIAppliationScope(ctx context.Context, params DeleteAPIAppliationScopeParams) (r DeleteAPIAppliationScopeRes, _ error) {
+func (UnimplementedHandler) DeleteAPIApplicationScope(ctx context.Context, params DeleteAPIApplicationScopeParams) (r DeleteAPIApplicationScopeRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

@@ -5590,7 +5590,7 @@ func (s *Server) handleDeleteAPIRequest(args [1]string, argsEscaped bool, w http
 	}
 }
 
-// handleDeleteAPIAppliationScopeRequest handles deleteAPIAppliationScope operation.
+// handleDeleteAPIApplicationScopeRequest handles deleteAPIApplicationScope operation.
 //
 // Delete an API application scope you previously created.
 // <div>
@@ -5598,17 +5598,17 @@ func (s *Server) handleDeleteAPIRequest(args [1]string, argsEscaped bool, w http
 // </div>.
 //
 // DELETE /api/v1/apis/{api_id}/applications/{application_id}/scopes/{scope_id}
-func (s *Server) handleDeleteAPIAppliationScopeRequest(args [3]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleDeleteAPIApplicationScopeRequest(args [3]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("deleteAPIAppliationScope"),
+		otelogen.OperationID("deleteAPIApplicationScope"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
 		semconv.HTTPRouteKey.String("/api/v1/apis/{api_id}/applications/{application_id}/scopes/{scope_id}"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), DeleteAPIAppliationScopeOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), DeleteAPIApplicationScopeOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -5663,15 +5663,15 @@ func (s *Server) handleDeleteAPIAppliationScopeRequest(args [3]string, argsEscap
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: DeleteAPIAppliationScopeOperation,
-			ID:   "deleteAPIAppliationScope",
+			Name: DeleteAPIApplicationScopeOperation,
+			ID:   "deleteAPIApplicationScope",
 		}
 	)
 	{
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityKindeBearerAuth(ctx, DeleteAPIAppliationScopeOperation, r)
+			sctx, ok, err := s.securityKindeBearerAuth(ctx, DeleteAPIApplicationScopeOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -5711,7 +5711,7 @@ func (s *Server) handleDeleteAPIAppliationScopeRequest(args [3]string, argsEscap
 			return
 		}
 	}
-	params, err := decodeDeleteAPIAppliationScopeParams(args, argsEscaped, r)
+	params, err := decodeDeleteAPIApplicationScopeParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -5722,13 +5722,13 @@ func (s *Server) handleDeleteAPIAppliationScopeRequest(args [3]string, argsEscap
 		return
 	}
 
-	var response DeleteAPIAppliationScopeRes
+	var response DeleteAPIApplicationScopeRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    DeleteAPIAppliationScopeOperation,
+			OperationName:    DeleteAPIApplicationScopeOperation,
 			OperationSummary: "Delete API application scope",
-			OperationID:      "deleteAPIAppliationScope",
+			OperationID:      "deleteAPIApplicationScope",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
@@ -5749,8 +5749,8 @@ func (s *Server) handleDeleteAPIAppliationScopeRequest(args [3]string, argsEscap
 
 		type (
 			Request  = struct{}
-			Params   = DeleteAPIAppliationScopeParams
-			Response = DeleteAPIAppliationScopeRes
+			Params   = DeleteAPIApplicationScopeParams
+			Response = DeleteAPIApplicationScopeRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -5759,14 +5759,14 @@ func (s *Server) handleDeleteAPIAppliationScopeRequest(args [3]string, argsEscap
 		](
 			m,
 			mreq,
-			unpackDeleteAPIAppliationScopeParams,
+			unpackDeleteAPIApplicationScopeParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.DeleteAPIAppliationScope(ctx, params)
+				response, err = s.h.DeleteAPIApplicationScope(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.DeleteAPIAppliationScope(ctx, params)
+		response, err = s.h.DeleteAPIApplicationScope(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -5774,7 +5774,7 @@ func (s *Server) handleDeleteAPIAppliationScopeRequest(args [3]string, argsEscap
 		return
 	}
 
-	if err := encodeDeleteAPIAppliationScopeResponse(response, w, span); err != nil {
+	if err := encodeDeleteAPIApplicationScopeResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -20739,6 +20739,10 @@ func (s *Server) handleGetUsersRequest(args [0]string, argsEscaped bool, w http.
 					Name: "has_organization",
 					In:   "query",
 				}: params.HasOrganization,
+				{
+					Name: "active_since",
+					In:   "query",
+				}: params.ActiveSince,
 			},
 			Raw: r,
 		}
@@ -24693,6 +24697,10 @@ func (s *Server) handleSearchUsersRequest(args [0]string, argsEscaped bool, w ht
 					Name: "query",
 					In:   "query",
 				}: params.Query,
+				{
+					Name: "api_scopes",
+					In:   "query",
+				}: params.APIScopes,
 				{
 					Name: "properties",
 					In:   "query",

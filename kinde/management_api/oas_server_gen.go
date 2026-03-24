@@ -274,7 +274,7 @@ type Handler interface {
 	//
 	// DELETE /api/v1/apis/{api_id}
 	DeleteAPI(ctx context.Context, params DeleteAPIParams) (DeleteAPIRes, error)
-	// DeleteAPIAppliationScope implements deleteAPIAppliationScope operation.
+	// DeleteAPIApplicationScope implements deleteAPIApplicationScope operation.
 	//
 	// Delete an API application scope you previously created.
 	// <div>
@@ -282,7 +282,7 @@ type Handler interface {
 	// </div>.
 	//
 	// DELETE /api/v1/apis/{api_id}/applications/{application_id}/scopes/{scope_id}
-	DeleteAPIAppliationScope(ctx context.Context, params DeleteAPIAppliationScopeParams) (DeleteAPIAppliationScopeRes, error)
+	DeleteAPIApplicationScope(ctx context.Context, params DeleteAPIApplicationScopeParams) (DeleteAPIApplicationScopeRes, error)
 	// DeleteAPIScope implements deleteAPIScope operation.
 	//
 	// Delete an API scope you previously created.
